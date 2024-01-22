@@ -1,0 +1,246 @@
+import requests
+import json
+
+#URLs
+url_gestao_x = "https://csc.everestdigital.com.br/API/"
+url_servicenow = "https://eleadev.service-now.com/"
+
+#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
+params_fetch_chamados_gestao_x = {
+    "Login": "INTEGRACAOELEA",
+    "Token": "cJV3s9yjRStcS0LHV0boSQ==",
+}
+
+#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaHistoricoChamado
+params_fetch_historico_chamado_gestao_x = {
+    "CodigoChamado":"",
+    "Token":"cJV3s9yjRStcS0LHV0boSQ==",
+    "InformacaoPublica":"true",
+}
+
+#Variavel de parametros para GET na API do ServiceNow
+#Recebe uma Encoded Query no formato do ServiceNow de acordo com a necessidade dentro das funções onde é necessário
+params_encoded_query = {
+    "sysparam_query": "",
+}
+
+#Token para recarregar token de acesso ao ServiceNow
+refresh_token = "c9D81Gw4Y9E8Z0LIp6ciqe2hE16F9M2DhGjCUAu6NYGWy_nSQay7r62mvSO_m2A9BP9NizEkk-M9pef932BxXQ"
+
+
+
+#Busca os chamados em acompanhamento no Gestão X
+def fetch_chamados_gestao_x(url, params):
+    try:
+        response = requests.get(url+"api/chamado/Retorna_chamados_acompanhamento_solicitantes", params=params)
+        if response.status_code == 200:
+            ticket_data = response.json()
+            return ticket_data
+        else:
+            response.raise_for_status()
+
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"An error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+
+
+
+#Busca as atualizações de um dado chamado no Gestão X
+def fetch_historico_chamado_gestao_x(url, params, ticket):
+    try:
+        params["CodigoChamado"] = ticket
+        response = requests.get(url+"api/chamado/RetornaHistoricoChamado", params=params)
+        if response.status_code == 200:
+            historic_data = response.json()
+            return historic_data
+        else:
+            response.raise_for_status()
+
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on GET RetornaHistoricoChamado: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on GET RetornaHistoricoChamado: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on GET RetornaHistoricoChamado: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"An error occurred on GET RetornaHistoricoChamado: {err}")
+
+
+
+#Para cada chamado ativo, busca seu histórico e adiciona ele no array 'data'
+def process_historico(ticket_data):
+        data = []
+        if ticket_data:
+            for ticket in ticket_data:
+                codigo_ticket = ticket.get('CODIGO')
+                history_data = fetch_historico_chamado_gestao_x(url_gestao_x, params_fetch_historico_chamado_gestao_x, codigo_ticket)
+                
+                if history_data:
+                    for entry in history_data:
+                        codigo = entry.get("CODIGO")
+                        descricao = entry.get("DESCRICAO")
+                        status = entry.get("STATUS")
+                        data_historico = entry.get("DATA_HISTORICO")
+                    
+                        entry_dic = {
+                            "u_ticket_gestao_x":codigo,
+                            "u_descricao":descricao,
+                            "u_status":status,
+                            "u_data_da_atualizacao":data_historico
+                        }
+
+                        data.append(entry_dic)
+        
+        return data  
+
+
+
+#Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
+def get_auth_token(token):
+    url = url_servicenow+"/oauth_token.do"
+    body = {
+        "grant_type":"refresh_token",
+        "client_id":"a84352781677f9109fc0a859568b890f",
+        "client_secret":"hg2MCxCJ18OgEv%Zn@yz",
+        "refresh_token":token,
+    }
+    response = requests.post(url, data=body)
+    data = response.json()
+
+    return data["access_token"]
+
+
+
+#Verifica se o ticket (Gestão X) já está cadastrado no ServiceNow ou não
+#Caso não esteja, quer dizer que o ticket foi proativamente aberto no Gestão X e deve ser cadastrado no ServiceNow para acompanhamento.
+def does_it_exist(code, params):
+    try:
+        found = False
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": "Bearer "+get_auth_token(refresh_token),
+        }
+
+        params["sysparm_query"] = "u_ticket_gestao_xLIKE"+code
+        response = requests.get(url_servicenow+"api/now/v2/table/u_integradora_gestao_x", headers=headers, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+            if not 'result' in data or len(data['result']) == 0:
+                found = False
+            else:
+                found = True
+                
+            return found
+        else:
+            response.raise_for_status()
+        
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+
+
+
+#Verifica se o registro do histórico já foi inserido no ServiceNow
+#Pendente validar se o ticket existe no ServiceNow e se não existir, fazer a sua tratativa para que exista(?), pode ser feito na função 'update_servicenow' se necessário
+def has_it_been_updated(code, date, params):
+    try:
+        found = False
+
+        headers = {
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Authorization": "Bearer "+get_auth_token(refresh_token),
+        }
+
+        params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date
+        response = requests.get(url_servicenow+"api/now/v2/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
+
+        if response.status_code == 200:
+            data = response.json()
+            if not 'result' in data or len(data['result']) == 0:
+                found = False
+            else:
+                found = True
+                
+            return found
+        else:
+            response.raise_for_status()
+        
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+    
+
+
+#Insere as novas informações dos historicos dos chamados do Gestão X na tabela integradora de atualizações (u_integradora_gestao_x_atualizacoes)
+#Ao criar os registros nessa tabela o Flow 'ELEA-LB: Gestão X - Escreve atualizações recebidas dos tickets' realiza a atualização da RITM.
+def update_servicenow(updates, token):  
+    try:
+        if not updates:
+            raise Exception("Updates array is empty")
+
+        url = url_servicenow+"/api/now/v2/table/u_integradora_gestao_x_atualizacoes"
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+token,
+        }
+        
+        results = []
+        
+        for item in updates:
+            response = requests.Response()
+            try:
+                if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query):
+                    if not has_it_been_updated(item["u_ticket_gestao_x"], item["u_data_da_atualizacao"], params_encoded_query):
+                        #if item["u_ticket_gestao_x"] == None:
+                        response = requests.post(url, headers=headers, data=json.dumps(item))
+                        #else:
+                        #   print("Ticket has not been integrated")
+                    else:
+                        print("Matching data is already stored on ServiceNow")
+                else:
+                    #INSERIR CÓDIGO PARA CRIAR O TICKET
+                    print("Ticket does not have a corresponding RITM")
+            except requests.exceptions.HTTPError as err: # HTTP Error
+                raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+            except requests.exceptions.ConnectionError as err: # Connection Error
+                raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+            except requests.exceptions.Timeout as err: # Timeout
+                raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+            except requests.exceptions.RequestException as err: # Request Exception
+                raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+            
+            finally:
+                results.append({
+                    "item": item,
+                    "response": response.__dict__,
+                })
+        
+        if response.status_code == 200:
+            data = response.json()
+            return data
+        else:
+            response.raise_for_status()
+
+    except Exception as err:
+        raise Exception(err)
+ 
+update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token(refresh_token))
