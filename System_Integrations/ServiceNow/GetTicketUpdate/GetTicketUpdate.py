@@ -116,7 +116,7 @@ def process_historico(ticket_data):
 def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
     body = {
-        "grant_type":service_now_refresh_token,
+        "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
         "refresh_token":service_now_refresh_token, #TODO perguntar pro filipe sobre a localização dessas variaveis dentro do código
@@ -125,7 +125,7 @@ def get_auth_token():
     response = requests.post(url, data=body)
     data = response.json()
     print(data)
-    
+
     return data["access_token"]
 
 
