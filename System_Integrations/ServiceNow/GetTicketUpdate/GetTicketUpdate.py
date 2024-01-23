@@ -224,10 +224,8 @@ def update_servicenow(updates, token):
             try:
                 if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query, token):
                     if not has_it_been_updated(item["u_ticket_gestao_x"], item["u_data_da_atualizacao"], params_encoded_query, token):
-                        #if item["u_ticket_gestao_x"] == None:
                         response = requests.post(url, headers=headers, data=json.dumps(item))
-                        #else:
-                        #   print("Ticket has not been integrated")
+
                         results.append({
                             "item": item,
                             "response": response.__dict__,
