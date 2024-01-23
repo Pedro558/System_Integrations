@@ -248,7 +248,17 @@ def update_servicenow(updates, token):
                 results.append({
                     "item": item,
                     "response": response.__dict__,
-                })      
+                })
+
+        for result in results:
+            print("--------------------------------")
+            response = map_to_requests_response(result["response"])
+            if response.status_code == 200:
+                print(f"Updated at {result['item']['u_data_da_atualizacao']} from Ticket {result['item']['u_ticket_gestao_x']} was sent to ServiceNow")
+            else:
+                print(f"Error while trying to update Ticket {result['item']['u_ticket_gestao_x']} with {result['item']['u_data_da_atualizacao']} history data")
+                print(f"{response.status_code}")
+                print(f"{response.reason}")        
         
         if response.status_code == 200:
             data = response.json()
