@@ -10,15 +10,15 @@ url_servicenow = "https://eleadev.service-now.com/"
 
 #Tokens
 gestao_x_login = get_api_token('gestao-x-prd-login')
-print(gestao_x_login)
+#print(gestao_x_login)
 gestao_x_token = get_api_token('gestao-x-prd-api-token')
-print(gestao_x_token)
+#print(gestao_x_token)
 servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
-print(servicenow_client_id)
+#print(servicenow_client_id)
 servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
-print(servicenow_client_secret)
+#print(servicenow_client_secret)
 service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
-print(service_now_refresh_token)
+#print(service_now_refresh_token)
 
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
 params_fetch_chamados_gestao_x = {
@@ -258,6 +258,6 @@ def update_servicenow(updates, token):
     except Exception as err:
         raise Exception(err)
  
-exit()
+#exit()
 
 update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token())
