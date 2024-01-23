@@ -228,8 +228,12 @@ def update_servicenow(updates, token):
                         response = requests.post(url, headers=headers, data=json.dumps(item))
                         #else:
                         #   print("Ticket has not been integrated")
-                    #else:
-                        #print("Matching data is already stored on ServiceNow")
+                        results.append({
+                            "item": item,
+                            "response": response.__dict__,
+                        })  
+                    else:
+                        print("Matching data is already stored on ServiceNow")
 
                 else:
                     #TODO INSERIR CÓDIGO PARA CRIAR O TICKET
@@ -242,13 +246,7 @@ def update_servicenow(updates, token):
             except requests.exceptions.Timeout as err: # Timeout
                 raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
             except requests.exceptions.RequestException as err: # Request Exception
-                raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
-            
-            finally:
-                results.append({
-                    "item": item,
-                    "response": response.__dict__,
-                })   
+                raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
         
         return results
                 
