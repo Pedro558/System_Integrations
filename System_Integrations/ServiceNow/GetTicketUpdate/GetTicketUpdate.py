@@ -138,7 +138,7 @@ def does_it_exist(code, params):
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": "Bearer "+get_auth_token(refresh_token),
+            "Authorization": "Bearer "+get_auth_token(),
         }
         params["sysparm_query"] = "u_ticket_gestao_xLIKE"+code
 
@@ -175,7 +175,7 @@ def has_it_been_updated(code, date, params):
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": "Bearer "+get_auth_token(service_now_refresh_token),
+            "Authorization": "Bearer "+get_auth_token(),
         }
         params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date
 
