@@ -3,6 +3,7 @@
 import requests
 import json
 from ...auth.api_secrets import get_api_token
+from ...utils.mapper import map_to_requests_response
 
 #URLs
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
@@ -124,7 +125,7 @@ def get_auth_token():
 
     response = requests.post(url, data=body)
     data = response.json()
-    print(data)
+    #print(data)
 
     return data["access_token"]
 
@@ -218,8 +219,8 @@ def update_servicenow(updates, token):
         }
         results = []
         
+        response = requests.Response()
         for item in updates:
-            response = requests.Response()
             try:
                 if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query, token):
                     if not has_it_been_updated(item["u_ticket_gestao_x"], item["u_data_da_atualizacao"], params_encoded_query, token):
@@ -247,7 +248,7 @@ def update_servicenow(updates, token):
                 results.append({
                     "item": item,
                     "response": response.__dict__,
-                })
+                })      
         
         if response.status_code == 200:
             data = response.json()
