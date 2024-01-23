@@ -132,13 +132,13 @@ def get_auth_token():
 
 #Verifica se o ticket (Gestão X) já está cadastrado no ServiceNow ou não
 #Caso não esteja, quer dizer que o ticket foi proativamente aberto no Gestão X e deve ser cadastrado no ServiceNow para acompanhamento.
-def does_it_exist(code, params):
+def does_it_exist(code, params, token):
     try:
         found = False
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": "Bearer "+get_auth_token(),
+            "Authorization": "Bearer "+token,
         }
         params["sysparm_query"] = "u_ticket_gestao_xLIKE"+code
 
@@ -169,13 +169,13 @@ def does_it_exist(code, params):
 
 #Verifica se o registro do histórico já foi inserido no ServiceNow
 #Pendente validar se o ticket existe no ServiceNow e se não existir, fazer a sua tratativa para que exista(?), pode ser feito na função 'update_servicenow' se necessário
-def has_it_been_updated(code, date, params):
+def has_it_been_updated(code, date, params, token):
     try:
         found = False
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": "Bearer "+get_auth_token(),
+            "Authorization": "Bearer "+token,
         }
         params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date
 
@@ -221,8 +221,8 @@ def update_servicenow(updates, token):
         for item in updates:
             response = requests.Response()
             try:
-                if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query):
-                    if not has_it_been_updated(item["u_ticket_gestao_x"], item["u_data_da_atualizacao"], params_encoded_query):
+                if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query, token):
+                    if not has_it_been_updated(item["u_ticket_gestao_x"], item["u_data_da_atualizacao"], params_encoded_query, token):
                         #if item["u_ticket_gestao_x"] == None:
                         response = requests.post(url, headers=headers, data=json.dumps(item))
                         #else:
