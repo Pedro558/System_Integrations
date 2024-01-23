@@ -124,7 +124,8 @@ def get_auth_token():
 
     response = requests.post(url, data=body)
     data = response.json()
-
+    print(data)
+    
     return data["access_token"]
 
 
