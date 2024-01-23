@@ -248,9 +248,18 @@ def update_servicenow(updates, token):
                 results.append({
                     "item": item,
                     "response": response.__dict__,
-                })
+                })   
+        
+        return results
+                
+    except Exception as err:
+        raise Exception(err)
+ 
+#exit()
 
-        for result in results:
+results = update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token())
+
+for result in results:
             print("--------------------------------")
             response = map_to_requests_response(result["response"])
             if response.status_code == 200:
@@ -258,18 +267,4 @@ def update_servicenow(updates, token):
             else:
                 print(f"Error while trying to update Ticket {result['item']['u_ticket_gestao_x']} with {result['item']['u_data_da_atualizacao']} history data")
                 print(f"{response.status_code}")
-                print(f"{response.reason}")        
-        
-        if response.status_code == 200:
-            data = response.json()
-            return data
-        
-        else:
-            response.raise_for_status()
-
-    except Exception as err:
-        raise Exception(err)
- 
-#exit()
-
-update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token())
+                print(f"{response.reason}")
