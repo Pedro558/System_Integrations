@@ -2,7 +2,7 @@
 
 import requests
 import json
-from auth.api_secrets import get_api_token
+from ...auth.api_secrets import get_api_token
 
 #URLs
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
