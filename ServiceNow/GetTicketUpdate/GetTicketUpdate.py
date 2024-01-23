@@ -1,20 +1,35 @@
+# TODO É necessário separar esse código em diversos módulos?
+
 import requests
 import json
+from auth.api_secrets import get_api_token
 
 #URLs
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
 url_servicenow = "https://eleadev.service-now.com/"
 
+#Tokens
+gestao_x_login = get_api_token('gestao-x-prd-login')
+print(gestao_x_login)
+gestao_x_token = get_api_token('gestao-x-prd-api-token')
+print(gestao_x_token)
+servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
+print(servicenow_client_id)
+servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
+print(servicenow_client_secret)
+service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
+print(service_now_refresh_token)
+
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
 params_fetch_chamados_gestao_x = {
-    "Login": "INTEGRACAOELEA",
-    "Token": "cJV3s9yjRStcS0LHV0boSQ==",
+    "Login": gestao_x_login,
+    "Token": gestao_x_token,
 }
 
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaHistoricoChamado
 params_fetch_historico_chamado_gestao_x = {
     "CodigoChamado":"",
-    "Token":"cJV3s9yjRStcS0LHV0boSQ==",
+    "Token":gestao_x_token,
     "InformacaoPublica":"true",
 }
 
@@ -23,9 +38,6 @@ params_fetch_historico_chamado_gestao_x = {
 params_encoded_query = {
     "sysparam_query": "",
 }
-
-#Token para recarregar token de acesso ao ServiceNow
-refresh_token = "c9D81Gw4Y9E8Z0LIp6ciqe2hE16F9M2DhGjCUAu6NYGWy_nSQay7r62mvSO_m2A9BP9NizEkk-M9pef932BxXQ"
 
 
 
@@ -95,20 +107,21 @@ def process_historico(ticket_data):
                         }
 
                         data.append(entry_dic)
-        
+
         return data  
 
 
 
 #Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
-def get_auth_token(token):
+def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
     body = {
-        "grant_type":"refresh_token",
-        "client_id":"a84352781677f9109fc0a859568b890f",
-        "client_secret":"hg2MCxCJ18OgEv%Zn@yz",
-        "refresh_token":token,
+        "grant_type":service_now_refresh_token,
+        "client_id":servicenow_client_id,
+        "client_secret":servicenow_client_secret,
+        "refresh_token":service_now_refresh_token, #TODO perguntar pro filipe sobre a localização dessas variaveis dentro do código
     }
+
     response = requests.post(url, data=body)
     data = response.json()
 
@@ -121,14 +134,13 @@ def get_auth_token(token):
 def does_it_exist(code, params):
     try:
         found = False
-
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
             "Authorization": "Bearer "+get_auth_token(refresh_token),
         }
-
         params["sysparm_query"] = "u_ticket_gestao_xLIKE"+code
+
         response = requests.get(url_servicenow+"api/now/v2/table/u_integradora_gestao_x", headers=headers, params=params)
 
         if response.status_code == 200:
@@ -139,6 +151,7 @@ def does_it_exist(code, params):
                 found = True
                 
             return found
+        
         else:
             response.raise_for_status()
         
@@ -158,14 +171,13 @@ def does_it_exist(code, params):
 def has_it_been_updated(code, date, params):
     try:
         found = False
-
         headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
-            "Authorization": "Bearer "+get_auth_token(refresh_token),
+            "Authorization": "Bearer "+get_auth_token(service_now_refresh_token),
         }
-
         params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date
+
         response = requests.get(url_servicenow+"api/now/v2/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
 
         if response.status_code == 200:
@@ -176,6 +188,7 @@ def has_it_been_updated(code, date, params):
                 found = True
                 
             return found
+        
         else:
             response.raise_for_status()
         
@@ -202,7 +215,6 @@ def update_servicenow(updates, token):
             "Content-Type": "application/json",
             "Authorization": "Bearer "+token,
         }
-        
         results = []
         
         for item in updates:
@@ -214,11 +226,13 @@ def update_servicenow(updates, token):
                         response = requests.post(url, headers=headers, data=json.dumps(item))
                         #else:
                         #   print("Ticket has not been integrated")
-                    else:
-                        print("Matching data is already stored on ServiceNow")
+                    #else:
+                        #print("Matching data is already stored on ServiceNow")
+
                 else:
-                    #INSERIR CÓDIGO PARA CRIAR O TICKET
+                    #TODO INSERIR CÓDIGO PARA CRIAR O TICKET
                     print("Ticket does not have a corresponding RITM")
+
             except requests.exceptions.HTTPError as err: # HTTP Error
                 raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
             except requests.exceptions.ConnectionError as err: # Connection Error
@@ -237,10 +251,13 @@ def update_servicenow(updates, token):
         if response.status_code == 200:
             data = response.json()
             return data
+        
         else:
             response.raise_for_status()
 
     except Exception as err:
         raise Exception(err)
  
-update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token(refresh_token))
+exit()
+
+update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token())
