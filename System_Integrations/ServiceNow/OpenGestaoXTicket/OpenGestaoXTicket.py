@@ -66,13 +66,13 @@ def fetch_ritm_servicenow(url, params, token):
             response.raise_for_status()
 
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"HTTP error occurred on GET fetch_ritm_servicenow: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"Connection error on GET fetch_ritm_servicenow: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"Request timed out on GET fetch_ritm_servicenow: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"An error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"An error occurred on GET fetch_ritm_servicenow: {err}")
 
 
 
@@ -96,16 +96,17 @@ def fetch_ritm_variables (url, ritm, params, token):
             return variable_list
         
         else:
+            print("Erro")
             response.raise_for_status()
 
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"HTTP error occurred on GET fetch_ritm_variables: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"Connection error on GET fetch_ritm_variables: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"Request timed out on GET fetch_ritm_variables: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"An error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"An error occurred on GET fetch_ritm_variables: {err}")
 
 
 
