@@ -287,12 +287,14 @@ def process_data(url, ritm_list):
 
 def openGestaoXTicket(url, tickets_to_post):
     url += 'api/chamado/AbrirChamado'
-
+    headers = {
+            "Content-Type": "application/json",
+    }
     try:
         results =[]
         for ticket in tickets_to_post:
             print(ticket)
-            response = requests.request("POST", url, data=json.dumps(ticket['data']))
+            response = requests.post(url, headers=headers, data=json.dumps(ticket['data']))
             print(response.status_code)
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
