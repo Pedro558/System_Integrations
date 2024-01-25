@@ -172,11 +172,11 @@ def process_data(url, ritm_list):
                     aQuestionWhatOperatingSystem = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What Operating System?"]
                     valueWhatOperatingSystem = aQuestionWhatOperatingSystem[0]["sc_item_option.value"]
                     #  Unix Service
-                    aQuestionWhatServiceUnix = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "5"]
-                    valueWhatServiceUnix = aQuestionWhatServiceUnix[0]["sc_item_option.value"]
-                    #  Windows Services
-                    aQuestionWhatServiceWindows = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "6"]
+                    aQuestionWhatServiceWindows = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "5"]
                     valueWhatServiceWindows = aQuestionWhatServiceWindows[0]["sc_item_option.value"]
+                    #  Windows Services
+                    aQuestionWhatServiceUnix = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "6"]
+                    valueWhatServiceUnix = aQuestionWhatServiceUnix[0]["sc_item_option.value"]
                     #  Reboot Time Start                
                     aQuestionRebootTimeStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the Server Reboot Time (Start)']
                     valueRebootTimeStart = aQuestionRebootTimeStart[0]["sc_item_option.value"] if len(aQuestionRebootTimeStart) > 0 else None
@@ -291,7 +291,7 @@ def openGestaoXTicket(url, tickets_to_post):
     try:
         results =[]
         for ticket in tickets_to_post:
-            print(ticket)
+            print(ticket['data'])
             response = requests.post(url, data=json.dumps(ticket['data']))
             print(response.status_code)
             if response.status_code == 200 or response.status_code == 201:
