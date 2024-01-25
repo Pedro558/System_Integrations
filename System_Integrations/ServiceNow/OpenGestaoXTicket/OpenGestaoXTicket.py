@@ -108,7 +108,7 @@ def fetch_ritm_variables (url, ritm, params, token):
             if not 'result' in variable_list or len(variable_list['result']) == 0:
                 raise Exception(f"No variables found for {ritm['result']['number']}")
             
-            return variable_list
+            return variable_list['result']
         
         else:
             print("Erro")
@@ -266,7 +266,7 @@ def process_data(url, ritm_list):
                     descricao += descriptionBuilder(variables, aConfig)
         else:
             continue
-        
+
         ticket_to_post =  {
             "ritm_number": ritm['number'],
             "data": {
