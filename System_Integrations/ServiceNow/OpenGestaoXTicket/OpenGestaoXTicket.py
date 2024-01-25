@@ -292,7 +292,7 @@ def openGestaoXTicket(url, tickets_to_post):
         results =[]
         for ticket in tickets_to_post:
             response = requests.post(url, data=json.dumps(ticket['data']))
-    
+
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
                     "item": ticket,
@@ -300,7 +300,7 @@ def openGestaoXTicket(url, tickets_to_post):
                 })  
     except:
         pass
-
+    print(results)
     return results
 
 
