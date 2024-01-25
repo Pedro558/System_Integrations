@@ -76,11 +76,17 @@ def fetch_ritm_servicenow(url, params, token):
 
 
 
-def fetch_ritm_variables (url, ritm, params):
+def fetch_ritm_variables (url, ritm, params, token):
     params["sysparam_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)
     params["sysparam_fields"] = "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
+    
+    headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+token,
+        }
+    
     try:
-        response = requests.get(url+"api/now/v1/table/sc_item_option_mtom", params=params)
+        response = requests.get(url+"api/now/v1/table/sc_item_option_mtom", headers=headers, params=params)
         if response.status_code == 200:
             variable_list = response.json()
             if not 'result' in variable_list or len(variable_list['result']) == 0:
@@ -120,7 +126,7 @@ def process_data(url, ritm_list):
         return #tratar
     
     for ritm in ritm_list:
-        variables = fetch_ritm_variables(url, ritm, serviceNow_params)
+        variables = fetch_ritm_variables(url, ritm, serviceNow_params, get_auth_token())
        
         descricao = ""
         match ritm['cat_item.name']:
