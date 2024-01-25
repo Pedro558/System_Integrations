@@ -2,7 +2,19 @@ import requests
 import json
 from ...auth.api_secrets import get_api_token
 from ...utils.mapper import map_to_requests_response
-#from ...utils.parser import get_value
+from ...utils.parser import get_value
+
+
+# def map_to_requests_response(response_dict) -> requests.Response:
+#     # Create a requests.Response instance
+#     http_response = requests.Response()
+
+#     # Set attributes using the dictionary data
+#     for key, value in http_response.__dict__.items():
+#         setattr(http_response, key, response_dict.get(key, value))
+
+#     return http_response
+
 
 #URLs
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
@@ -23,8 +35,8 @@ service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
 #Variavel de parametros para GET na API do ServiceNow
 #Recebe uma Encoded Query no formato do ServiceNow de acordo com a necessidade dentro das funções onde é necessário
 serviceNow_params = {
-    "sysparam_query": "",
-    "sysparam_fields": ""
+    "sysparm_query": "",
+    "sysparm_fields": ""
 }
 
 def get_auth_token():
@@ -45,8 +57,8 @@ def get_auth_token():
 
 
 def fetch_ritm_servicenow(url, params, token):    
-    params["sysparam_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11"
-    params["sysparam_fields"] = "number, sys_id, cat_item.name"
+    params["sysparm_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11"
+    params["sysparm_fields"] = "number, sys_id, cat_item.name"
 
     headers = {
             "Content-Type": "application/json",
@@ -55,6 +67,9 @@ def fetch_ritm_servicenow(url, params, token):
     
     try:
         response = requests.get(url+"api/now/v1/table/sc_req_item", headers=headers, params=params)
+        
+        #print("voltou response")
+        
         if response.status_code == 200:
             ritm_list = response.json()
             if not 'result' in ritm_list or len(ritm_list['result']) == 0:
@@ -77,8 +92,8 @@ def fetch_ritm_servicenow(url, params, token):
 
 
 def fetch_ritm_variables (url, ritm, params, token):
-    params["sysparam_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)
-    params["sysparam_fields"] = "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
+    params["sysparm_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)
+    params["sysparm_fields"] = "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
     
     headers = {
             "Content-Type": "application/json",
@@ -89,8 +104,8 @@ def fetch_ritm_variables (url, ritm, params, token):
         response = requests.get(url+"api/now/v1/table/sc_item_option_mtom", headers=headers, params=params)
         if response.status_code == 200:
             variable_list = response.json()
-            print(variable_list[0])
-            if variable_list and not 'result' in variable_list or len(variable_list['result']) == 0:
+            #print(variable_list[0])
+            if not 'result' in variable_list or len(variable_list['result']) == 0:
                 raise Exception(f"No variables found for {ritm['result']['number']}")
             
             return variable_list
