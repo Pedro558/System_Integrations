@@ -54,7 +54,7 @@ def fetch_ritm_servicenow(url, params, token):
         }
     
     try:
-        response = requests.get(url+"api/now/v2/table/sc_req_item", headers=headers, params=params)
+        response = requests.get(url+"api/now/v1/table/sc_req_item", headers=headers, params=params)
         if response.status_code == 200:
             ritm_list = response.json()
             if not 'result' in ritm_list or len(ritm_list['result']) == 0:
@@ -80,7 +80,7 @@ def fetch_ritm_variables (url, ritm, params):
     params["sysparam_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)
     params["sysparam_fields"] = "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
     try:
-        response = requests.get(url+"api/now/v2/table/sc_item_option_mtom", params=params)
+        response = requests.get(url+"api/now/v1/table/sc_item_option_mtom", params=params)
         if response.status_code == 200:
             variable_list = response.json()
             if not 'result' in variable_list or len(variable_list['result']) == 0:
