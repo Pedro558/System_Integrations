@@ -89,7 +89,7 @@ def fetch_ritm_variables (url, ritm, params, token):
         response = requests.get(url+"api/now/v1/table/sc_item_option_mtom", headers=headers, params=params)
         if response.status_code == 200:
             variable_list = response.json()
-            print(variable_list)
+            print(variable_list[0])
             if variable_list and not 'result' in variable_list or len(variable_list['result']) == 0:
                 raise Exception(f"No variables found for {ritm['result']['number']}")
             
