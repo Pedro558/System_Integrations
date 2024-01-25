@@ -179,10 +179,10 @@ def process_data(url, ritm_list):
                     valueWhatServiceWindows = aQuestionWhatServiceWindows[0]["sc_item_option.value"]
                     #  Reboot Time Start                
                     aQuestionRebootTimeStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the Server Reboot Time (Start)']
-                    valueRebootTimeStart = aQuestionRebootTimeStart[0]["sc_item_option.value"]
+                    valueRebootTimeStart = aQuestionRebootTimeStart[0]["sc_item_option.value"] if len(aQuestionRebootTimeStart) > 0 else None
                     #  Reboot Time End
                     aQuestionRebootTimeEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the Server Reboot Time (end)"]
-                    valueRebootTimeEnd = aQuestionRebootTimeEnd[0]["sc_item_option.value"]
+                    valueRebootTimeEnd = aQuestionRebootTimeEnd[0]["sc_item_option.value"] if len(aQuestionRebootTimeEnd) > 0 else None
 
 
                     descriptionConfig = [
@@ -233,10 +233,10 @@ def process_data(url, ritm_list):
                 case 'Monitoring':
                     #  Blackout Window Start
                     aQuestionBlackoutWindowStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (start)']
-                    valueBlackoutWindowStart = aQuestionBlackoutWindowStart[0]["sc_item_option.value"]
+                    valueBlackoutWindowStart = aQuestionBlackoutWindowStart[0]["sc_item_option.value"] if len(aQuestionBlackoutWindowStart) > 0 else None
                     #  Blackout Window End
                     aQuestionBlackoutWindowEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (End)']
-                    valueBlackoutWindowEnd = aQuestionBlackoutWindowEnd[0]["sc_item_option.value"]
+                    valueBlackoutWindowEnd = aQuestionBlackoutWindowEnd[0]["sc_item_option.value"] if len(aQuestionBlackoutWindowEnd) > 0 else None
 
                     aConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
