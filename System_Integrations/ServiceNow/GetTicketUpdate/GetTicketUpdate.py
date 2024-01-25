@@ -1,4 +1,5 @@
 # TODO É necessário separar esse código em diversos módulos?
+# TODO PRECISO VERIFICAR A CONDIÇÃO DE ABERTURA DE CHAMADO NO GESTÃO X
 
 import requests
 import json
@@ -59,7 +60,7 @@ def fetch_chamados_gestao_x(url, params):
     except requests.exceptions.Timeout as err: # Timeout
         raise Exception(f"Request timed out on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"An error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"A request exception occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
 
 
 
@@ -81,7 +82,7 @@ def fetch_historico_chamado_gestao_x(url, params, ticket):
     except requests.exceptions.Timeout as err: # Timeout
         raise Exception(f"Request timed out on GET RetornaHistoricoChamado: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"An error occurred on GET RetornaHistoricoChamado: {err}")
+        raise Exception(f"A request exception occurred on GET RetornaHistoricoChamado: {err}")
 
 
 
@@ -114,6 +115,7 @@ def process_historico(ticket_data):
 
 
 #Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
+#https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
     body = {
@@ -158,13 +160,13 @@ def does_it_exist(code, params, token):
             response.raise_for_status()
         
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora: {err}")
 
 
 
@@ -201,7 +203,7 @@ def has_it_been_updated(code, date, params, token):
     except requests.exceptions.Timeout as err: # Timeout
         raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
     
 
 
@@ -230,11 +232,12 @@ def update_servicenow(updates, token):
                             "item": item,
                             "response": response.__dict__,
                         })  
+
                     else:
                         print("Matching data is already stored on ServiceNow")
 
                 else:
-                    #TODO INSERIR CÓDIGO PARA CRIAR O TICKET
+                    #TODO INSERIR CÓDIGO PARA CRIAR O TICKET PROATIVO
                     print("Ticket does not have a corresponding RITM")
 
             except requests.exceptions.HTTPError as err: # HTTP Error
@@ -244,7 +247,7 @@ def update_servicenow(updates, token):
             except requests.exceptions.Timeout as err: # Timeout
                 raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
             except requests.exceptions.RequestException as err: # Request Exception
-                raise Exception(f"An error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
+                raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
         
         return results
                 
