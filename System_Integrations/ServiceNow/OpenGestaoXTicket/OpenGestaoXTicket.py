@@ -211,7 +211,7 @@ def process_data(url, ritm_list):
                         {"var": "What type of service?", "msg": "\n\nTipo de serviço: "},
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
-                    dscricao += "---TESTE INTEGRACAO---"
+                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += descriptionBuilder(variables, descriptionConfig)
 
