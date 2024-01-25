@@ -44,11 +44,17 @@ def get_auth_token():
 
 
 
-def fetch_ritm_servicenow(url, params):    
+def fetch_ritm_servicenow(url, params, token):    
     params["sysparam_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11"
     params["sysparam_fields"] = "number, sys_id, cat_item.name"
+
+    headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+token,
+        }
+    
     try:
-        response = requests.get(url+"api/now/v2/table/sc_req_item", params=params)
+        response = requests.get(url+"api/now/v2/table/sc_req_item", headers=headers, params=params)
         if response.status_code == 200:
             ritm_list = response.json()
             if not 'result' in ritm_list or len(ritm_list['result']) == 0:
@@ -299,7 +305,7 @@ def postServiceNowIntegradora(url, token, tickets_posted):
 
 
 
-ritms = fetch_ritm_servicenow(url_servicenow, serviceNow_params)
+ritms = fetch_ritm_servicenow(url_servicenow, serviceNow_params, get_auth_token())
 tickets_to_post = process_data(url_servicenow, ritms)
 tickets_posted = openGestaoXTicket(url_gestao_x, tickets_to_post)
 postServiceNowIntegradora(url_servicenow, get_auth_token(), tickets_posted)
