@@ -146,124 +146,127 @@ def process_data(url, ritm_list):
         variables = fetch_ritm_variables(url, ritm, serviceNow_params, get_auth_token())
        
         descricao = ""
-        match ritm['cat_item.name']:
-            case 'Operational system':           
-                # COLINHA:
-                # aQuestionHostname = list(filter(
-                #                             lambda variable: variable['question'] == 'hostname'
-                #                             , variables
-                #                             ))
+        if ritm['cat_item.name']:
+            match ritm['cat_item.name']:
+                case 'Operational system':           
+                    # COLINHA:
+                    # aQuestionHostname = list(filter(
+                    #                             lambda variable: variable['question'] == 'hostname'
+                    #                             , variables
+                    #                             ))
 
-                # OU
+                    # OU
 
-                # aQuestionHostname = [variable for variable in variables if variable["question"] == 'hostname']
-                
-                # ENTÃO
+                    # aQuestionHostname = [variable for variable in variables if variable["question"] == 'hostname']
+                    
+                    # ENTÃO
 
-                # questionHortname = aQuestionHostname[0]["value"]
+                    # questionHortname = aQuestionHostname[0]["value"]
 
-                #valueSummary = [variable["sc_item_option.value"] for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'Summary'][0]
-                #Essa alternativa retorna um array contendo somente o value e então entrega para a variavel a primeira posição (0) do array que é a string contendo o valor
-                #                    return   for each ele in array     if ele['key'] == 'value' 
-                #aQuestionSummary = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'Summary']
-                
-                #  Operating System
-                aQuestionWhatOperatingSystem = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What Operating System?"]
-                valueWhatOperatingSystem = aQuestionWhatOperatingSystem[0]["sc_item_option.value"]
-                #  Unix Service
-                aQuestionWhatServiceUnix = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "5"]
-                valueWhatServiceUnix = aQuestionWhatServiceUnix[0]["sc_item_option.value"]
-                #  Windows Services
-                aQuestionWhatServiceWindows = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "6"]
-                valueWhatServiceWindows = aQuestionWhatServiceWindows[0]["sc_item_option.value"]
-                #  Reboot Time Start                
-                aQuestionRebootTimeStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the Server Reboot Time (Start)']
-                valueRebootTimeStart = aQuestionRebootTimeStart[0]["sc_item_option.value"]
-                #  Reboot Time End
-                aQuestionRebootTimeEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the Server Reboot Time (end)"]
-                valueRebootTimeEnd = aQuestionRebootTimeEnd[0]["sc_item_option.value"]
-
-
-                descriptionConfig = [
-                    {"var": "Summary", "msg": "\n\nResumo:\n" },
-                    {"var": "Description", "msg": "\n\nDescrição:\n" },
-                    {"var": "What Operating System?", "msg": "\n\nSistema Operacional: "},
-                    {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
-                ]
-
-                descricao += "---TESTE INTEGRACAO---"
-                descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
-                descricao += descriptionBuilder(variables, descriptionConfig)
-                if valueWhatOperatingSystem == 'windows':
-                    descricao += f"\nTipo de serviço: {valueWhatServiceWindows}"
-                elif valueWhatOperatingSystem == 'unix':
-                    descricao += f"\nTipo de serviço: {valueWhatServiceUnix}"
-                if valueRebootTimeStart:
-                    descricao += f"\nHora do inicio do reboot: {valueRebootTimeStart}"
-                if valueRebootTimeEnd:
-                    descricao += f"\n Hora do fim do reboot: {valueRebootTimeEnd}"
-
-            case 'Backup':
-                descriptionConfig = [
-                    {"var": "Summary", "msg": "\n\nResumo:\n" },
-                    {"var": "Description", "msg": "\n\nDescrição:\n" },
-                    {"var": "What type of service?", "msg": "\n\nTipo de serviço: "},
-                    {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
-                ]
-                dscricao += "---TESTE INTEGRACAO---"
-                descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
-                descricao += descriptionBuilder(variables, descriptionConfig)
+                    #valueSummary = [variable["sc_item_option.value"] for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'Summary'][0]
+                    #Essa alternativa retorna um array contendo somente o value e então entrega para a variavel a primeira posição (0) do array que é a string contendo o valor
+                    #                    return   for each ele in array     if ele['key'] == 'value' 
+                    #aQuestionSummary = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'Summary']
+                    
+                    #  Operating System
+                    aQuestionWhatOperatingSystem = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What Operating System?"]
+                    valueWhatOperatingSystem = aQuestionWhatOperatingSystem[0]["sc_item_option.value"]
+                    #  Unix Service
+                    aQuestionWhatServiceUnix = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "5"]
+                    valueWhatServiceUnix = aQuestionWhatServiceUnix[0]["sc_item_option.value"]
+                    #  Windows Services
+                    aQuestionWhatServiceWindows = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "6"]
+                    valueWhatServiceWindows = aQuestionWhatServiceWindows[0]["sc_item_option.value"]
+                    #  Reboot Time Start                
+                    aQuestionRebootTimeStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the Server Reboot Time (Start)']
+                    valueRebootTimeStart = aQuestionRebootTimeStart[0]["sc_item_option.value"]
+                    #  Reboot Time End
+                    aQuestionRebootTimeEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the Server Reboot Time (end)"]
+                    valueRebootTimeEnd = aQuestionRebootTimeEnd[0]["sc_item_option.value"]
 
 
-            case 'Database':
-                aConfig = [
-                    {"var": "Summary", "msg": "\n\nResumo:\n" },
-                    {"var": "Description", "msg": "\n\nDescrição:\n" },
-                    {"var": "What is the Database Manager?", "msg": "\n\nGerenciador do banco (DBM): "},
-                    {"var": "What is the server/hostname?", "msg": "\nNome do Host: "},
-                    {"var": "What is the instance?", "msg": "\nNome da instancia: "},
-                    {"var": "What is the service?", "msg": "\nTipo de Serviço: "}
-                ]
+                    descriptionConfig = [
+                        {"var": "Summary", "msg": "\n\nResumo:\n" },
+                        {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        {"var": "What Operating System?", "msg": "\n\nSistema Operacional: "},
+                        {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
+                    ]
 
-                descricao += "---TESTE INTEGRACAO---"
-                descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
-                descricao += descriptionBuilder(variables, aConfig)
+                    descricao += "---TESTE INTEGRACAO---"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                    descricao += descriptionBuilder(variables, descriptionConfig)
+                    if valueWhatOperatingSystem == 'windows':
+                        descricao += f"\nTipo de serviço: {valueWhatServiceWindows}"
+                    elif valueWhatOperatingSystem == 'unix':
+                        descricao += f"\nTipo de serviço: {valueWhatServiceUnix}"
+                    if valueRebootTimeStart:
+                        descricao += f"\nHora do inicio do reboot: {valueRebootTimeStart}"
+                    if valueRebootTimeEnd:
+                        descricao += f"\n Hora do fim do reboot: {valueRebootTimeEnd}"
 
-            case 'Monitoring':
-                #  Blackout Window Start
-                aQuestionBlackoutWindowStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (start)']
-                valueBlackoutWindowStart = aQuestionBlackoutWindowStart[0]["sc_item_option.value"]
-                #  Blackout Window End
-                aQuestionBlackoutWindowEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (End)']
-                valueBlackoutWindowEnd = aQuestionBlackoutWindowEnd[0]["sc_item_option.value"]
+                case 'Backup':
+                    descriptionConfig = [
+                        {"var": "Summary", "msg": "\n\nResumo:\n" },
+                        {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        {"var": "What type of service?", "msg": "\n\nTipo de serviço: "},
+                        {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
+                    ]
+                    dscricao += "---TESTE INTEGRACAO---"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                    descricao += descriptionBuilder(variables, descriptionConfig)
 
-                aConfig = [
-                    {"var": "Summary", "msg": "\n\nResumo:\n" },
-                    {"var": "Description", "msg": "\n\nDescrição:\n" },
-                    {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
-                    {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
-                ]
 
-                descricao += "---TESTE INTEGRACAO---"
-                descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
-                descricao += descriptionBuilder(variables, aConfig)
-                if valueBlackoutWindowStart:
-                    descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowStart}"
-                if valueBlackoutWindowEnd:
-                    descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowEnd}"
+                case 'Database':
+                    aConfig = [
+                        {"var": "Summary", "msg": "\n\nResumo:\n" },
+                        {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        {"var": "What is the Database Manager?", "msg": "\n\nGerenciador do banco (DBM): "},
+                        {"var": "What is the server/hostname?", "msg": "\nNome do Host: "},
+                        {"var": "What is the instance?", "msg": "\nNome da instancia: "},
+                        {"var": "What is the service?", "msg": "\nTipo de Serviço: "}
+                    ]
 
-            case 'Storage':
-                aConfig = [
-                    {"var": "Summary", "msg": "\n\nResumo:\n" },
-                    {"var": "Description", "msg": "\n\nDescrição:\n" },
-                    {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
-                    {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
-                ]
+                    descricao += "---TESTE INTEGRACAO---"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                    descricao += descriptionBuilder(variables, aConfig)
 
-                descricao += "---TESTE INTEGRACAO---"
-                descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
-                descricao += descriptionBuilder(variables, aConfig)
+                case 'Monitoring':
+                    #  Blackout Window Start
+                    aQuestionBlackoutWindowStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (start)']
+                    valueBlackoutWindowStart = aQuestionBlackoutWindowStart[0]["sc_item_option.value"]
+                    #  Blackout Window End
+                    aQuestionBlackoutWindowEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (End)']
+                    valueBlackoutWindowEnd = aQuestionBlackoutWindowEnd[0]["sc_item_option.value"]
 
+                    aConfig = [
+                        {"var": "Summary", "msg": "\n\nResumo:\n" },
+                        {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
+                        {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
+                    ]
+
+                    descricao += "---TESTE INTEGRACAO---"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                    descricao += descriptionBuilder(variables, aConfig)
+                    if valueBlackoutWindowStart:
+                        descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowStart}"
+                    if valueBlackoutWindowEnd:
+                        descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowEnd}"
+
+                case 'Storage':
+                    aConfig = [
+                        {"var": "Summary", "msg": "\n\nResumo:\n" },
+                        {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
+                        {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
+                    ]
+
+                    descricao += "---TESTE INTEGRACAO---"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                    descricao += descriptionBuilder(variables, aConfig)
+        else:
+            continue
+        
         ticket_to_post =  {
             "ritm_number": ritm['number'],
             "data": {
