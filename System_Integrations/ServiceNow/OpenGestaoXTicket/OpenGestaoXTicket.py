@@ -62,19 +62,19 @@ def fetch_ritm_servicenow(url, params, token):
 
     headers = {
             "Content-Type": "application/json",
+            "Accept":"application/json",
             "Authorization": "Bearer "+token,
         }
     
     try:
         response = requests.get(url+"api/now/v2/table/sc_req_item", headers=headers, params=params)
         
+        ritm_list = response.json()
         #print("voltou response")
-        
-        if response.status_code == 200:
-            ritm_list = response.json()
-            if not 'result' in ritm_list or len(ritm_list['result']) == 0:
-                raise Exception("No RITMs found")
-            
+        if not 'result' in ritm_list or len(ritm_list['result']) == 0:
+            raise Exception("No RITMs found")
+
+        if response.status_code == 200:        
             return ritm_list['result']
         
         else:
