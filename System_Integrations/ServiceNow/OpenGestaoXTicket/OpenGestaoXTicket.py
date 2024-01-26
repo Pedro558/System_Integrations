@@ -370,6 +370,7 @@ for result in results:
             print("--------------------------------")
             response = map_to_requests_response(result["response"])
             if response.status_code == 200 or response.status_code == 201:
+                print(result)
                 print(f"Update from {result['item']['u_requested_item']} of Ticket {result['item']['u_ticket_gestao_x']} was sent to ServiceNow")
             else:
                 print(f"Error while trying to update u_integradora_gestao_x for {result['item']['u_requested_item']} with Gestão X ticket number {result['item']['u_ticket_gestao_x']}")
