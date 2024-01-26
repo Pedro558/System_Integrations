@@ -111,7 +111,6 @@ def fetch_ritm_variables (url, ritm, params, token):
             return variable_list['result']
         
         else:
-            print("Erro")
             response.raise_for_status()
 
     except requests.exceptions.HTTPError as err: # HTTP Error
@@ -293,17 +292,25 @@ def openGestaoXTicket(url, tickets_to_post):
     try:
         results =[]
         for ticket in tickets_to_post:
-            print(ticket)
             response = requests.post(url, headers=headers, data=json.dumps(ticket['data']))
-            print(response.status_code)
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
                     "item": ticket,
                     "response": response.__dict__,
                 })  
-    except:
-        pass
-    print(results)
+            else:
+                response.raise_for_status()
+
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on POST openGestaoXTicket: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on POST openGestaoXTicket: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on POST openGestaoXTicket: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"An error occurred on POST openGestaoXTicket: {err}")
+
+
     return results
 
 
@@ -329,12 +336,42 @@ def postServiceNowIntegradora(url, token, tickets_posted):
                     "item": ticket,
                     "response": response.__dict__,
                 })  
-    except:
-        pass
+            else:
+                response.raise_for_status()
 
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on POST postServiceNowIntegradora: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on POST postServiceNowIntegradora: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on POST postServiceNowIntegradora: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"An error occurred on POST postServiceNowIntegradora: {err}")
+
+    return results
 
 
 ritms = fetch_ritm_servicenow(url_servicenow, serviceNow_params, get_auth_token())
 tickets_to_post = process_data(url_servicenow, ritms)
 tickets_posted = openGestaoXTicket(url_gestao_x, tickets_to_post)
-postServiceNowIntegradora(url_servicenow, get_auth_token(), tickets_posted)
+results = postServiceNowIntegradora(url_servicenow, get_auth_token(), tickets_posted)
+
+for ticket in tickets_posted:
+            print("--------------------------------")
+            response = map_to_requests_response(ticket["response"])
+            if response.status_code == 200 or response.status_code == 201:
+                print(f"RITM {ticket['item']['ritm_number']} was posted as {map_to_requests_response(ticket['response']).json()} in Gestão X")
+            else:
+                print(f"Error while trying to post RITM {ticket['item']['ritm_number']} with {ticket['item']['data']} history data")
+                print(f"{response.status_code}")
+                print(f"{response.reason}")
+
+for result in results:
+            print("--------------------------------")
+            response = map_to_requests_response(result["response"])
+            if response.status_code == 200 or response.status_code == 201:
+                print(f"Update from {result['item']['u_data_da_atualizacao']} of Ticket {result['item']['u_ticket_gestao_x']} was sent to ServiceNow")
+            else:
+                print(f"Error while trying to update u_integradora_gestao_x for {result['item']['u_requested_item']} with Gestão X ticket number {result['item']['u_ticket_gestao_x']}")
+                print(f"{response.status_code}")
+                print(f"{response.reason}")
