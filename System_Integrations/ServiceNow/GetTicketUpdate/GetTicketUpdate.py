@@ -98,7 +98,7 @@ def process_historico(ticket_data):
                     for entry in history_data:
                         codigo = entry.get("CODIGO")
                         descricao = entry.get("DESCRICAO")
-                        status = entry.get("STATUS")
+                        status = entry.get("STATUS_ID")
                         data_historico = entry.get("DATA_HISTORICO")
                     
                         entry_dic = {
