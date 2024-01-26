@@ -370,7 +370,6 @@ for result in results:
             print("--------------------------------")
             response = map_to_requests_response(result["response"])
             if response.status_code == 200 or response.status_code == 201:
-                print(result)
                 print(f"Record created in u_integradora_gestao_x for {result['item']['ritm_number']} integrated with Gestão X ticket {map_to_requests_response(ticket['response']).json()} ")
             else:
                 print(f"Error while trying to update u_integradora_gestao_x for {result['item']['u_requested_item']} with Gestão X ticket {map_to_requests_response(ticket['response']).json()}")
