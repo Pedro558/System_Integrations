@@ -145,7 +145,7 @@ def does_it_exist(code, params, token):
         }
         params["sysparm_query"] = "u_ticket_gestao_xLIKE"+code
 
-        response = requests.get(url_servicenow+"api/now/v2/table/u_integradora_gestao_x", headers=headers, params=params)
+        response = requests.get(url_servicenow+"api/now/table/u_integradora_gestao_x", headers=headers, params=params)
 
         if response.status_code == 200:
             data = response.json()
@@ -182,7 +182,7 @@ def has_it_been_updated(code, date, params, token):
         }
         params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date
 
-        response = requests.get(url_servicenow+"api/now/v2/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
+        response = requests.get(url_servicenow+"api/now/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
 
         if response.status_code == 200:
             data = response.json()
@@ -214,7 +214,7 @@ def update_servicenow(updates, token):
         if not updates:
             raise Exception("Updates array is empty")
 
-        url = url_servicenow+"/api/now/v2/table/u_integradora_gestao_x_atualizacoes"
+        url = url_servicenow+"/api/now/table/u_integradora_gestao_x_atualizacoes"
         headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+token,
