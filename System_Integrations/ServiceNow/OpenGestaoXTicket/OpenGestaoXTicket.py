@@ -66,7 +66,7 @@ def fetch_ritm_servicenow(url, params, token):
         }
     
     try:
-        response = requests.get(url+"api/now/v1/table/sc_req_item", headers=headers, params=params)
+        response = requests.get(url+"api/now/v2/table/sc_req_item", headers=headers, params=params)
         
         #print("voltou response")
         
@@ -101,7 +101,7 @@ def fetch_ritm_variables (url, ritm, params, token):
         }
     
     try:
-        response = requests.get(url+"api/now/v1/table/sc_item_option_mtom", headers=headers, params=params)
+        response = requests.get(url+"api/now/v2/table/sc_item_option_mtom", headers=headers, params=params)
         if response.status_code == 200:
             variable_list = response.json()
             #print(variable_list[0])
