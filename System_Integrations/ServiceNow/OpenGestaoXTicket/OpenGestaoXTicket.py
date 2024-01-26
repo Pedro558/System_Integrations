@@ -333,7 +333,7 @@ def postServiceNowIntegradora(url, token, tickets_posted):
     
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
-                    "item": ticket,
+                    "item": ticket['item'],
                     "response": response.__dict__,
                 })  
             else:
