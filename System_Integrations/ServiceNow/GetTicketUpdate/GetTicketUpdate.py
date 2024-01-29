@@ -107,7 +107,8 @@ def process_historico(ticket_data):
                             "u_ticket_gestao_x":codigo,
                             "u_descricao":descricao,
                             "u_status":status,
-                            "u_data_da_atualizacao":data_historico
+                            "u_data_da_atualizacao":data_historico,
+                            "u_posted":True
                         }
 
                         data.append(entry_dic)
