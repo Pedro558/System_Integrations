@@ -182,7 +182,7 @@ def has_it_been_updated(code, date, params, token):
             "Accept": "application/json",
             "Authorization": "Bearer "+token,
         }
-        params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date
+        params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date #TODO adicionar status nessa verificação?
 
         response = requests.get(url_servicenow+"api/now/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
 
