@@ -13,6 +13,8 @@ url_servicenow = "https://eleadev.service-now.com/"
 #Tokens
 gestao_x_login = get_api_token('gestao-x-prd-login')
 #print(gestao_x_login)
+gestao_x_userId = get_api_token('gestao-x-prd-userid')
+#print(gestao_x_userId)
 gestao_x_token = get_api_token('gestao-x-prd-api-token')
 #print(gestao_x_token)
 servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
@@ -22,9 +24,9 @@ servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
 service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
 #print(service_now_refresh_token)
 
-#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
+#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaChamadosSolicitante
 params_fetch_chamados_gestao_x = {
-    "Login": gestao_x_login,
+    "Login": gestao_x_userId,
     "Token": gestao_x_token,
 }
 
@@ -46,7 +48,7 @@ params_encoded_query = {
 #Busca os chamados em acompanhamento no Gestão X
 def fetch_chamados_gestao_x(url, params):
     try:
-        response = requests.get(url+"api/chamado/Retorna_chamados_acompanhamento_solicitantes", params=params)
+        response = requests.get(url+"api/chamado/RetornaChamadosSolicitante", params=params)
         if response.status_code == 200:
             ticket_data = response.json()
             return ticket_data
@@ -54,13 +56,13 @@ def fetch_chamados_gestao_x(url, params):
             response.raise_for_status()
 
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"HTTP error occurred on GET RetornaChamadosSolicitante: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"Connection error on GET RetornaChamadosSolicitante: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"Request timed out on GET RetornaChamadosSolicitante: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"A request exception occurred on GET Retorna_chamados_acompanhamento_solicitantes: {err}")
+        raise Exception(f"A request exception occurred on GET RetornaChamadosSolicitante: {err}")
 
 
 
