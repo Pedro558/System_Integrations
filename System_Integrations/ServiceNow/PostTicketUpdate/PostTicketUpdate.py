@@ -63,7 +63,9 @@ def get_auth_token():
 
 
 
-def fetch_work_notes(url, params, token):
+def fetch_work_notes(params, token):
+    url = url_servicenow+"api/now/table/u_integradora_gestao_x_atualizacoes"
+
     params["sysparm_query"] = "u_posted=False"
     params["sysparm_fields"] = "u_ticket_gestao_x.u_ticket_gestao_x, u_descricao, u_data_da_atualizacao"
 
@@ -74,7 +76,7 @@ def fetch_work_notes(url, params, token):
         }
     
     try:
-        response = requests.get(url+"api/now/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params)
         
         work_notes = response.json()
         #print("voltou response")
@@ -97,7 +99,8 @@ def fetch_work_notes(url, params, token):
         raise Exception(f"An error occurred on GET fetch_work_notes: {err}")
 
 
-def atualiza_gestao_x(work_notes, token):
+
+def atualiza_gestao_x(work_notes):
     try:
         if not work_notes:
             raise Exception("Work Notes array is empty")
@@ -106,10 +109,7 @@ def atualiza_gestao_x(work_notes, token):
         headers = {
             "Content-Type": "application/json",
         }
-
-
-
-        
+    
         results = []
         
         response = requests.Response()
@@ -158,9 +158,9 @@ def atualiza_gestao_x(work_notes, token):
     except Exception as err:
         raise Exception(err)
     
-
-
-results = ""
+snow_token = get_auth_token()
+work_notes = fetch_work_notes(params_encoded_query, snow_token)
+results = atualiza_gestao_x(work_notes)
 
 for result in results:
             print("--------------------------------")
