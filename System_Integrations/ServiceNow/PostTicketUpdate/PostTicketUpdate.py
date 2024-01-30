@@ -113,6 +113,7 @@ def atualiza_gestao_x(work_notes):
         }
     
         response = requests.Response()
+        response_aux = requests.Response()
         results = []
 
         for work_note in work_notes:
