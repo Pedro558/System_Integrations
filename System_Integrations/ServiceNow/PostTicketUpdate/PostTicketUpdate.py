@@ -119,7 +119,7 @@ def mark_update_as_posted(posted_item):
         
         response = requests.Response()
         try:
-            response = requests.post(url, headers=headers, data=json.dumps(body))
+            response = requests.patch(url, headers=headers, data=json.dumps(body))
             if response.status_code == 200 or response.status_code == 201:
                 print(f"Corresponding Work Note for {posted_item['u_ticket_gestao_x.u_ticket_gestao_x']} at {posted_item['u_data_da_atualizacao']} marked as posted")
         
