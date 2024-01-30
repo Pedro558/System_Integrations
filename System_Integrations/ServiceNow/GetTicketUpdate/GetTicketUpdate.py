@@ -97,8 +97,8 @@ def process_historico(ticket_data):
                 history_data = fetch_historico_chamado_gestao_x(url_gestao_x, params_fetch_historico_chamado_gestao_x, codigo_ticket)
                 
                 if history_data:
-                    if "Atualização através do ServiceNow:" not in entry.get("DESCRICAO"):
-                        for entry in history_data:
+                    for entry in history_data:
+                        if "Atualização através do ServiceNow:" not in entry.get("DESCRICAO"):
                             codigo = entry.get("CODIGO")
                             descricao = entry.get("DESCRICAO")
                             status = entry.get("STATUS_ID")
