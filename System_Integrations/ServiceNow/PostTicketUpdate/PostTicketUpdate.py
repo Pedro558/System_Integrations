@@ -138,7 +138,7 @@ def atualiza_gestao_x(work_notes):
             body = {
                 "CodigoChamado": CodigoChamado,
                 "Token": gestao_x_token,
-                "Descricao": work_notes['u_descricao'],
+                "Descricao": work_note['u_descricao'],
                 "Status": status,
                 "LoginResponsavel": loginResponsavel
             }
