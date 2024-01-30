@@ -84,7 +84,7 @@ def fetch_work_notes(params, token):
             raise Exception("No Work Notes found")
 
         if response.status_code == 200:        
-            return work_notes#['result']
+            return work_notes['result']
         
         else:
             response.raise_for_status()
@@ -115,7 +115,7 @@ def atualiza_gestao_x(work_notes):
         response = requests.Response()
         for work_note in work_notes:
             try:
-                CodigoChamado = work_notes['u_ticket_gestao_x.u_ticket_gestao_x']
+                CodigoChamado = work_note['u_ticket_gestao_x.u_ticket_gestao_x']
 
                 params = {
                     "CodigoChamado": CodigoChamado,
