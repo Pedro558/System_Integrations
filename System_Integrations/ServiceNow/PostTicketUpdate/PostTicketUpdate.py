@@ -124,7 +124,7 @@ def atualiza_gestao_x(work_notes):
                 "Token": gestao_x_token
             }
 
-            response_aux = requests.get(url_gestao_x+"RetornaDetalhesChamados", headers=headers, params=params)
+            response_aux = requests.get(url_gestao_x+"api/chamado/RetornaDetalhesChamados", headers=headers, params=params)
             if response_aux.status_code == 200 or response_aux.status_code == 201:
                 aux_info = response_aux.json()
 
