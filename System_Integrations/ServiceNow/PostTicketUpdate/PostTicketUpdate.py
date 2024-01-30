@@ -175,8 +175,8 @@ for result in results:
             print("--------------------------------")
             response = map_to_requests_response(result["response"])
             if response.status_code == 200 or response.status_code == 201:
-                print(f"Update from {result['item']['u_data_da_atualizacao']} of Ticket {result['item']['u_ticket_gestao_x']} was sent to ServiceNow")
+                print(f"Updated {result['item']['u_ticket_gestao_x.u_ticket_gestao_x']} with the update from {result['item']['u_data_da_atualizacao']}")
             else:
-                print(f"Error while trying to update Ticket {result['item']['u_ticket_gestao_x']} with {result['item']['u_data_da_atualizacao']} history data")
+                print(f"Error while trying to update ticket {result['item']['u_ticket_gestao_x.u_ticket_gestao_x']} with the update from {result['item']['u_data_da_atualizacao']}")
                 print(f"{response.status_code}")
                 print(f"{response.reason}")
