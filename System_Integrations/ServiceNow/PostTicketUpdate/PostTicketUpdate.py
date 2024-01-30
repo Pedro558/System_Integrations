@@ -84,7 +84,7 @@ def fetch_work_notes(params, token):
             raise Exception("No Work Notes found")
 
         if response.status_code == 200:        
-            return work_notes['result']
+            return work_notes#['result']
         
         else:
             response.raise_for_status()
