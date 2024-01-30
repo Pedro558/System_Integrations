@@ -152,6 +152,8 @@ def atualiza_gestao_x(work_notes):
             else:
                 response.raise_for_status()
 
+        return results
+
     except requests.exceptions.HTTPError as err: # HTTP Error
         raise Exception(f"HTTP error occurred on POST atualiza_gestao_x: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
@@ -162,8 +164,6 @@ def atualiza_gestao_x(work_notes):
         raise Exception(f"A request exception occurred on POST atualiza_gestao_x: {err}")  
     except Exception as err: #generic
         raise Exception(err)
-    
-    return results
                 
     
     
