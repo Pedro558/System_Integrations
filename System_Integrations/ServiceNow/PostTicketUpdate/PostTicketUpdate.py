@@ -105,7 +105,7 @@ def atualiza_gestao_x(work_notes):
         if not work_notes:
             raise Exception("Work Notes array is empty")
 
-        url = url_gestao_x+"api/chamado/AlterarCampoChamado"
+        url = url_gestao_x+"api/chamado/AlterarChamado"
         
         headers = {
             "Content-Type": "application/json",
