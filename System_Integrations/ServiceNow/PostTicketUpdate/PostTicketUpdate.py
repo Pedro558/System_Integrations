@@ -106,57 +106,65 @@ def atualiza_gestao_x(work_notes):
             raise Exception("Work Notes array is empty")
 
         url = url_gestao_x+"api/chamado/AlterarCampoChamado"
+        
         headers = {
             "Content-Type": "application/json",
+            "Application": ""
         }
     
-        results = []
-        
         response = requests.Response()
+        results = []
+
         for work_note in work_notes:
-            try:
-                CodigoChamado = work_note['u_ticket_gestao_x.u_ticket_gestao_x']
+            CodigoChamado = work_note['u_ticket_gestao_x.u_ticket_gestao_x']
 
-                params = {
-                    "CodigoChamado": CodigoChamado,
-                    "Token": gestao_x_token
-                }
+            params = {
+                "CodigoChamado": CodigoChamado,
+                "Token": gestao_x_token
+            }
 
-                response_aux = requests.get(url_gestao_x+"RetornaDetalhesChamados", headers=headers, params=params)
-
+            response_aux = requests.get(url_gestao_x+"RetornaDetalhesChamados", headers=headers, params=params)
+            if response_aux.status_code == 200 or response.status_code == 201:
                 aux_info = response_aux.json()
 
                 loginResponsavel = aux_info['RESPONSAVEL_LOGIN_USER']
                 status = aux_info['STATUS_ID']
 
+            else:
+                response.raise_for_status()
 
-                body = {
-                    "CodigoChamado": CodigoChamado,
-                    "Token": gestao_x_token,
-                    "Descricao": work_notes['u_descricao'],
-                    "Status": status,
-                    "LoginResponsavel": loginResponsavel
-                }
-                response = requests.post(url, headers=headers, data=json.dumps(body))
 
+            body = {
+                "CodigoChamado": CodigoChamado,
+                "Token": gestao_x_token,
+                "Descricao": work_notes['u_descricao'],
+                "Status": status,
+                "LoginResponsavel": loginResponsavel
+            }
+            
+            response = requests.post(url, headers=headers, data=json.dumps(body))
+            if response_aux.status_code == 200 or response.status_code == 201:
                 results.append({
                     "item": work_note,
                     "response": response.__dict__,
                 })  
+            else:
+                response.raise_for_status()
 
-            except requests.exceptions.HTTPError as err: # HTTP Error
-                raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
-            except requests.exceptions.ConnectionError as err: # Connection Error
-                raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
-            except requests.exceptions.Timeout as err: # Timeout
-                raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
-            except requests.exceptions.RequestException as err: # Request Exception
-                raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
-        
-        return results
-                
-    except Exception as err:
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on POST atualiza_gestao_x: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on POST atualiza_gestao_x: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on POST atualiza_gestao_x: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"A request exception occurred on POST atualiza_gestao_x: {err}")  
+    except Exception as err: #generic
         raise Exception(err)
+    
+    return results
+                
+    
     
 snow_token = get_auth_token()
 work_notes = fetch_work_notes(params_encoded_query, snow_token)
