@@ -105,7 +105,7 @@ def mark_update_as_posted(posted_item):
         if not posted_item:
             raise Exception("Posted_item array is empty")
 
-        url = url_servicenow+f"/api/now/table/u_integradora_gestao_x_atualizacoes/{posted_item['sys_id']}"
+        url = url_servicenow+f"api/now/table/u_integradora_gestao_x_atualizacoes/{posted_item['sys_id']}"
         
         token = get_auth_token()
         headers = {
@@ -190,7 +190,7 @@ def atualiza_gestao_x(work_notes):
                     "response": response.__dict__,
                 })  
                 mark_update_as_posted(work_note)
-                
+
             else:
                 response.raise_for_status()
 
