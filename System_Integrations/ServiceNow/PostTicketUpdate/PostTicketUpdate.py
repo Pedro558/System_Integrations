@@ -125,14 +125,14 @@ def atualiza_gestao_x(work_notes):
             }
 
             response_aux = requests.get(url_gestao_x+"RetornaDetalhesChamados", headers=headers, params=params)
-            if response_aux.status_code == 200 or response.status_code == 201:
+            if response_aux.status_code == 200 or response_aux.status_code == 201:
                 aux_info = response_aux.json()
 
                 loginResponsavel = aux_info['RESPONSAVEL_LOGIN_USER']
                 status = aux_info['STATUS_ID']
 
             else:
-                response.raise_for_status()
+                response_aux.raise_for_status()
 
 
             body = {
@@ -144,7 +144,7 @@ def atualiza_gestao_x(work_notes):
             }
             
             response = requests.post(url, headers=headers, data=json.dumps(body))
-            if response_aux.status_code == 200 or response.status_code == 201:
+            if response.status_code == 200 or response.status_code == 201:
                 results.append({
                     "item": work_note,
                     "response": response.__dict__,
