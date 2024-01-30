@@ -67,7 +67,7 @@ def fetch_work_notes(params, token):
     url = url_servicenow+"api/now/table/u_integradora_gestao_x_atualizacoes"
 
     params["sysparm_query"] = "u_posted=False"
-    params["sysparm_fields"] = "u_ticket_gestao_x.u_ticket_gestao_x, u_descricao, u_data_da_atualizacao"
+    params["sysparm_fields"] = "u_ticket_gestao_x.u_ticket_gestao_x, u_descricao, u_data_da_atualizacao, sys_id"
 
     headers = {
             "Content-Type": "application/json",
@@ -97,6 +97,46 @@ def fetch_work_notes(params, token):
         raise Exception(f"Request timed out on GET fetch_work_notes: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
         raise Exception(f"An error occurred on GET fetch_work_notes: {err}")
+
+
+def mark_update_as_posted(posted_item):
+    try:
+        
+        if not posted_item:
+            raise Exception("Posted_item array is empty")
+
+        url = url_servicenow+f"/api/now/table/u_integradora_gestao_x_atualizacoes/{posted_item['sys_id']}"
+        
+        token = get_auth_token()
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+token,
+        }
+        
+        body = {
+            "u_posted": "true"
+        }
+        
+        response = requests.Response()
+        try:
+            response = requests.post(url, headers=headers, data=json.dumps(body))
+            if response.status_code == 200 or response.status_code == 201:
+                print(f"Corresponding Work Note for {posted_item['u_ticket_gestao_x.u_ticket_gestao_x']} at {posted_item['u_data_da_atualizacao']} marked as posted")
+        
+            else:
+                response.raise_for_status()
+
+        except requests.exceptions.HTTPError as err: # HTTP Error
+            raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        except requests.exceptions.ConnectionError as err: # Connection Error
+            raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        except requests.exceptions.Timeout as err: # Timeout
+            raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        except requests.exceptions.RequestException as err: # Request Exception
+            raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
+                
+    except Exception as err:
+        raise Exception(err)
 
 
 
@@ -149,6 +189,7 @@ def atualiza_gestao_x(work_notes):
                     "item": work_note,
                     "response": response.__dict__,
                 })  
+                mark_update_as_posted(work_note)
             else:
                 response.raise_for_status()
 
@@ -164,8 +205,8 @@ def atualiza_gestao_x(work_notes):
         raise Exception(f"A request exception occurred on POST atualiza_gestao_x: {err}")  
     except Exception as err: #generic
         raise Exception(err)
-                
-    
+
+
     
 snow_token = get_auth_token()
 work_notes = fetch_work_notes(params_encoded_query, snow_token)
