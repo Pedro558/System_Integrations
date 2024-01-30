@@ -97,21 +97,22 @@ def process_historico(ticket_data):
                 history_data = fetch_historico_chamado_gestao_x(url_gestao_x, params_fetch_historico_chamado_gestao_x, codigo_ticket)
                 
                 if history_data:
-                    for entry in history_data:
-                        codigo = entry.get("CODIGO")
-                        descricao = entry.get("DESCRICAO")
-                        status = entry.get("STATUS_ID")
-                        data_historico = entry.get("DATA_HISTORICO")
-                    
-                        entry_dic = {
-                            "u_ticket_gestao_x":codigo,
-                            "u_descricao":descricao,
-                            "u_status":status,
-                            "u_data_da_atualizacao":data_historico,
-                            "u_posted":True
-                        }
+                    if "Atualização através do ServiceNow:" not in entry.get("DESCRICAO"):
+                        for entry in history_data:
+                            codigo = entry.get("CODIGO")
+                            descricao = entry.get("DESCRICAO")
+                            status = entry.get("STATUS_ID")
+                            data_historico = entry.get("DATA_HISTORICO")
+                        
+                            entry_dic = {
+                                "u_ticket_gestao_x":codigo,
+                                "u_descricao":descricao,
+                                "u_status":status,
+                                "u_data_da_atualizacao":data_historico,
+                                "u_posted":True
+                            }
 
-                        data.append(entry_dic)
+                            data.append(entry_dic)
 
         return data  
 

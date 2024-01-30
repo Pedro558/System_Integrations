@@ -178,7 +178,7 @@ def atualiza_gestao_x(work_notes):
             body = {
                 "CodigoChamado": CodigoChamado,
                 "Token": gestao_x_token,
-                "Descricao": work_note['u_descricao'],
+                "Descricao": "Atualização através do ServiceNow:\n"+work_note['u_descricao'],
                 "Status": status,
                 "LoginResponsavel": loginResponsavel
             }
