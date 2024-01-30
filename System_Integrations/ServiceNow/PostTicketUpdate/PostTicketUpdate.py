@@ -190,6 +190,7 @@ def atualiza_gestao_x(work_notes):
                     "response": response.__dict__,
                 })  
                 mark_update_as_posted(work_note)
+                
             else:
                 response.raise_for_status()
 
