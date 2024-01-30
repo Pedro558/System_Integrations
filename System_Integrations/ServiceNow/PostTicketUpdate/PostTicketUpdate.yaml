@@ -1,0 +1,30 @@
+- id: id
+  name: Gestão X - Post ServiceNow RITM work notes to Gestão X
+  group: ServiceNow Integration 
+  description: Checks u_integradora_gestao_x_atualizacao for posts with the "not posted"
+  executionEnabled: true
+  loglevel: INFO
+  nodeFilterEditable: false
+  options: 
+  - hidden: true 
+    name: appid 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_id
+    valueExposed: true 
+  - hidden: true 
+    name: appsecret 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_secret
+    valueExposed: true 
+  scheduleEnabled: true 
+  schedule:
+    crontab: '0 */5 * ? * * *'
+  plugins:
+    ExecutionLifecycle: null
+  sequence:
+    commands:
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\PostTicketUpdate\PostTicketUpdate.ps1
+      keepgoing: false
+      strategy: node-first
+      fileExtension: ps1
+      scriptInterpreter: powershell.exe -File
