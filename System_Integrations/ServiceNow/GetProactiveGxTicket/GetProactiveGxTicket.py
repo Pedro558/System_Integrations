@@ -177,6 +177,9 @@ for result in results:
             print("--------------------------------")
             response = map_to_requests_response(result["response"])
             if response.status_code == 200 or response.status_code == 201:
+                print(response.json())
+                print("-----------------------------------------")
+                print(response)
                 print(f"Ticket {result['item']['CODIGO']} was opened as {response['result']['number']} in ServiceNow")
             else:
                 print(f"Error while trying to open Ticket {result['item']['CODIGO']} in ServiceNow")
