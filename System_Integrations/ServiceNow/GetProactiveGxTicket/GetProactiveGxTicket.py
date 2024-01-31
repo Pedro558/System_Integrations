@@ -175,8 +175,9 @@ results = create_proactive_ritm(fetch_chamados_gestao_x(url_gestao_x, params_fet
 
 for result in results:
             print("--------------------------------")
-            response = map_to_requests_response(result["response"]).json()
+            response = map_to_requests_response(result["response"])
             if response.status_code == 200 or response.status_code == 201:
+                response = response.json()
                 print(f"Ticket {result['item']['CODIGO']} was opened as {response['result']['number']} in ServiceNow")
             else:
                 print(f"Error while trying to open Ticket {result['item']['CODIGO']} in ServiceNow")
