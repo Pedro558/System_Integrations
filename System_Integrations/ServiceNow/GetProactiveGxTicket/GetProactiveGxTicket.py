@@ -140,7 +140,7 @@ def create_proactive_ritm(tickets, token):
         response = requests.Response()
         for ticket in tickets:
             try:
-                if not does_it_exist(ticket['result']["CODIGO"], params_encoded_query, token):
+                if not does_it_exist(ticket['results']['CODIGO'], params_encoded_query, token):
                     body = {
                         "assignment_group":"Gr.Suporte N3",
                         "u_is_integrated":"true",
@@ -154,7 +154,7 @@ def create_proactive_ritm(tickets, token):
                     })  
 
                 else:
-                    print(f"Ticket {ticket['result']["CODIGO"]} has a corresponding RITM")
+                    print(f"Ticket {ticket['CODIGO']} has a corresponding RITM")
 
             except requests.exceptions.HTTPError as err: # HTTP Error
                 raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
