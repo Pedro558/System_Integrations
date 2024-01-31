@@ -174,7 +174,7 @@ def create_integradora_gestao_x_record(ritm, ticket):
     try:
         headers = {
             "Content-Type": "application/json",
-            "Authorization": "Bearer "+get_auth_token,
+            "Authorization": "Bearer "+get_auth_token(),
         }
 
         params = params_input_display_value
