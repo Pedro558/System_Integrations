@@ -140,7 +140,7 @@ def create_proactive_ritm(tickets, token):
         response = requests.Response()
         for ticket in tickets:
             try:
-                if not does_it_exist(ticket['results']['CODIGO'], params_encoded_query, token):
+                if not does_it_exist(ticket['CODIGO'], params_encoded_query, token):
                     body = {
                         "assignment_group":"Gr.Suporte N3",
                         "u_is_integrated":"true",
