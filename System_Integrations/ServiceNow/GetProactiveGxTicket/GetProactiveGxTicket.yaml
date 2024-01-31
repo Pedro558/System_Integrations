@@ -1,7 +1,7 @@
 - id: id
-  name: Gestão X - Get ticket history and update ServiceNow
+  name: Gestão X - Get proactively opened tickets
   group: ServiceNow Integration 
-  description: Fetches ticket history from active tickets within Gestão X and if the ticket is already open on ServiceNow, uploads new updates to 'u_integradora_gestao_x_atualizacoes'
+  description: Fetches tickets from Gestão X that are not already integrated
   executionEnabled: true
   loglevel: INFO
   nodeFilterEditable: false
