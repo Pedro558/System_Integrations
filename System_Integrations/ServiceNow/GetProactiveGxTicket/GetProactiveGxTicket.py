@@ -82,7 +82,6 @@ def fetch_chamados_gestao_x(url, params):
 
 
 #Verifica se o ticket (Gestão X) já está cadastrado no ServiceNow ou não
-#Caso não esteja, quer dizer que o ticket foi proativamente aberto no Gestão X e deve ser cadastrado no ServiceNow para acompanhamento.
 def does_it_exist(code, params, token):
     try:
         found = False
@@ -108,13 +107,13 @@ def does_it_exist(code, params, token):
             response.raise_for_status()
         
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"HTTP error occurred on GET does_it_exist: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"Connection error on GET does_it_exist: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"Request timed out on GET does_it_exist: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"A request exception occurred on GET does_it_exist: {err}")
    
 
 
@@ -125,7 +124,6 @@ def create_proactive_ritm(tickets, token):
         if not tickets:
             raise Exception("Tickets array is empty")
 
-        url = url_servicenow+"/api/now/table/sc_req_item"
         headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+token,
@@ -146,30 +144,68 @@ def create_proactive_ritm(tickets, token):
                         "u_is_integrated":"true",
                         "state":"new"
                     }
-                    response = requests.post(url, headers=headers, params=params, data=json.dumps(body))
+                    response = requests.post(url_servicenow+"/api/now/table/sc_req_item", headers=headers, params=params, data=json.dumps(body))
 
                     results.append({
                         "item": ticket,
                         "response": response.__dict__,
-                    })  
+                    })
 
                 else:
                     print(f"Ticket {ticket['CODIGO']} has a corresponding RITM")
 
             except requests.exceptions.HTTPError as err: # HTTP Error
-                raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+                raise Exception(f"HTTP error occurred on POST create_proactive_ritm: {err}")
             except requests.exceptions.ConnectionError as err: # Connection Error
-                raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+                raise Exception(f"Connection error on POST create_proactive_ritm: {err}")
             except requests.exceptions.Timeout as err: # Timeout
-                raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+                raise Exception(f"Request timed out on POST create_proactive_ritm: {err}")
             except requests.exceptions.RequestException as err: # Request Exception
-                raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
+                raise Exception(f"A request exception occurred on POST create_proactive_ritm: {err}")  
         
         return results
                 
     except Exception as err:
         raise Exception(err)
  
+
+
+def create_integradora_gestao_x_record(ritm, ticket):
+    try:
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+get_auth_token,
+        }
+
+        params = params_input_display_value
+
+        params["sysparm_input_display_value"] = "true"
+
+        body = {
+            "u_requested_item":ritm,
+            "u_ticket_gestao_x":ticket
+        }
+        response = requests.post(url_servicenow+"/api/now/table/u_integradora_gestao_x", headers=headers, params=params, data=json.dumps(body))
+
+        results =[]
+
+        results.append({
+            "item": body,
+            "response": response.__dict__,
+        })
+
+        return print(f"Registro integrador criado unindo a {ritm} ao ticket {ticket}")
+    
+    except requests.exceptions.HTTPError as err: # HTTP Error
+        raise Exception(f"HTTP error occurred on POST create_integradora_gestao_x_record: {err}")
+    except requests.exceptions.ConnectionError as err: # Connection Error
+        raise Exception(f"Connection error on POST create_integradora_gestao_x_record: {err}")
+    except requests.exceptions.Timeout as err: # Timeout
+        raise Exception(f"Request timed out on POST create_integradora_gestao_x_record: {err}")
+    except requests.exceptions.RequestException as err: # Request Exception
+        raise Exception(f"A request exception occurred on POST create_integradora_gestao_x_record: {err}")  
+
+
 
 results = create_proactive_ritm(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x), get_auth_token())
 
@@ -179,6 +215,7 @@ for result in results:
             if response.status_code == 200 or response.status_code == 201:
                 response = response.json()
                 print(f"Ticket {result['item']['CODIGO']} was opened as {response['result']['number']} in ServiceNow")
+                create_integradora_gestao_x_record(response['result']['number'], result['item']['CODIGO'])
             else:
                 print(f"Error while trying to open Ticket {result['item']['CODIGO']} in ServiceNow")
                 print(f"{response.status_code}")
