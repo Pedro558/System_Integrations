@@ -177,7 +177,7 @@ def process_data(url, ritm_list):
                     aQuestionWhatServiceUnix = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the service?" and variable["sc_item_option.order"] == "6"]
                     valueWhatServiceUnix = aQuestionWhatServiceUnix[0]["sc_item_option.value"]
                     #  Reboot Time Start                
-                    aQuestionRebootTimeStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == " What is the Server Reboot Time (Start)"]
+                    aQuestionRebootTimeStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == " What is the Server Reboot Time (Start)"] #sim, tem um espaço no nome da variavel
                     valueRebootTimeStart = aQuestionRebootTimeStart[0]["sc_item_option.value"] if len(aQuestionRebootTimeStart) > 0 else None
                     #  Reboot Time End
                     aQuestionRebootTimeEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the Server Reboot Time (end)"]
