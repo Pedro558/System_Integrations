@@ -160,7 +160,7 @@ def process_data(url, ritm_list):
         if getContactInfo.status_code == 200:
             contactInfo = getContactInfo.json()['result']
             valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
-            valueCompany = contactInfo[0]["account"]
+            valueCompany = contactInfo[0]["company.name"]
             valueEmail = contactInfo[0]["email"]
             valuePhone = contactInfo[0]["phone"]
             valueMobilePhone = contactInfo[0]["mobile_phone"]
