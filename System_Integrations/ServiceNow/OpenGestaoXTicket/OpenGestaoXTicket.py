@@ -106,7 +106,7 @@ def fetch_ritm_variables (url, ritm, params, token):
             variable_list = response.json()
             #print(variable_list[0])
             if not 'result' in variable_list or len(variable_list['result']) == 0:
-                raise Exception(f"No variables found for {ritm['result']['number']}")
+                raise Exception(f"No variables found for {ritm['number']}")
             
             return variable_list['result']
         
@@ -156,14 +156,15 @@ def process_data(url, ritm_list):
             "Authorization": "Bearer "+get_auth_token(),
         }
         
-        getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params=contactParams, header=header)
+        getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params = contactParams, header=header)
         if getContactInfo.status_code == 200:
             contactInfo = getContactInfo.json()['result']
-            valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
+            valueContact = contactInfo[0]["first_name"]+" "+contactInfo["last_name"]
             valueCompany = contactInfo[0]["account"]
             valueEmail = contactInfo[0]["email"]
             valuePhone = contactInfo[0]["phone"]
             valueMobilePhone = contactInfo[0]["mobile_phone"]
+
         else:
             response.raise_for_status()
 
