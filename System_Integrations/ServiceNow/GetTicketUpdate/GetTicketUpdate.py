@@ -126,7 +126,7 @@ def get_auth_token():
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
-        "refresh_token":service_now_refresh_token, #TODO perguntar pro filipe sobre a localização dessas variaveis dentro do código
+        "refresh_token":service_now_refresh_token,
     }
 
     response = requests.post(url, data=body)
@@ -238,11 +238,10 @@ def update_servicenow(updates, token):
                         })  
 
                     else:
-                        print("Matching data is already stored on ServiceNow")
+                        print(f"Matching data is already stored on ServiceNow for {item["u_ticket_gestao_x"]}")
 
                 else:
-                    #TODO INSERIR CÓDIGO PARA CRIAR O TICKET PROATIVO
-                    print("Ticket does not have a corresponding RITM")
+                    print(f"Ticket {item["u_ticket_gestao_x"]} does not have a corresponding RITM and will be treated as a proactive ticket")
 
             except requests.exceptions.HTTPError as err: # HTTP Error
                 raise Exception(f"HTTP error occurred on POST update_servicenow: {err}")
