@@ -221,7 +221,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
-                    descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
+                    descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, descriptionConfig)
                     if valueWhatOperatingSystem == 'windows':
                         descricao += f"\nTipo de serviço: {valueWhatServiceWindows}"
@@ -245,7 +245,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
-                    descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
+                    descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, descriptionConfig)
 
 
@@ -265,7 +265,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
-                    descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
+                    descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, aConfig)
 
                 case 'Monitoring':
@@ -289,7 +289,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
-                    descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
+                    descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, aConfig)
                     if valueBlackoutWindowStart:
                         descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowStart}"
@@ -310,7 +310,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
-                    descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
+                    descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, aConfig)
         else:
             continue
