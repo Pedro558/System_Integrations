@@ -56,13 +56,13 @@ def fetch_chamados_gestao_x(url, params):
             response.raise_for_status()
 
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on GET RetornaChamadosSolicitante: {err}")
+        raise Exception(f"HTTP error occurred on GET fetch_chamados_gestao_x: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on GET RetornaChamadosSolicitante: {err}")
+        raise Exception(f"Connection error on GET fetch_chamados_gestao_x: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on GET RetornaChamadosSolicitante: {err}")
+        raise Exception(f"Request timed out on GET fetch_chamados_gestao_x: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"A request exception occurred on GET RetornaChamadosSolicitante: {err}")
+        raise Exception(f"A request exception occurred on GET fetch_chamados_gestao_x: {err}")
 
 
 
@@ -78,13 +78,13 @@ def fetch_historico_chamado_gestao_x(url, params, ticket):
             response.raise_for_status()
 
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on GET RetornaHistoricoChamado: {err}")
+        raise Exception(f"HTTP error occurred on GET fetch_historico_chamado_gestao_x: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on GET RetornaHistoricoChamado: {err}")
+        raise Exception(f"Connection error on GET fetch_historico_chamado_gestao_x: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on GET RetornaHistoricoChamado: {err}")
+        raise Exception(f"Request timed out on GET fetch_historico_chamado_gestao_x: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"A request exception occurred on GET RetornaHistoricoChamado: {err}")
+        raise Exception(f"A request exception occurred on GET fetch_historico_chamado_gestao_x: {err}")
 
 
 
@@ -164,13 +164,13 @@ def does_it_exist(code, params, token):
             response.raise_for_status()
         
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"HTTP error occurred on GET does_it_exist: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"Connection error on GET does_it_exist: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"Request timed out on GET does_it_exist: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora: {err}")
+        raise Exception(f"A request exception occurred on GET does_it_exist: {err}")
 
 
 
@@ -201,13 +201,13 @@ def has_it_been_updated(code, date, params, token):
             response.raise_for_status()
         
     except requests.exceptions.HTTPError as err: # HTTP Error
-        raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"HTTP error occurred on GET has_it_been_updated: {err}")
     except requests.exceptions.ConnectionError as err: # Connection Error
-        raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"Connection error on GET has_it_been_updated: {err}")
     except requests.exceptions.Timeout as err: # Timeout
-        raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"Request timed out on GET has_it_been_updated: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
-        raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+        raise Exception(f"A request exception occurred on GET has_it_been_updated: {err}")
     
 
 
@@ -245,13 +245,13 @@ def update_servicenow(updates, token):
                     print("Ticket does not have a corresponding RITM")
 
             except requests.exceptions.HTTPError as err: # HTTP Error
-                raise Exception(f"HTTP error occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+                raise Exception(f"HTTP error occurred on POST update_servicenow: {err}")
             except requests.exceptions.ConnectionError as err: # Connection Error
-                raise Exception(f"Connection error on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+                raise Exception(f"Connection error on POST update_servicenow: {err}")
             except requests.exceptions.Timeout as err: # Timeout
-                raise Exception(f"Request timed out on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")
+                raise Exception(f"Request timed out on POST update_servicenow: {err}")
             except requests.exceptions.RequestException as err: # Request Exception
-                raise Exception(f"A request exception occurred on POST api/table/u_gestao_x_integradora_atualizacoes: {err}")  
+                raise Exception(f"A request exception occurred on POST update_servicenow: {err}")  
         
         return results
                 
