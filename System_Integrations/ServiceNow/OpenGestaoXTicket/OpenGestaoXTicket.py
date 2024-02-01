@@ -151,12 +151,12 @@ def process_data(url, ritm_list):
             "sysparm_query": "sys_id="+aQuestionContact[0]["sc_item_option.value"],
             "sysparm_fields": "company.name, first_name, last_name, email, phone, mobile_phone"
         }
-        header = {
+        headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+get_auth_token(),
         }
         
-        getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params = contactParams, header=header)
+        getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params = contactParams, headers=headers)
         if getContactInfo.status_code == 200:
             contactInfo = getContactInfo.json()['result']
             valueContact = contactInfo[0]["first_name"]+" "+contactInfo["last_name"]
