@@ -21,15 +21,15 @@ url_gestao_x = "https://csc.everestdigital.com.br/API/"
 url_servicenow = "https://eleadev.service-now.com/"
 
 #Tokens
-gestao_x_login = get_api_token("gestao-x-prd-login")
+gestao_x_login = get_api_token('gestao-x-prd-login')
 #print(gestao_x_login)
-gestao_x_token = get_api_token("gestao-x-prd-api-token")
+gestao_x_token = get_api_token('gestao-x-prd-api-token')
 #print(gestao_x_token)
-servicenow_client_id = get_api_token("servicenow-dev-client-id-oauth")
+servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
 #print(servicenow_client_id)
-servicenow_client_secret = get_api_token("servicenow-dev-client-secret-oauth")
+servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
 #print(servicenow_client_secret)
-service_now_refresh_token = get_api_token("servicenow-dev-refresh-token-oauth")
+service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
 #print(service_now_refresh_token)
 
 #Variavel de parametros para GET na API do ServiceNow
@@ -71,11 +71,11 @@ def fetch_ritm_servicenow(url, params, token):
         
         ritm_list = response.json()
         #print("voltou response")
-        if not "result" in ritm_list or len(ritm_list["result"]) == 0:
+        if not 'result' in ritm_list or len(ritm_list['result']) == 0:
             raise Exception("No RITMs found")
 
         if response.status_code == 200:        
-            return ritm_list["result"]
+            return ritm_list['result']
         
         else:
             response.raise_for_status()
@@ -92,7 +92,7 @@ def fetch_ritm_servicenow(url, params, token):
 
 
 def fetch_ritm_variables (url, ritm, params, token):
-    params["sysparm_query"] = "request_item.sys_id="+ritm["sys_id"]   #get_value(ritm, lambda x : x["results"]["sys_is"], None)
+    params["sysparm_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)
     params["sysparm_fields"] = "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
     
     headers = {
@@ -105,10 +105,10 @@ def fetch_ritm_variables (url, ritm, params, token):
         if response.status_code == 200:
             variable_list = response.json()
             #print(variable_list[0])
-            if not "result" in variable_list or len(variable_list["result"]) == 0:
-                raise Exception(f"No variables found for {ritm["result"]["number"]}")
+            if not 'result' in variable_list or len(variable_list['result']) == 0:
+                raise Exception(f"No variables found for {ritm['result']['number']}")
             
-            return variable_list["result"]
+            return variable_list['result']
         
         else:
             response.raise_for_status()
@@ -158,7 +158,7 @@ def process_data(url, ritm_list):
         
         getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params=contactParams, header=header)
         if getContactInfo.status_code == 200:
-            contactInfo = getContactInfo.json()["result"]
+            contactInfo = getContactInfo.json()['result']
             valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
             valueCompany = contactInfo[0]["account"]
             valueEmail = contactInfo[0]["email"]
@@ -168,27 +168,27 @@ def process_data(url, ritm_list):
             response.raise_for_status()
 
         descricao = ""
-        if ritm["cat_item.name"]:
-            match ritm["cat_item.name"]:
-                case "Operational system":           
+        if ritm['cat_item.name']:
+            match ritm['cat_item.name']:
+                case 'Operational system':           
                     # COLINHA:
                     # aQuestionHostname = list(filter(
-                    #                             lambda variable: variable["question"] == "hostname"
+                    #                             lambda variable: variable['question'] == 'hostname'
                     #                             , variables
                     #                             ))
 
                     # OU
 
-                    # aQuestionHostname = [variable for variable in variables if variable["question"] == "hostname"]
+                    # aQuestionHostname = [variable for variable in variables if variable["question"] == 'hostname']
                     
                     # ENTÃO
 
                     # questionHortname = aQuestionHostname[0]["value"]
 
-                    #valueSummary = [variable["sc_item_option.value"] for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Summary"][0]
+                    #valueSummary = [variable["sc_item_option.value"] for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'Summary'][0]
                     #Essa alternativa retorna um array contendo somente o value e então entrega para a variavel a primeira posição (0) do array que é a string contendo o valor
-                    #                    return   for each ele in array     if ele["key"] == "value" 
-                    #aQuestionSummary = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Summary"]
+                    #                    return   for each ele in array     if ele['key'] == 'value' 
+                    #aQuestionSummary = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'Summary']
                     
                     #  Operating System
                     aQuestionWhatOperatingSystem = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What Operating System?"]
@@ -215,23 +215,23 @@ def process_data(url, ritm_list):
                     ]
 
                     descricao += "---TESTE INTEGRACAO---"
-                    descricao += f"\nRITM no ServiceNow Elea: {ritm["number"]}"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
                     descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
                     descricao += descriptionBuilder(variables, descriptionConfig)
-                    if valueWhatOperatingSystem == "windows":
+                    if valueWhatOperatingSystem == 'windows':
                         descricao += f"\nTipo de serviço: {valueWhatServiceWindows}"
-                    elif valueWhatOperatingSystem == "unix":
+                    elif valueWhatOperatingSystem == 'unix':
                         descricao += f"\nTipo de serviço: {valueWhatServiceUnix}"
                     if valueRebootTimeStart:
                         descricao += f"\nHora do inicio do reboot: {valueRebootTimeStart}"
                     if valueRebootTimeEnd:
                         descricao += f"\n Hora do fim do reboot: {valueRebootTimeEnd}"
 
-                case "Backup":
+                case 'Backup':
                     descriptionConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
@@ -239,7 +239,7 @@ def process_data(url, ritm_list):
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
                     descricao += "---TESTE INTEGRACAO---"
-                    descricao += f"\nRITM no ServiceNow Elea: {ritm["number"]}"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
@@ -248,7 +248,7 @@ def process_data(url, ritm_list):
                     descricao += descriptionBuilder(variables, descriptionConfig)
 
 
-                case "Database":
+                case 'Database':
                     aConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
@@ -259,7 +259,7 @@ def process_data(url, ritm_list):
                     ]
 
                     descricao += "---TESTE INTEGRACAO---"
-                    descricao += f"\nRITM no ServiceNow Elea: {ritm["number"]}"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
@@ -267,12 +267,12 @@ def process_data(url, ritm_list):
                     descricao += f"\nTelefone 2: {valueMobilePhone}\n\n"
                     descricao += descriptionBuilder(variables, aConfig)
 
-                case "Monitoring":
+                case 'Monitoring':
                     #  Blackout Window Start
-                    aQuestionBlackoutWindowStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the blackout window (start)"]
+                    aQuestionBlackoutWindowStart = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (start)']
                     valueBlackoutWindowStart = aQuestionBlackoutWindowStart[0]["sc_item_option.value"] if len(aQuestionBlackoutWindowStart) > 0 else None
                     #  Blackout Window End
-                    aQuestionBlackoutWindowEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "What is the blackout window (End)"]
+                    aQuestionBlackoutWindowEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (End)']
                     valueBlackoutWindowEnd = aQuestionBlackoutWindowEnd[0]["sc_item_option.value"] if len(aQuestionBlackoutWindowEnd) > 0 else None
 
                     aConfig = [
@@ -283,7 +283,7 @@ def process_data(url, ritm_list):
                     ]
 
                     descricao += "---TESTE INTEGRACAO---"
-                    descricao += f"\nRITM no ServiceNow Elea: {ritm["number"]}"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
@@ -295,7 +295,7 @@ def process_data(url, ritm_list):
                     if valueBlackoutWindowEnd:
                         descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowEnd}"
 
-                case "Storage":
+                case 'Storage':
                     aConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
@@ -304,7 +304,7 @@ def process_data(url, ritm_list):
                     ]
 
                     descricao += "---TESTE INTEGRACAO---"
-                    descricao += f"\nRITM no ServiceNow Elea: {ritm["number"]}"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
                     descricao += f"\nEmail: {valueEmail}"
@@ -315,7 +315,7 @@ def process_data(url, ritm_list):
             continue
 
         ticket_to_post =  {
-            "ritm_number": ritm["number"],
+            "ritm_number": ritm['number'],
             "data": {
                 "Descricao":descricao,
                 "LoginSolicitante":gestao_x_login,
@@ -333,14 +333,14 @@ def process_data(url, ritm_list):
 
 
 def openGestaoXTicket(url, tickets_to_post):
-    url += "api/chamado/AbrirChamado"
+    url += 'api/chamado/AbrirChamado'
     headers = {
             "Content-Type": "application/json",
     }
     try:
         results =[]
         for ticket in tickets_to_post:
-            response = requests.post(url, headers=headers, data=json.dumps(ticket["data"]))
+            response = requests.post(url, headers=headers, data=json.dumps(ticket['data']))
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
                     "item": ticket,
@@ -364,7 +364,7 @@ def openGestaoXTicket(url, tickets_to_post):
 
 
 def postServiceNowIntegradora(url, token, tickets_posted):
-    url += "api/now/table/u_integradora_gestao_x?sysparm_input_display_value=true"
+    url += 'api/now/table/u_integradora_gestao_x?sysparm_input_display_value=true'
     headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+token,
@@ -374,14 +374,14 @@ def postServiceNowIntegradora(url, token, tickets_posted):
         results =[]
         for ticket in tickets_posted:
             data = {
-                "u_ticket_gestao_x":map_to_requests_response(ticket["response"]).json(),
-                "u_requested_item":ticket["item"]["ritm_number"]
+                "u_ticket_gestao_x":map_to_requests_response(ticket['response']).json(),
+                "u_requested_item":ticket['item']['ritm_number']
             }
             response = requests.post(url, headers=headers, data=json.dumps(data))
     
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
-                    "item": ticket["item"],
+                    "item": ticket['item'],
                     "response": response.__dict__,
                 })  
             else:
@@ -408,9 +408,9 @@ for ticket in tickets_posted:
             print("--------------------------------")
             response = map_to_requests_response(ticket["response"])
             if response.status_code == 200 or response.status_code == 201:
-                print(f"RITM {ticket["item"]["ritm_number"]} was posted as {map_to_requests_response(ticket["response"]).json()} in Gestão X")
+                print(f"RITM {ticket['item']['ritm_number']} was posted as {map_to_requests_response(ticket['response']).json()} in Gestão X")
             else:
-                print(f"Error while trying to post RITM {ticket["item"]["ritm_number"]} with {ticket["item"]["data"]} history data")
+                print(f"Error while trying to post RITM {ticket['item']['ritm_number']} with {ticket['item']['data']} history data")
                 print(f"{response.status_code}")
                 print(f"{response.reason}")
 
@@ -418,8 +418,8 @@ for result in results:
             print("--------------------------------")
             response = map_to_requests_response(result["response"])
             if response.status_code == 200 or response.status_code == 201:
-                print(f"Record created in u_integradora_gestao_x for {result["item"]["ritm_number"]} integrated with Gestão X ticket {map_to_requests_response(ticket["response"]).json()} ")
+                print(f"Record created in u_integradora_gestao_x for {result['item']['ritm_number']} integrated with Gestão X ticket {map_to_requests_response(ticket['response']).json()} ")
             else:
-                print(f"Error while trying to update u_integradora_gestao_x for {result["item"]["u_requested_item"]} with Gestão X ticket {map_to_requests_response(ticket["response"]).json()}")
+                print(f"Error while trying to update u_integradora_gestao_x for {result['item']['u_requested_item']} with Gestão X ticket {map_to_requests_response(ticket['response']).json()}")
                 print(f"{response.status_code}")
                 print(f"{response.reason}")
