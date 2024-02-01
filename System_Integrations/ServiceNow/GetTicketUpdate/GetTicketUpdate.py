@@ -238,7 +238,7 @@ def update_servicenow(updates, token):
                         })  
 
                     else:
-                        print(f"Matching data is already stored on ServiceNow for {item["u_ticket_gestao_x"]}")
+                        print(f"Matching data is already stored on ServiceNow for {item['u_ticket_gestao_x']}")
 
                 else:
                     print(f"Ticket {item["u_ticket_gestao_x"]} does not have a corresponding RITM and will be treated as a proactive ticket")
