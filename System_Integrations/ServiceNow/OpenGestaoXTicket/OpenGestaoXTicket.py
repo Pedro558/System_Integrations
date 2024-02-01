@@ -159,7 +159,7 @@ def process_data(url, ritm_list):
         getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params = contactParams, headers=headers)
         if getContactInfo.status_code == 200:
             contactInfo = getContactInfo.json()['result']
-            valueContact = contactInfo[0]["first_name"]+" "+contactInfo["last_name"]
+            valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
             valueCompany = contactInfo[0]["account"]
             valueEmail = contactInfo[0]["email"]
             valuePhone = contactInfo[0]["phone"]
