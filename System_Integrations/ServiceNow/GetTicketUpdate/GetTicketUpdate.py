@@ -113,7 +113,7 @@ def process_historico(ticket_data):
                             }
 
                             data.append(entry_dic)
-        print(entry_dic)
+        #print(entry_dic)
         return data  
 
 
