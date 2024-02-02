@@ -42,7 +42,9 @@ params_encoded_query = {
 }
 
 
-
+#Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
+#Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
+#https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
     body = {
@@ -60,6 +62,7 @@ def get_auth_token():
 
 
 
+#Busca as Work Notes e Comentarios disponíveis na tabela de atualizações
 def fetch_work_notes(params, token):
     url = url_servicenow+"api/now/table/u_integradora_gestao_x_atualizacoes"
 
@@ -96,6 +99,8 @@ def fetch_work_notes(params, token):
         raise Exception(f"An error occurred on GET fetch_work_notes: {err}")
 
 
+#Após enviar a atualização para o Gestão X, marca o campo "Posted" como "true".
+#O campo Posted sinaiza que aquela atualização já foi enviada para o Gestão X.
 def mark_update_as_posted(posted_item):
     try:
         
@@ -137,6 +142,7 @@ def mark_update_as_posted(posted_item):
 
 
 
+#Envia as atualizações das RITM para os seus respectivos Tickets
 def atualiza_gestao_x(work_notes):
     try:
         if not work_notes:
