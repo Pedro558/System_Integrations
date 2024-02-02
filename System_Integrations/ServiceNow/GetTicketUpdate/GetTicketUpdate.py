@@ -1,6 +1,3 @@
-# TODO É necessário separar esse código em diversos módulos?
-# TODO PRECISO VERIFICAR A CONDIÇÃO DE ABERTURA DE CHAMADO NO GESTÃO X
-
 import requests
 import json
 from ...auth.api_secrets import get_api_token

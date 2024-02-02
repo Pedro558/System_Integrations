@@ -1,6 +1,3 @@
-# TODO É necessário separar esse código em diversos módulos?
-# TODO PRECISO VERIFICAR A CONDIÇÃO DE ABERTURA DE CHAMADO NO GESTÃO X
-
 import requests
 import json
 from ...auth.api_secrets import get_api_token
@@ -52,7 +49,7 @@ def get_auth_token():
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
-        "refresh_token":service_now_refresh_token, #TODO perguntar pro filipe sobre a localização dessas variaveis dentro do código
+        "refresh_token":service_now_refresh_token,
     }
 
     response = requests.post(url, data=body)

@@ -45,7 +45,7 @@ def get_auth_token():
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
-        "refresh_token":service_now_refresh_token, #TODO perguntar pro filipe sobre a localização dessas variaveis dentro do código
+        "refresh_token":service_now_refresh_token,
     }
 
     response = requests.post(url, data=body)
@@ -57,7 +57,8 @@ def get_auth_token():
 
 
 def fetch_ritm_servicenow(url, params, token):    
-    params["sysparm_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11" #TODO Avaliar Sys_ID do Gr.Suporte N3 em PRD
+                                               #3ee6ef4c1bb8d510bef1a79fe54bcbb3 <- Sys_ID PRODUÇÃO É O MESMO DE DEV
+    params["sysparm_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11"
     params["sysparm_fields"] = "number, sys_id, cat_item.name"
 
     headers = {
