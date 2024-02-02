@@ -2,18 +2,9 @@ import requests
 import json
 from ...auth.api_secrets import get_api_token
 from ...utils.mapper import map_to_requests_response
-from ...utils.parser import get_value
+#Incluir caso for substituir o metodo da primeira linha do Fetch_ritm_variables
+#from ...utils.parser import get_value
 
-
-# def map_to_requests_response(response_dict) -> requests.Response:
-#     # Create a requests.Response instance
-#     http_response = requests.Response()
-
-#     # Set attributes using the dictionary data
-#     for key, value in http_response.__dict__.items():
-#         setattr(http_response, key, response_dict.get(key, value))
-
-#     return http_response
 
 
 #URLs
@@ -39,6 +30,11 @@ serviceNow_params = {
     "sysparm_fields": ""
 }
 
+
+
+#Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
+#Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
+#https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
     body = {
@@ -55,7 +51,7 @@ def get_auth_token():
     return data["access_token"]
 
 
-
+#Busca RITMs no ServiceNow onde "Assignment Group" é Gr.Suporte N3, "Is Integrated" é false E o estado não é final
 def fetch_ritm_servicenow(url, params, token):    
                                                #3ee6ef4c1bb8d510bef1a79fe54bcbb3 <- Sys_ID PRODUÇÃO É O MESMO DE DEV
     params["sysparm_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11"
@@ -92,6 +88,7 @@ def fetch_ritm_servicenow(url, params, token):
 
 
 
+#Busca as variaveis da RITM aberta através de um catalog item/record producer.
 def fetch_ritm_variables (url, ritm, params, token):
     params["sysparm_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)
     params["sysparm_fields"] = "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
@@ -125,6 +122,7 @@ def fetch_ritm_variables (url, ritm, params, token):
 
 
 
+#Dinamicamente constroi a descrição que será enviada ao Gestão X com base no que foi preenchido no formulario
 def descriptionBuilder(variables, descConfig):
     descricao = ""
     for config in descConfig:
@@ -136,7 +134,7 @@ def descriptionBuilder(variables, descConfig):
     return descricao
 
 
-
+#Constroi a descrição com base nas variaveis e tipo de item de catalogo
 def process_data(url, ritm_list):
     tickets_to_post = []
     if not ritm_list:
@@ -333,7 +331,7 @@ def process_data(url, ritm_list):
     return tickets_to_post
 
 
-
+#Abre o ticket no gestão X
 def openGestaoXTicket(url, tickets_to_post):
     url += 'api/chamado/AbrirChamado'
     headers = {
@@ -364,7 +362,7 @@ def openGestaoXTicket(url, tickets_to_post):
     return results
 
 
-
+#Cria registro na tabela integradora
 def postServiceNowIntegradora(url, token, tickets_posted):
     url += 'api/now/table/u_integradora_gestao_x?sysparm_input_display_value=true'
     headers = {

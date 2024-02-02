@@ -116,6 +116,7 @@ def process_historico(ticket_data):
 
 
 #Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
+#Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
 #https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
