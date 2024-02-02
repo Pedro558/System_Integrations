@@ -136,6 +136,7 @@ def get_auth_token():
 
 #Verifica se o ticket (Gestão X) já está cadastrado no ServiceNow ou não
 #Caso não esteja, quer dizer que o ticket foi proativamente aberto no Gestão X e deve ser cadastrado no ServiceNow para acompanhamento.
+#Isso é feito no job GetProactiveTicket
 def does_it_exist(code, params, token):
     try:
         found = False
@@ -172,7 +173,6 @@ def does_it_exist(code, params, token):
 
 
 #Verifica se o registro do histórico já foi inserido no ServiceNow
-#Pendente validar se o ticket existe no ServiceNow e se não existir, fazer a sua tratativa para que exista(?), pode ser feito na função 'update_servicenow' se necessário
 def has_it_been_updated(code, date, params, token):
     try:
         found = False
@@ -226,7 +226,7 @@ def update_servicenow(updates, token):
         for item in updates:
             try:
                 if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query, token):
-                    if not has_it_been_updated(item["u_ticket_gestao_x"], item["u_data_da_atualizacao"], params_encoded_query, token):
+                    if not has_it_been_updated(item['u_ticket_gestao_x'], item['u_data_da_atualizacao'], params_encoded_query, token):
                         response = requests.post(url, headers=headers, data=json.dumps(item))
 
                         results.append({
@@ -253,8 +253,8 @@ def update_servicenow(updates, token):
                 
     except Exception as err:
         raise Exception(err)
- 
-#exit()
+    
+    
 
 results = update_servicenow(process_historico(fetch_chamados_gestao_x(url_gestao_x, params_fetch_chamados_gestao_x)), get_auth_token())
 
