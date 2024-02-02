@@ -33,12 +33,16 @@ params_encoded_query = {
     "sysparam_query": "",
 }
 
+#Recebe "true" OU "false".
+#Se true, inserir o valor de Display de um dado campo funciona normalmente.
+#Se false, é necessario inserir o Sys_ID
 params_input_display_value = {
     "sysparm_input_display_value": "",
 }
 
 
 #Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
+#Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
 #https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
     url = url_servicenow+"/oauth_token.do"
@@ -114,8 +118,8 @@ def does_it_exist(code, params, token):
    
 
 
-#Insere as novas informações dos historicos dos chamados do Gestão X na tabela integradora de atualizações (u_integradora_gestao_x_atualizacoes)
-#Ao criar os registros nessa tabela o Flow 'ELEA-LB: Gestão X - Escreve atualizações recebidas dos tickets' realiza a atualização da RITM.
+#Caso não exista uma RITM criada no ServiceNow para documentar o Ticket do Gestão X, cria essa RITM, atribuida ao grupo Gr.Suporte N3 e constando como já integrada.
+#Essa ritm será atualizada normalmente junto das demais que estão integradas.
 def create_proactive_ritm(tickets, token):  
     try:
         if not tickets:
@@ -167,6 +171,7 @@ def create_proactive_ritm(tickets, token):
  
 
 
+#Cria registro na tabela integradora relacionando a nova RITM com seu ticket no Gestão X
 def create_integradora_gestao_x_record(ritm, ticket):
     try:
         headers = {
@@ -212,7 +217,7 @@ for result in results:
             if response.status_code == 200 or response.status_code == 201:
                 response = response.json()
                 print(f"Ticket {result['item']['CODIGO']} was opened as {response['result']['number']} in ServiceNow")
-                create_integradora_gestao_x_record(response['result']['number'], result['item']['CODIGO'])
+                create_integradora_gestao_x_record(response['result']['number'], result['item']['CODIGO']) #Registro integrador é criado apenas caso a ritm seja adequadamente criada.
             else:
                 print(f"Error while trying to open Ticket {result['item']['CODIGO']} in ServiceNow")
                 print(f"{response.status_code}")
