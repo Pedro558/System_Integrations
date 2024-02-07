@@ -2,6 +2,7 @@ import requests
 import json
 from ...auth.api_secrets import get_api_token
 from ...utils.mapper import map_to_requests_response
+from collections import defaultdict
 #Incluir caso for substituir o metodo da primeira linha do Fetch_ritm_variables
 #from ...utils.parser import get_value
 
@@ -30,8 +31,6 @@ serviceNow_params = {
     "sysparm_fields": ""
 }
 
-
-
 #Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
 #Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
 #https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
@@ -49,6 +48,7 @@ def get_auth_token():
     #print(data)
 
     return data["access_token"]
+
 
 
 #Busca RITMs no ServiceNow onde "Assignment Group" é Gr.Suporte N3, "Is Integrated" é false E o estado não é final
@@ -134,11 +134,83 @@ def descriptionBuilder(variables, descConfig):
     return descricao
 
 
+#Quando alguma variavel faz uso de tabela multilinha (sc_multi_row_question_answer) essa função é chamada para buscar todos os valores e criar o texto da descrição
+def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
+    params = serviceNow_params
+    params['sysparm_fields'] = "item_option_new.question_text, row_index, value"
+
+    headers = {
+                "Content-Type": "application/json",
+                "Authorization": "Bearer "+get_auth_token(),
+            }
+    cat_item_name = "Networks"
+
+    match cat_item_name:
+        case 'Networks':
+            params['sysparm_query'] = "variable_set=f9f1f6371b689510bef1a79fe54bcb43^parent_id="+ritm_sys_id+"^parent_table_name=sc_req_item"
+            params['sysparm_fields'] = "item_option_new.question_text, row_index, value"
+            
+            getMultiRowData = requests.get("https://eleadev.service-now.com/api/now/table/sc_multi_row_question_answer", params = params, headers=headers)
+            if getMultiRowData.status_code == 200:
+                results = defaultdict(list)
+
+                data = getMultiRowData.json()['result']
+
+                for item in data:
+                    row_id = item["row_index"]
+                    question = item["item_option_new.question_text"]
+                    answer = item["value"]
+                    results[row_id].append({"question":question,"answer":answer})
+
+                key_names = results.keys()
+                key_names_list = list(key_names)
+                
+                description = ""
+                counter = 0
+
+                for key in key_names_list:
+                    counter = counter+1
+                    aQuestionSourceIp = [item for item in results[key] if item['question'] == "Source IP(s) (hosts/Subnets) Ex: 10.36.1.1/255.255.255.0"]
+                    valueSourceIp = aQuestionSourceIp[0]['answer']
+
+                    aQuestionDestinationIp = [item for item in results[key] if item['question'] == "Destination IP(s) (hosts/subnets) Ex: 10.39.1.151/255.255.255.0"]
+                    valueDestinationIp = aQuestionDestinationIp[0]['answer']
+
+                    aQuestionProtocol = [item for item in results[key] if item['question'] == "Protocol Ex: TCP, UDP"]
+                    valueProtocol = aQuestionProtocol[0]['answer']
+
+                    aQuestionPort = [item for item in results[key] if item['question'] == "Port / Service Ex: 80 (http)"]
+                    valuePort = aQuestionPort[0]['answer']
+
+                    aQuestionNatSourceIp = [item for item in results[key] if item['question'] == "NAT - Source IP(s) (hosts/Subnets) Ex: 10.36.1.1"]
+                    valueNatsourceIp = aQuestionNatSourceIp[0]['answer']
+
+                    aQuestionNatDestinationIp = [item for item in results[key] if item['question'] == "NAT - Destination IP(s) (hosts/Subnets) Ex: 10.39.1.151/255.255.255.0"]
+                    valueNatDestinationIp = aQuestionNatDestinationIp[0]['answer']
+                    
+                    aQuestionNatProtocol = [item for item in results[key] if item['question'] == "NAT - Protocol Ex: TCP, UDP"]
+                    valueNatProtocol = aQuestionNatProtocol[0]['answer']
+
+                    aQuestionNatPort = [item for item in results[key] if item['question'] == "NAT - Port / Service Ex: 80 (http)"]
+                    valueNatPort = aQuestionNatPort[0]['answer']
+
+                    description += f'\n\n---Regra {counter}---\n'\
+                                f'IP de Origem: {valueSourceIp}\n'\
+                                f'IP de Destino: {valueDestinationIp}\n'\
+                                f'Protocolo: {valueProtocol}\n'\
+                                f'Porta: {valuePort}\n'\
+                                f'NAT - IP de Origem: {valueNatsourceIp}\n'\
+                                f'NAT - IP de Destino{valueNatDestinationIp}\n'\
+                                f'NAT - Protocolo: {valueNatProtocol}\n'\
+                                f'NAT - Porta: {valueNatPort}'\
+    
+
+
 #Constroi a descrição com base nas variaveis e tipo de item de catalogo
 def process_data(url, ritm_list):
     tickets_to_post = []
     if not ritm_list:
-        return #tratar
+        return #TODO tratar
     
     for ritm in ritm_list:
         variables = fetch_ritm_variables(url, ritm, serviceNow_params, get_auth_token())
@@ -157,7 +229,7 @@ def process_data(url, ritm_list):
         
         getContactInfo = requests.get(url_servicenow+"api/now/table/sys_user", params = contactParams, headers=headers)
         if getContactInfo.status_code == 200:
-            contactInfo = getContactInfo.json()['result']
+            contactInfo = getContactInfo.json()["result"]
             valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
             valueCompany = contactInfo[0]["company.name"]
             valueEmail = contactInfo[0]["email"]
@@ -311,6 +383,23 @@ def process_data(url, ritm_list):
                     descricao += f"\nTelefone 1: {valuePhone}"
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, aConfig)
+
+                case 'Networks':
+                    {"var": "Summary", "msg": "\n\nResumo:\n" },
+                    {"var": "Description", "msg": "\n\nDescrição:\n" },
+                    {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
+                    {"var": "What network equipment?", "msg": "\nNome do equipamento: "} 
+
+                    descricao += "---TESTE INTEGRACAO---"
+                    descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                    descricao += f"\nCliente: {valueContact}"
+                    descricao += f"\nEmpresa: {valueCompany}"
+                    descricao += f"\nEmail: {valueEmail}"
+                    descricao += f"\nTelefone 1: {valuePhone}"
+                    descricao += f"\nTelefone 2: {valueMobilePhone}"
+                    descricao += descriptionBuilder(variables, aConfig)
+                    descricao += get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])
+
         else:
             continue
 
@@ -329,6 +418,7 @@ def process_data(url, ritm_list):
                     
 
     return tickets_to_post
+
 
 
 #Abre o ticket no gestão X
@@ -360,6 +450,7 @@ def openGestaoXTicket(url, tickets_to_post):
 
 
     return results
+
 
 
 #Cria registro na tabela integradora
@@ -397,6 +488,7 @@ def postServiceNowIntegradora(url, token, tickets_posted):
         raise Exception(f"An error occurred on POST postServiceNowIntegradora: {err}")
 
     return results
+
 
 
 ritms = fetch_ritm_servicenow(url_servicenow, serviceNow_params, get_auth_token())
