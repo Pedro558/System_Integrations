@@ -321,7 +321,7 @@ def process_data(url, ritm_list):
 
 
                 case 'Database':
-                    aConfig = [
+                    descriptionConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
                         {"var": "What is the Database Manager?", "msg": "\n\nGerenciador do banco (DBM): "},
@@ -337,7 +337,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
-                    descricao += descriptionBuilder(variables, aConfig)
+                    descricao += descriptionBuilder(variables, descriptionConfig)
 
                 case 'Monitoring':
                     #  Blackout Window Start
@@ -347,7 +347,7 @@ def process_data(url, ritm_list):
                     aQuestionBlackoutWindowEnd = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What is the blackout window (End)']
                     valueBlackoutWindowEnd = aQuestionBlackoutWindowEnd[0]["sc_item_option.value"] if len(aQuestionBlackoutWindowEnd) > 0 else None
 
-                    aConfig = [
+                    descriptionConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
                         {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
@@ -361,14 +361,14 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
-                    descricao += descriptionBuilder(variables, aConfig)
+                    descricao += descriptionBuilder(variables, descriptionConfig)
                     if valueBlackoutWindowStart:
                         descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowStart}"
                     if valueBlackoutWindowEnd:
                         descricao += f"\nInicio da janela do blackout: {valueBlackoutWindowEnd}"
 
                 case 'Storage':
-                    aConfig = [
+                    descriptionConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
                         {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
@@ -382,14 +382,15 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
-                    descricao += descriptionBuilder(variables, aConfig)
+                    descricao += descriptionBuilder(variables, descriptionConfig)
 
                 case 'Networks':
-                    {"var": "Summary", "msg": "\n\nResumo:\n" },
-                    {"var": "Description", "msg": "\n\nDescrição:\n" },
-                    {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
-                    {"var": "What network equipment?", "msg": "\nNome do equipamento: "} 
-
+                    descriptionConfig = [    
+                        {"var": "Summary", "msg": "\n\nResumo:\n" },
+                        {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
+                        {"var": "What network equipment?", "msg": "\nNome do equipamento: "} 
+                    ]
                     descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
@@ -397,7 +398,7 @@ def process_data(url, ritm_list):
                     descricao += f"\nEmail: {valueEmail}"
                     descricao += f"\nTelefone 1: {valuePhone}"
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
-                    descricao += descriptionBuilder(variables, aConfig)
+                    descricao += descriptionBuilder(variables, descriptionConfig)
                     descricao += get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])
                     
             print(descricao+"\n")
