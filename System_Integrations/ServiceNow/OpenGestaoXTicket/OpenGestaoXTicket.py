@@ -45,7 +45,6 @@ def get_auth_token():
 
     response = requests.post(url, data=body)
     data = response.json()
-    #print(data)
 
     return data["access_token"]
 
@@ -67,7 +66,7 @@ def fetch_ritm_servicenow(url, params, token):
         response = requests.get(url+"api/now/table/sc_req_item", headers=headers, params=params)
         
         ritm_list = response.json()
-        #print("voltou response")
+        
         if not 'result' in ritm_list or len(ritm_list['result']) == 0:
             raise Exception("No RITMs found")
 
@@ -102,7 +101,7 @@ def fetch_ritm_variables (url, ritm, params, token):
         response = requests.get(url+"api/now/table/sc_item_option_mtom", headers=headers, params=params)
         if response.status_code == 200:
             variable_list = response.json()
-            #print(variable_list[0])
+            
             if not 'result' in variable_list or len(variable_list['result']) == 0:
                 raise Exception(f"No variables found for {ritm['number']}")
             
@@ -130,7 +129,6 @@ def descriptionBuilder(variables, descConfig):
                                                         #and config["extraValidator"](variable) if "extraValidator" in config else True]
 
         descricao += config["msg"] + aValue[0]["sc_item_option.value"] if aValue[0]["sc_item_option.value"] else ""
-        if aValue[0]["sc_item_option.value"]: print(aValue[0]["sc_item_option.value"])
         
     return descricao
 
