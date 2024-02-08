@@ -195,15 +195,15 @@ def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
                     valueNatPort = aQuestionNatPort[0]['answer']
 
                     description += f"\n\n---Regra {counter}---\n"\
-                                f"IP de Origem: {valueSourceIp}\n"\
-                                f"IP de Destino: {valueDestinationIp}\n"\
-                                f"Protocolo: {valueProtocol}\n"\
-                                f"Porta: {valuePort}\n"\
-                                f"NAT - IP de Origem: {valueNatsourceIp}\n"\
-                                f"NAT - IP de Destino{valueNatDestinationIp}\n"\
-                                f"NAT - Protocolo: {valueNatProtocol}\n"\
-                                f"NAT - Porta: {valueNatPort}"\
-    
+                                f"IP de Origem: {valueSourceIp if valueSourceIp else " if valueSourceIp else """}\n"\
+                                f"IP de Destino: {valueDestinationIp if valueDestinationIp else "" }\n"\
+                                f"Protocolo: {valueProtocol if valueProtocol else "" }\n"\
+                                f"Porta: {valuePort if valuePort else "" }\n"\
+                                f"NAT - IP de Origem: {valueNatsourceIp if valueNatsourceIp else "" }\n"\
+                                f"NAT - IP de Destino{valueNatDestinationIp if valueSourceIp else "" }\n"\
+                                f"NAT - Protocolo: {valueNatProtocol if valueNatProtocol else "" }\n"\
+                                f"NAT - Porta: {valueNatPort if valueNatPort else ""}"\
+
 
 
 #Constroi a descrição com base nas variaveis e tipo de item de catalogo
