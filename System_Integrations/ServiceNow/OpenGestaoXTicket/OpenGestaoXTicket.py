@@ -127,6 +127,8 @@ def descriptionBuilder(variables, descConfig):
     descricao = ""
     for config in descConfig:
         aValue = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == config["var"]]
+        if not len(aValue):
+            print(config["var"])
                                                         #and config["extraValidator"](variable) if "extraValidator" in config else True]
 
         descricao += config["msg"] + aValue[0]["sc_item_option.value"]
@@ -389,7 +391,7 @@ def process_data(url, ritm_list):
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
                         {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
-                        {"var": "What network equipment?", "msg": "\nNome do equipamento: "} 
+                        {"var": " What network equipment?", "msg": "\nNome do equipamento: "} 
                     ]
                     descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
