@@ -202,7 +202,7 @@ def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
                                 f"NAT - IP de Origem: {valueNatsourceIp if valueNatsourceIp else ""}\n"\
                                 f"NAT - IP de Destino{valueNatDestinationIp if valueSourceIp else ""}\n"\
                                 f"NAT - Protocolo: {valueNatProtocol if valueNatProtocol else ""}\n"\
-                                f"NAT - Porta: {valueNatPort if valueNatPort else ""}"\
+                                f"NAT - Porta: {valueNatPort if valueNatPort else ""}"
 
 
 
