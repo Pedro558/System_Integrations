@@ -401,8 +401,6 @@ def process_data(url, ritm_list):
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, descriptionConfig)
                     descricao += get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])
-                    
-            print(descricao+"\n")
 
         else:
             continue
@@ -434,9 +432,7 @@ def openGestaoXTicket(url, tickets_to_post):
     try:
         results =[]
         for ticket in tickets_to_post:
-            print("\n------------ANTES DO POST------------\n"+ticket["Descricao"]+"\n\n")
             response = requests.post(url, headers=headers, data=json.dumps(ticket['data']))
-            print("\n------------DEPOIS DO POST------------\n"+ticket["Descricao"]+"\n\n")
             if response.status_code == 200 or response.status_code == 201:
                 results.append({
                     "item": ticket,
