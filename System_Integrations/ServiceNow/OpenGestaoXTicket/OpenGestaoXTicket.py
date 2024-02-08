@@ -373,7 +373,7 @@ def process_data(url, ritm_list):
                     descriptionConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
                         {"var": "Description", "msg": "\n\nDescrição:\n" },
-                        {"var": "What is the service?", "msg": "\n\nTipo de serviço: "},
+                        {"var": " What is the service?", "msg": "\n\nTipo de serviço: "},
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
 
