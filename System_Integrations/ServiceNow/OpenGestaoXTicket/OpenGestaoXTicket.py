@@ -66,7 +66,7 @@ def fetch_ritm_servicenow(url, params, token):
         response = requests.get(url+"api/now/table/sc_req_item", headers=headers, params=params)
         
         ritm_list = response.json()
-        
+
         if not 'result' in ritm_list or len(ritm_list['result']) == 0:
             raise Exception("No RITMs found")
 
@@ -310,6 +310,7 @@ def process_data(url, ritm_list):
                         {"var": "What type of service?", "msg": "\n\nTipo de serviço: "},
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
+
                     descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
@@ -391,6 +392,7 @@ def process_data(url, ritm_list):
                         {"var": " What is the service?", "msg": "\n\nTipo de serviço: "},
                         {"var": " What network equipment?", "msg": "\nNome do equipamento: "} 
                     ]
+                    
                     descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
