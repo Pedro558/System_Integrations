@@ -129,8 +129,9 @@ def descriptionBuilder(variables, descConfig):
         aValue = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == config["var"]]
                                                         #and config["extraValidator"](variable) if "extraValidator" in config else True]
 
-        descricao += config["msg"] + aValue[0]["sc_item_option.value"]
-
+        descricao += config["msg"] + aValue[0]["sc_item_option.value"] if aValue[0]["sc_item_option.value"] else ""
+        if aValue[0]["sc_item_option.value"]: print(aValue[0]["sc_item_option.value"])
+        
     return descricao
 
 
