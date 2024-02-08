@@ -438,7 +438,7 @@ def openGestaoXTicket(url, tickets_to_post):
                     "item": ticket,
                     "response": response.__dict__,
                 })  
-                print(results[-1]["item"]["Descricao"])
+                
             else:
                 response.raise_for_status()
 
