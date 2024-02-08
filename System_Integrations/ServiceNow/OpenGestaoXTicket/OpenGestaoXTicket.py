@@ -195,13 +195,13 @@ def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
                     valueNatPort = aQuestionNatPort[0]['answer']
 
                     description += f"\n\n---Regra {counter}---\n"\
-                                f"IP de Origem: {valueSourceIp if valueSourceIp else " if valueSourceIp else """}\n"\
+                                f"IP de Origem: {valueSourceIp if valueSourceIp else ""}\n"\
                                 f"IP de Destino: {valueDestinationIp if valueDestinationIp else "" }\n"\
-                                f"Protocolo: {valueProtocol if valueProtocol else "" }\n"\
-                                f"Porta: {valuePort if valuePort else "" }\n"\
-                                f"NAT - IP de Origem: {valueNatsourceIp if valueNatsourceIp else "" }\n"\
-                                f"NAT - IP de Destino{valueNatDestinationIp if valueSourceIp else "" }\n"\
-                                f"NAT - Protocolo: {valueNatProtocol if valueNatProtocol else "" }\n"\
+                                f"Protocolo: {valueProtocol if valueProtocol else ""}\n"\
+                                f"Porta: {valuePort if valuePort else ""}\n"\
+                                f"NAT - IP de Origem: {valueNatsourceIp if valueNatsourceIp else ""}\n"\
+                                f"NAT - IP de Destino{valueNatDestinationIp if valueSourceIp else ""}\n"\
+                                f"NAT - Protocolo: {valueNatProtocol if valueNatProtocol else ""}\n"\
                                 f"NAT - Porta: {valueNatPort if valueNatPort else ""}"\
 
 
