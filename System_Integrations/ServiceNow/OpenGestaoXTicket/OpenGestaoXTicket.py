@@ -196,15 +196,15 @@ def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
                     aQuestionNatPort = [item for item in results[key] if item['question'] == "NAT - Port / Service Ex: 80 (http)"]
                     valueNatPort = aQuestionNatPort[0]['answer']
 
-                    description += f'\n\n---Regra {counter}---\n'\
-                                f'IP de Origem: {valueSourceIp}\n'\
-                                f'IP de Destino: {valueDestinationIp}\n'\
-                                f'Protocolo: {valueProtocol}\n'\
-                                f'Porta: {valuePort}\n'\
-                                f'NAT - IP de Origem: {valueNatsourceIp}\n'\
-                                f'NAT - IP de Destino{valueNatDestinationIp}\n'\
-                                f'NAT - Protocolo: {valueNatProtocol}\n'\
-                                f'NAT - Porta: {valueNatPort}'\
+                    description += f"\n\n---Regra {counter}---\n"\
+                                f"IP de Origem: {valueSourceIp}\n"\
+                                f"IP de Destino: {valueDestinationIp}\n"\
+                                f"Protocolo: {valueProtocol}\n"\
+                                f"Porta: {valuePort}\n"\
+                                f"NAT - IP de Origem: {valueNatsourceIp}\n"\
+                                f"NAT - IP de Destino{valueNatDestinationIp}\n"\
+                                f"NAT - Protocolo: {valueNatProtocol}\n"\
+                                f"NAT - Porta: {valueNatPort}"\
     
 
 
