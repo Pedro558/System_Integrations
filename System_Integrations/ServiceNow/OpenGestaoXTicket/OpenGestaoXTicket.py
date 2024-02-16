@@ -409,6 +409,7 @@ def process_data(url, ritm_list):
             continue
         
         login_solicitante = ""
+        print(getContactInfo.json()["result"][0]["company.sys_id"])
         #ARAUCO
         if getContactInfo.json()["result"][0]["company.sys_id"] == "cc7f7f951bfcd110bef1a79fe54bcbb2":
             login_solicitante = gestao_x_login_arauco
