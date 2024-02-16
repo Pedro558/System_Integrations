@@ -412,21 +412,23 @@ def process_data(url, ritm_list):
         #ARAUCO
         if getContactInfo.json()["result"][0]["company.sys_id"] == "cc7f7f951bfcd110bef1a79fe54bcbb2":
             login_solicitante = gestao_x_login_arauco
+            print(login_solicitante)
 
         #DIMED
         if getContactInfo.json()["result"][0]["company.sys_id"] == "2c7fbf951bfcd110bef1a79fe54bcb07":
             login_solicitante = gestao_x_login_dimed
-
-        #FATL 
+            print(login_solicitante)
+        #FATL                                                       b47fbf951bfcd110bef1a79fe54bcb79
         if getContactInfo.json()["result"][0]["company.sys_id"] == "b47fbf951bfcd110bef1a79fe54bcb79":
             login_solicitante = gestao_x_login_fatl
-
+            print(login_solicitante)   
         #UNIMED
         if getContactInfo.json()["result"][0]["company.sys_id"] == "6d7fff951bfcd110bef1a79fe54bcb12":
             login_solicitante = gestao_x_login_unimed
-        
+            print(login_solicitante)
         else:
             login_solicitante = gestao_x_login
+            print(login_solicitante)
             descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
 
         ticket_to_post =  {
