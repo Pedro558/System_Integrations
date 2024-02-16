@@ -171,21 +171,24 @@ def atualiza_gestao_x(work_notes):
             if response_aux.status_code == 200 or response_aux.status_code == 201:
                 aux_info = response_aux.json()
 
-                loginResponsavel = aux_info['RESPONSAVEL_LOGIN_USER']
+                if aux_info['RESPONSAVEL_LOGIN_USER'] == "":
+                    loginResponsavel = "INTEGRACAOELEA"
+                else:
+                    loginResponsavel = aux_info['RESPONSAVEL_LOGIN_USER']
+
                 status = aux_info['STATUS_ID']
+                
+                body = {
+                    "CodigoChamado": CodigoChamado,
+                    "Token": gestao_x_token,
+                    "Descricao": "Atualização através do ServiceNow:\n"+work_note['u_descricao'],
+                    "Status": status,
+                    "LoginResponsavel": loginResponsavel #TODO pendente atualização do Paulo sobre essa API
+                }
 
             else:
-                response_aux.raise_for_status()
+                response_aux.raise_for_status()            
 
-
-            body = {
-                "CodigoChamado": CodigoChamado,
-                "Token": gestao_x_token,
-                "Descricao": "Atualização através do ServiceNow:\n"+work_note['u_descricao'],
-                "Status": status,
-                "LoginResponsavel": loginResponsavel
-            }
-            
             response = requests.post(url, headers=headers, data=json.dumps(body))
             if response.status_code == 200 or response.status_code == 201:
                 results.append({

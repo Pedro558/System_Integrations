@@ -14,15 +14,17 @@ url_servicenow_dev = "https://eleadev.service-now.com/"
 
 #Tokens
 gestao_x_login = get_api_token('gestao-x-prd-login')
-#print(gestao_x_login)
 gestao_x_token = get_api_token('gestao-x-prd-api-token')
-#print(gestao_x_token)
+
+gestao_x_login_arauco = get_api_token("gestao-x-prd-login-arauco")
+gestao_x_login_dimed = get_api_token("gestao-x-prd-login-dimed")
+gestao_x_login_fatl = get_api_token("gestao-x-prd-login-fatl")
+gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed")
+
 servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
-#print(servicenow_client_id)
 servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
-#print(servicenow_client_secret)
 service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
-#print(service_now_refresh_token)
+
 
 #Variavel de parametros para GET na API do ServiceNow
 #Recebe uma Encoded Query no formato do ServiceNow de acordo com a necessidade dentro das funções onde é necessário
@@ -206,6 +208,7 @@ def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
     return description
 
 
+
 #Constroi a descrição com base nas variaveis e tipo de item de catalogo
 def process_data(url, ritm_list):
     tickets_to_post = []
@@ -220,7 +223,7 @@ def process_data(url, ritm_list):
                     
         contactParams = {
             "sysparm_query": "sys_id="+aQuestionContact[0]["sc_item_option.value"],
-            "sysparm_fields": "company.name, first_name, last_name, email, phone, mobile_phone"
+            "sysparm_fields": "company.name, company.sys_id, first_name, last_name, email, phone, mobile_phone"
         }
         headers = {
             "Content-Type": "application/json",
@@ -320,7 +323,6 @@ def process_data(url, ritm_list):
                     descricao += f"\nTelefone 2: {valueMobilePhone}"
                     descricao += descriptionBuilder(variables, descriptionConfig)
 
-
                 case 'Database':
                     descriptionConfig = [
                         {"var": "Summary", "msg": "\n\nResumo:\n" },
@@ -392,7 +394,7 @@ def process_data(url, ritm_list):
                         {"var": " What is the service?", "msg": "\n\nTipo de serviço: "},
                         {"var": " What network equipment?", "msg": "\nNome do equipamento: "} 
                     ]
-                    
+
                     descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
@@ -405,14 +407,35 @@ def process_data(url, ritm_list):
 
         else:
             continue
+        
+        login_solicitante = ""
+        #ARAUCO
+        if getContactInfo.json()["result"][0]["company.sys_id"] == "cc7f7f951bfcd110bef1a79fe54bcbb2":
+            login_solicitante = gestao_x_login_arauco
+
+        #DIMED
+        if getContactInfo.json()["result"][0]["company.sys_id"] == "2c7fbf951bfcd110bef1a79fe54bcb07":
+            login_solicitante = gestao_x_login_dimed
+
+        #FATL 
+        if getContactInfo.json()["result"][0]["company.sys_id"] == "b47fbf951bfcd110bef1a79fe54bcb79":
+            login_solicitante = gestao_x_login_fatl
+
+        #UNIMED
+        if getContactInfo.json()["result"][0]["company.sys_id"] == "6d7fff951bfcd110bef1a79fe54bcb12":
+            login_solicitante = gestao_x_login_unimed
+        
+        else:
+            login_solicitante = gestao_x_login
+            descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
 
         ticket_to_post =  {
             "ritm_number": ritm['number'],
             "data": {
                 "Descricao":descricao,
-                "LoginSolicitante":gestao_x_login,
+                "LoginSolicitante":login_solicitante, #gestao_x_login,
                 "Token":gestao_x_token,
-                "CatalogoServicosid":"1423"
+                "CatalogoServicosid":"2650"
             }
         }
         
