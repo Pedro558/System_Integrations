@@ -259,7 +259,7 @@ def process_data(url, ritm_list):
             case _:
                 login_solicitante = gestao_x_login
                 
-                descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
+        descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
 
         
 
