@@ -9,6 +9,7 @@ url_servicenow_prd = "https://servicenow.eleadigital.com/"
 
 #Tokens produção
 gestao_x_login = get_api_token('gestao-x-prd-login')
+gestao_x_userid = get_api_token('gestao-x-prd-userid')
 gestao_x_token = get_api_token('gestao-x-prd-api-token')
 
 servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
