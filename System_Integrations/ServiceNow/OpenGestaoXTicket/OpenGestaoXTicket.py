@@ -10,7 +10,7 @@ from collections import defaultdict
 
 #URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
-url_servicenow_dev = "https://servicenow.eleadigital.com/"
+url_servicenow_prd = "https://servicenow.eleadigital.com/"
 
 #Tokens produção
 gestao_x_login = get_api_token('gestao-x-prd-login')
@@ -37,7 +37,7 @@ serviceNow_params = {
 #Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
 #https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
-    url = url_servicenow_dev+"/oauth_token.do"
+    url = url_servicenow_prd+"/oauth_token.do"
     body = {
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
@@ -151,7 +151,7 @@ def get_multi_row_question_answer(ritm_sys_id, cat_item_name):
             params['sysparm_query'] = "variable_set=f9f1f6371b689510bef1a79fe54bcb43^parent_id="+ritm_sys_id+"^parent_table_name=sc_req_item"
             params['sysparm_fields'] = "item_option_new.question_text, row_index, value"
             
-            getMultiRowData = requests.get(url_servicenow_dev+"api/now/table/sc_multi_row_question_answer", params = params, headers=headers)
+            getMultiRowData = requests.get(url_servicenow_prd+"api/now/table/sc_multi_row_question_answer", params = params, headers=headers)
             if getMultiRowData.status_code == 200:
                 results = defaultdict(list)
 
@@ -231,7 +231,7 @@ def process_data(url, ritm_list):
             "Authorization": "Bearer "+get_auth_token(),
         }
         
-        getContactInfo = requests.get(url_servicenow_dev+"api/now/table/sys_user", params = contactParams, headers=headers)
+        getContactInfo = requests.get(url_servicenow_prd+"api/now/table/sys_user", params = contactParams, headers=headers)
         if getContactInfo.status_code == 200:
             contactInfo = getContactInfo.json()["result"]
             valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
@@ -519,10 +519,10 @@ def postServiceNowIntegradora(url, token, tickets_posted):
 
 
 
-ritms = fetch_ritm_servicenow(url_servicenow_dev, serviceNow_params, get_auth_token())
-tickets_to_post = process_data(url_servicenow_dev, ritms)
+ritms = fetch_ritm_servicenow(url_servicenow_prd, serviceNow_params, get_auth_token())
+tickets_to_post = process_data(url_servicenow_prd, ritms)
 tickets_posted = openGestaoXTicket(url_gestao_x, tickets_to_post)
-results = postServiceNowIntegradora(url_servicenow_dev, get_auth_token(), tickets_posted)
+results = postServiceNowIntegradora(url_servicenow_prd, get_auth_token(), tickets_posted)
 
 for ticket in tickets_posted:
             print("--------------------------------")
