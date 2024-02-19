@@ -218,7 +218,7 @@ def process_data(url, ritm_list):
     
     for ritm in ritm_list:
         variables = fetch_ritm_variables(url, ritm, serviceNow_params, get_auth_token())
-
+        descricao = ""
         #Contact info is universal
         aQuestionContact = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Contact"]
                     
@@ -261,9 +261,6 @@ def process_data(url, ritm_list):
                 
         descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
 
-        
-
-        descricao = ""
         if ritm['cat_item.name']:
             match ritm['cat_item.name']:
                 case 'Operational system':           
