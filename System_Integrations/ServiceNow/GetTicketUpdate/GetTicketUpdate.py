@@ -3,27 +3,21 @@ import json
 from ...auth.api_secrets import get_api_token
 from ...utils.mapper import map_to_requests_response
 
-#URLs
+#URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
-url_servicenow = "https://eleadev.service-now.com/"
+url_servicenow_prd = "https://servicenow.eleadigital.com/"
 
-#Tokens
+#Tokens produção
 gestao_x_login = get_api_token('gestao-x-prd-login')
-#print(gestao_x_login)
-gestao_x_userId = get_api_token('gestao-x-prd-userid')
-#print(gestao_x_userId)
 gestao_x_token = get_api_token('gestao-x-prd-api-token')
-#print(gestao_x_token)
-servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
-#print(servicenow_client_id)
-servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
-#print(servicenow_client_secret)
-service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
-#print(service_now_refresh_token)
+
+servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
+servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
+service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaChamadosSolicitante
 params_fetch_chamados_gestao_x = {
-    "Usuarioid": gestao_x_userId,
+    "Usuarioid": gestao_x_login,
     "Token": gestao_x_token,
 }
 
@@ -119,7 +113,7 @@ def process_historico(ticket_data):
 #Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
 #https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
 def get_auth_token():
-    url = url_servicenow+"/oauth_token.do"
+    url = url_servicenow_prd+"/oauth_token.do"
     body = {
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
@@ -148,7 +142,7 @@ def does_it_exist(code, params, token):
         }
         params["sysparm_query"] = "u_ticket_gestao_xLIKE"+code
 
-        response = requests.get(url_servicenow+"api/now/table/u_integradora_gestao_x", headers=headers, params=params)
+        response = requests.get(url_servicenow_prd+"api/now/table/u_integradora_gestao_x", headers=headers, params=params)
 
         if response.status_code == 200:
             data = response.json()
@@ -184,7 +178,7 @@ def has_it_been_updated(code, date, params, token):
         }
         params["sysparm_query"] = "u_ticket_gestao_x.u_ticket_gestao_xLIKE"+code+"^u_data_da_atualizacaoLIKE"+date #TODO adicionar status nessa verificação?
 
-        response = requests.get(url_servicenow+"api/now/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
+        response = requests.get(url_servicenow_prd+"api/now/table/u_integradora_gestao_x_atualizacoes", headers=headers, params=params)
 
         if response.status_code == 200:
             data = response.json()
@@ -216,7 +210,7 @@ def update_servicenow(updates, token):
         if not updates:
             raise Exception("Updates array is empty")
 
-        url = url_servicenow+"/api/now/table/u_integradora_gestao_x_atualizacoes"
+        url = url_servicenow_prd+"/api/now/table/u_integradora_gestao_x_atualizacoes"
         headers = {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+token,

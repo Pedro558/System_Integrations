@@ -8,11 +8,11 @@ from collections import defaultdict
 
 
 
-#URLs
+#URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
-url_servicenow_dev = "https://eleadev.service-now.com/"
+url_servicenow_dev = "https://servicenow.eleadigital.com/"
 
-#Tokens
+#Tokens produção
 gestao_x_login = get_api_token('gestao-x-prd-login')
 gestao_x_token = get_api_token('gestao-x-prd-api-token')
 
@@ -21,9 +21,9 @@ gestao_x_login_dimed = get_api_token("gestao-x-prd-login-dimed")
 gestao_x_login_fatl = get_api_token("gestao-x-prd-login-fatl")
 gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed")
 
-servicenow_client_id = get_api_token('servicenow-dev-client-id-oauth')
-servicenow_client_secret = get_api_token('servicenow-dev-client-secret-oauth')
-service_now_refresh_token = get_api_token('servicenow-dev-refresh-token-oauth')
+servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
+servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
+service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
 
 #Variavel de parametros para GET na API do ServiceNow
