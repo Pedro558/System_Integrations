@@ -254,7 +254,7 @@ def process_data(url, ritm_list):
             case "b47fbf951bfcd110bef1a79fe54bcb79":
                 login_solicitante = gestao_x_login_fatl
             #UNIMED
-            case "6d7fff951bfcd110bef1a79fe54bcb12":
+            case "287fbf951bfcd110bef1a79fe54bcb04":
                 login_solicitante = gestao_x_login_unimed
             case _:
                 login_solicitante = gestao_x_login
