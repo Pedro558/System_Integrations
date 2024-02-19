@@ -258,8 +258,7 @@ def process_data(url, ritm_list):
                 login_solicitante = gestao_x_login_unimed
             case _:
                 login_solicitante = gestao_x_login
-                
-        descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
+                descricao = "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"+descricao
 
         if ritm['cat_item.name']:
             match ritm['cat_item.name']:
@@ -307,7 +306,6 @@ def process_data(url, ritm_list):
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
 
-                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
@@ -332,7 +330,6 @@ def process_data(url, ritm_list):
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
 
-                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
@@ -351,7 +348,6 @@ def process_data(url, ritm_list):
                         {"var": "What is the service?", "msg": "\nTipo de Serviço: "}
                     ]
 
-                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
@@ -375,7 +371,6 @@ def process_data(url, ritm_list):
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
 
-                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
@@ -396,7 +391,6 @@ def process_data(url, ritm_list):
                         {"var": "What is the server/hostname?", "msg": "\nNome do Host: "}
                     ]
 
-                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
@@ -413,7 +407,6 @@ def process_data(url, ritm_list):
                         {"var": " What network equipment?", "msg": "\nNome do equipamento: "} 
                     ]
 
-                    descricao += "---TESTE INTEGRACAO---"
                     descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
                     descricao += f"\nCliente: {valueContact}"
                     descricao += f"\nEmpresa: {valueCompany}"
