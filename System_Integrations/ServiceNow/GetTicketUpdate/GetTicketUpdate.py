@@ -16,7 +16,7 @@ servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
 servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
 service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
-#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaChamadosSolicitante
+#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
 params_fetch_chamados_gestao_x = {
     #"Usuarioid": gestao_x_userid,
     "Login": gestao_x_login,

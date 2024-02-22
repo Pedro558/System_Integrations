@@ -16,9 +16,10 @@ servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
 servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
 service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
-#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaChamadosSolicitante
+#Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
 params_fetch_chamados_gestao_x = {
-    "Usuarioid": gestao_x_userid,
+    #"Usuarioid": gestao_x_userid,
+    "Login": gestao_x_login,
     "Token": gestao_x_token,
 }
 
@@ -59,7 +60,7 @@ def get_auth_token():
 #Busca os chamados em acompanhamento no Gestão X
 def fetch_chamados_gestao_x(url, params):
     try:
-        response = requests.get(url+"api/chamado/RetornaChamadosSolicitante", params=params)
+        response = requests.get(url+"api/chamado/Retorna_chamados_acompanhamento_solicitantes", params=params)
         if response.status_code == 200:
             ticket_data = response.json()
             return ticket_data
