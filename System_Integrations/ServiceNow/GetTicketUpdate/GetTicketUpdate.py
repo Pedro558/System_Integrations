@@ -18,7 +18,8 @@ service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/RetornaChamadosSolicitante
 params_fetch_chamados_gestao_x = {
-    "Usuarioid": gestao_x_userid,
+    #"Usuarioid": gestao_x_userid,
+    "Login": gestao_x_login,
     "Token": gestao_x_token,
 }
 
@@ -40,7 +41,7 @@ params_encoded_query = {
 #Busca os chamados em acompanhamento no Gestão X
 def fetch_chamados_gestao_x(url, params):
     try:
-        response = requests.get(url+"api/chamado/RetornaChamadosSolicitante", params=params)
+        response = requests.get(url+"api/chamado/Retorna_chamados_acompanhamento_solicitantes", params=params)
         if response.status_code == 200:
             ticket_data = response.json()
             return ticket_data
@@ -221,6 +222,7 @@ def update_servicenow(updates, token):
         response = requests.Response()
         for item in updates:
             try:
+                print(item["u_ticket_gestao_x"])
                 if does_it_exist(item["u_ticket_gestao_x"], params_encoded_query, token):
                     if not has_it_been_updated(item['u_ticket_gestao_x'], item['u_data_da_atualizacao'], params_encoded_query, token):
                         response = requests.post(url, headers=headers, data=json.dumps(item))
