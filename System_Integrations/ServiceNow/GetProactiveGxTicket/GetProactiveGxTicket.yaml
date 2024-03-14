@@ -28,3 +28,4 @@
       strategy: node-first
       fileExtension: ps1
       scriptInterpreter: powershell.exe -File
+  timeout: 60s

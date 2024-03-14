@@ -111,7 +111,7 @@ def does_it_exist(code, params, token):
         raise Exception(f"Request timed out on GET does_it_exist: {err}")
     except requests.exceptions.RequestException as err: # Request Exception
         raise Exception(f"A request exception occurred on GET does_it_exist: {err}")
-   
+
 
 
 #Caso não exista uma RITM criada no ServiceNow para documentar o Ticket do Gestão X, cria essa RITM, atribuida ao grupo Gr.Suporte N3 e constando como já integrada.
