@@ -17,6 +17,9 @@
     storagePath: keys/project/System_Integrations/azure_app_secret
     valueExposed: true 
   scheduleEnabled: true 
+  retry:
+    delay: '10'
+    retry: '3'
   schedule:
     crontab: '0 */5 * ? * * *'
   plugins:
