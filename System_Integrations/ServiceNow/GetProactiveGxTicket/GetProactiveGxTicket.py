@@ -14,7 +14,7 @@ gestao_x_token = get_api_token('gestao-x-prd-api-token')
 
 servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
 servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
-service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
+servicenow_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
 params_fetch_chamados_gestao_x = {
@@ -46,7 +46,7 @@ def get_auth_token():
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
-        "refresh_token":service_now_refresh_token,
+        "refresh_token":servicenow_refresh_token,
     }
 
     response = requests.post(url, data=body)
@@ -135,6 +135,8 @@ def create_proactive_ritm(tickets, token):
         response = requests.Response()
         for ticket in tickets:
             try:
+                if '---TESTE INTEGRAÇÃO---' in ticket['DESCRICAO']:
+                    continue
                 if not does_it_exist(ticket['CODIGO'], params_encoded_query, token):
                     body = {
                         "assignment_group":"Gr.Suporte N3",
