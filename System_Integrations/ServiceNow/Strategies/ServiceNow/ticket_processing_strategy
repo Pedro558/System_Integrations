@@ -1,0 +1,78 @@
+import requests
+import json
+from System_Integrations.utils.servicenow_api import get_servicenow_auth_token
+from System_Integrations.utils.servicenow_api import get_servicenow_table_data
+from abc import ABC, abstractmethod
+from typing import list
+from System_Integrations.auth.api_secrets import get_api_token
+from System_Integrations.utils.mapper import map_to_requests_response
+from collections import defaultdict
+
+
+class servicenow_ticket_processing_context():
+    """
+    The Context defines the interface of interest to clienxts.
+    """
+
+    def __init__(self, strategy: servicenow_ticket_processing_strategy) -> None:
+        """
+        Usually, the Context accepts a strategy through the constructor, but
+        also provides a setter to change it at runtime.
+        """
+
+        self._strategy = strategy
+
+    @property
+    def servicenow_ticket_processing_strategy(self) -> servicenow_ticket_processing_strategy:
+        """
+        The Context maintains a reference to one of the Strategy objects. The
+        Context does not know the concrete class of a strategy. It should work
+        with all strategies via the Strategy interface.
+        """
+
+        return self._strategy
+
+    @strategy.setter
+    def strategy(self, strategy: servicenow_ticket_processing_strategy) -> None:
+        """
+        Usually, the Context allows replacing a Strategy object at runtime.
+        """
+
+        self._strategy = strategy
+
+    def get_auth(self):
+        return self._strategy.get_auth()
+
+
+
+    #def ETAPAS
+    def process_ticket(self) -> None:
+        """
+        The Context delegates some work to the Strategy object instead of
+        implementing multiple versions of the algorithm on its own.
+        """
+
+        # ...
+
+        print("Context: Sorting data using the strategy (not sure how it'll do it)")
+        result = self._strategy.process_tickets(["a", "b", "c", "d", "e"])
+        print(",".join(result))
+
+        # ...
+
+# class  servicenow_ticket_processing_strategy(ABC):    
+#     @abstractmethod
+#     def process_tickets(self, list: list[dict]) -> list[dict]:
+#         pass
+
+# class INC_processing_strategy():
+#     def process_tickets(self, list: list[dict]) -> list[dict]:
+#         pass
+
+# class CTASK_processing_strategy():
+#     def process_tickets(self, list: list[dict]) -> list[dict]:
+#         pass
+
+# class strategy_pai():
+#     def process_tickets():
+#         pass

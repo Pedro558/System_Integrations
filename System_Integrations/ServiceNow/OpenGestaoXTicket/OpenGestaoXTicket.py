@@ -23,7 +23,7 @@ gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed")
 
 servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
 servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
-service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
+servicenow_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
 
 #Variavel de parametros para GET na API do ServiceNow
@@ -36,13 +36,14 @@ serviceNow_params = {
 #Gera uma nova token de acesso ao ServiceNow com o uso da 'refresh_token'
 #Tokens expiram a cada 1800 segundos (30 minutos), caso a função seja chamada multiplas vezes dentro desse periodo ela apenas retorna a mesma token ainda válida.
 #https://support.servicenow.com/kb?id=kb_article_view&sysparm_article=KB0778194
+#UTIL
 def get_auth_token():
     url = url_servicenow_prd+"/oauth_token.do"
     body = {
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
-        "refresh_token":service_now_refresh_token,
+        "refresh_token":servicenow_refresh_token,
     }
 
     response = requests.post(url, data=body)
@@ -53,6 +54,7 @@ def get_auth_token():
 
 
 #Busca RITMs no ServiceNow onde "Assignment Group" é Gr.Suporte N3, "Is Integrated" é false E o estado não é final
+#UTIL
 def fetch_ritm_servicenow(url, params, token):    
                                                #3ee6ef4c1bb8d510bef1a79fe54bcbb3 <- Sys_ID PRODUÇÃO É O MESMO DE DEV
     params["sysparm_query"] = "assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11"
@@ -88,7 +90,7 @@ def fetch_ritm_servicenow(url, params, token):
         raise Exception(f"An error occurred on GET fetch_ritm_servicenow: {err}")
 
 
-
+#REFACTOR
 #Busca as variaveis da RITM aberta através de um catalog item/record producer.
 def fetch_ritm_variables (url, ritm, params, token):
     params["sysparm_query"] = "request_item.sys_id="+ritm['sys_id']   #get_value(ritm, lambda x : x['results']['sys_is'], None)

@@ -14,7 +14,7 @@ gestao_x_token = get_api_token('gestao-x-prd-api-token')
 
 servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
 servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
-service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
+servicenow_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
 #Parametros da API https://csc.everestdigital.com.br/API/api/chamado/Retorna_chamados_acompanhamento_solicitantes
 params_fetch_chamados_gestao_x = {
@@ -47,7 +47,7 @@ def get_auth_token():
         "grant_type": "refresh_token",
         "client_id":servicenow_client_id,
         "client_secret":servicenow_client_secret,
-        "refresh_token":service_now_refresh_token,
+        "refresh_token":servicenow_refresh_token,
     }
 
     response = requests.post(url, data=body)
@@ -66,10 +66,10 @@ def fetch_work_notes(params, token):
     params["sysparm_fields"] = "u_ticket_gestao_x.u_ticket_gestao_x, u_descricao, u_data_da_atualizacao, sys_id"
 
     headers = {
-            "Content-Type": "application/json",
-            "Accept":"application/json",
-            "Authorization": "Bearer "+token,
-        }
+        "Content-Type": "application/json",
+        "Accept":"application/json",
+        "Authorization": "Bearer "+token,
+    }
     
     try:
         response = requests.get(url, headers=headers, params=params)
