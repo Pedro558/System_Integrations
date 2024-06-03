@@ -6,12 +6,12 @@ url_gestao_x = "https://csc.everestdigital.com.br/API/"
 url_servicenow_prd = "https://eleadev.service-now.com/"
 
 
-ritm_strat = ProactiveTicketStrategy(
+strat = ProactiveTicketStrategy(
     url_snow=url_servicenow_prd,
     url_gestao_x=url_gestao_x,
 )
 
-ticket_context = ServiceNowTicketProcessingContext(ritm_strat)
+ticket_context = ServiceNowTicketProcessingContext(strat)
 ticket_context.get_auth()
 ticket_context.fetch_list()
 ticket_context.processing()

@@ -1,8 +1,4 @@
-from System_Integrations.utils.servicenow_api import get_servicenow_auth_token
 from System_Integrations.utils.servicenow_api import get_servicenow_table_data
-from System_Integrations.utils.servicenow_api import post_to_servicenow_table
-from System_Integrations.utils.gestao_x_api import post_gestao_x
-from System_Integrations.utils.mapper import map_to_requests_response
 from collections import defaultdict
 from .BaseTicketProcessingStrategy import BaseTicketProcessingStrategy
 from .ISnowTicketProcessingStrategy import ISnowTicketProcessingStrategy
@@ -10,7 +6,7 @@ import traceback
 
 class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessingStrategy):
     """
-        Strategy for sending tickets from servicenow to gestaoX
+        Strategy for sending RITM tickets from servicenow to Gestao X
     """
     _url_snow = None
     _url_gestao_x = None
@@ -19,6 +15,10 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
     _refresh_token = None
     _token = None
     _table = 'sc_req_item'
+    _fetch_params = {
+        'sysparm_query': 'assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11',
+        'sysparm_fields':'number, sys_id, cat_item.name'
+    }
 
     tickets = []
     tickets_to_post = []
@@ -28,23 +28,6 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
     def __init__(self, url_snow, url_gestao_x) -> None:
         self._url_snow = url_snow
         self._url_gestao_x = url_gestao_x
-        # self._client_id = client_id
-        # self._client_secret = client_secret
-        # self._refresh_token = refresh_token
-
-    def get_auth(self):
-        super().get_auth()
-        self._token = get_servicenow_auth_token(self._url_snow, self._servicenow_client_id, self._servicenow_client_secret, self._service_now_refresh_token)
-
-    def fetch_list(self):
-        params = {
-                'sysparm_query': 'assignment_group=3ee6ef4c1bb8d510bef1a79fe54bcbb3^u_is_integrated=false^stateNOT IN3,4,7,9,10,11',
-                'sysparm_fields':'number, sys_id, cat_item.name'
-        }
-        #breakpoint()
-        self.tickets = get_servicenow_table_data(self._url_snow, self._table, params = params, token = self._token)
-        #breakpoint()
-        #return self.tickets
 
     def _descriptionBuilder(self, variables, descConfig):
         descricao = ""
@@ -84,7 +67,6 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 # key_names = results.keys()
                 # key_names_list = [key_names]#list(key_names)
 
-                #breakpoint()
                 key_names_list = list(results)
 
                 description = ""
@@ -129,17 +111,23 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
 
     def processing(self):
         try:
+            if not self.tickets:
+                print("No new RITM to process")
+                return
+
             for ritm in self.tickets:
+                #GET VARIABLES
                 table_variables = "sc_item_option_mtom"
                 params = {
                     "sysparm_query": "request_item.sys_id="+ritm['sys_id'],
                     "sysparm_fields": "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
                 }
-
                 variables = get_servicenow_table_data(self._url_snow, table_variables, params = params, token = self._token)
 
                 descricao = ""
-                #Contact info is universal
+                #END GET VARIABLES
+
+                #GET CONTACT
                 aQuestionContact = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Contact"]
                 table_contacts = "sys_user"
                 contactParams = {
@@ -147,7 +135,8 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                     "sysparm_fields": "company.name, company.sys_id, first_name, last_name, email, phone, mobile_phone"
                 }
 
-                contactInfo = get_servicenow_table_data(self._url_snow, table_contacts, params = contactParams)
+                contactInfo = get_servicenow_table_data(self._url_snow, table_contacts, params = contactParams, token = self._token)
+                #END GET CONTACT
 
                 valueContact = contactInfo[0]["first_name"]+" "+contactInfo[0]["last_name"]
                 valueCompany = contactInfo[0]["company.name"]
@@ -156,8 +145,7 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 valueMobilePhone = contactInfo[0]["mobile_phone"]
                 valueCompanySysId = contactInfo[0]["company.sys_id"]
 
-            descricao = '---TESTE INTEGRAÇÃO---\n'
-            #breakpoint()
+            descricao = '---TESTE INTEGRAÇÃO---\n' #NECESSARIO EM DEV
             login_solicitante, _ = super().get_login_solicitante(valueCompanySysId, descricao) #valueCompanySysId, descricao)
             
             if ritm['cat_item.name']:
@@ -303,16 +291,14 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                             descricao += self._get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])
                         elif valueWhatService == ' firewall_nat_rule_delete':
                             descricao += self._get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])                     
-            
-            # else:
-            #     continue
+
         
             ticket_to_post =  {
-                "ritm_number": ritm['number'],
+                "ticket_number": ritm['number'],
                 "data": {
                     "Descricao":descricao,
                     "LoginSolicitante": login_solicitante,
-                    "Token": self.gestao_x_token,
+                    "Token": self._gestao_x_token,
                     "CatalogoServicosid":"2649" # especifico gestaoX
                 }
             }
@@ -321,58 +307,3 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
             
         except Exception as e:
             print(f"-!-!-!-!-!-!-!-ERROR START-!-!-!-!-!-!-!-\nError on {ritm['number']}:\n",traceback.format_exc(), "\n-!-!-!-!-!-!-!-ERROR END-!-!-!-!-!-!-!-")
-            
-            #return self.tickets
-
-    def post(self):
-        
-        url = self._url_gestao_x + 'api/chamado/AbrirChamado'
-        headers = {
-            "Content-Type": "application/json",
-        }
-
-        for ticket in self.tickets_to_post:
-            data = ticket['data']
-            result = post_gestao_x(url, headers, data)
-
-            self.results.append({**result, "item": ticket})
-
-    def show_results(self): 
-        for ticket in self.results:
-            print("--------------------------------")
-            if ticket["error"]:
-                #TODO
-                continue
-            response = map_to_requests_response(ticket['response'])
-            if response.status_code == 200 or response.status_code == 201:
-                print(f"RITM {ticket['item']['ritm_number']} was posted as {response.json()} in Gestão X")
-            else:
-                print(f"Error while trying to post RITM {ticket['item']['ritm_number']} with {ticket['item']['data']} history data")
-                print(f"{response.status_code}")
-                print(f"{response.reason}")
-
-    def post_evidence(self):
-        table = "u_integradora_gestao_x"
-
-        params = {"sysparm_input_display_value":"true"}
-        for result in self.results:
-            data = {
-                "u_ticket_gestao_x":map_to_requests_response(result['response']).json(),
-                "u_requested_item":result['item']['ritm_number']
-            }
-            
-            evidence_result = post_to_servicenow_table(self._url_snow, table, data, self._token, params = params)
-
-            self.evidence_results.append({**evidence_result, "data": data}) #, "item": result["item"]
-
-    def show_evidence_results(self): 
-        for result in self.evidence_results:
-            print("--------------------------------")
-            response = map_to_requests_response(result["response"])
-            #breakpoint()
-            if response.status_code == 200 or response.status_code == 201:
-                print(f"Record created in u_integradora_gestao_x for {result['data']['u_requested_item']} integrated with Gestão X ticket {result['data']['u_ticket_gestao_x']} ")
-            else:
-                print(f"Error while trying to update u_integradora_gestao_x for {result['data']['u_requested_item']} with Gestão X ticket {result['data']['u_ticket_gestao_x']}")
-                print(f"Code: {response.status_code}")
-                print(f"Message: {response.reason}")
