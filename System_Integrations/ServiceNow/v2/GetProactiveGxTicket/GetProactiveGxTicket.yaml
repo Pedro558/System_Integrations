@@ -26,7 +26,7 @@
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\GetProactiveGxTicket\GetProactiveGxTicket.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\v2\GetProactiveGxTicket\GetProactiveGxTicket.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1

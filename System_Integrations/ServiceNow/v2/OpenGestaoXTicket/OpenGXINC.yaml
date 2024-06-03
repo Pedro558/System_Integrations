@@ -29,7 +29,7 @@
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\OpenGestaoXTicket\OpenGestaoXTicket.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\v2\OpenGestaoXTicket\OpenGestaoXTicket.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1

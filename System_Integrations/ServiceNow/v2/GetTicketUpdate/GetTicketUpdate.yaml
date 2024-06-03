@@ -26,7 +26,7 @@
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\GetTicketUpdate\GetTicketUpdate.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\v2\GetTicketUpdate\GetTicketUpdate.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1
