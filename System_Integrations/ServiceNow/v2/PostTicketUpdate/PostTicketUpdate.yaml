@@ -1,6 +1,6 @@
 - id: id
   name: Gestão X - Post ServiceNow RITM work notes to Gestão X
-  group: ServiceNow Integration 
+  group: V2/ServiceNow Integration 
   description: Checks u_integradora_gestao_x_atualizacao for posts with the "not posted"
   executionEnabled: true
   loglevel: INFO
