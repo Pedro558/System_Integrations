@@ -1,7 +1,7 @@
 - id: id
-  name: Gestão X - Get proactively opened tickets
-  group: V2/ServiceNow Integration 
-  description: Fetches tickets from Gestão X that are not already integrated
+  name: Gestão X - Get ticket history and update ServiceNow
+  group: V2/ServiceNow Integration  
+  description: Fetches ticket history from active tickets within Gestão X and if the ticket is already open on ServiceNow, uploads new updates to 'u_integradora_gestao_x_atualizacoes'
   executionEnabled: true
   loglevel: INFO
   nodeFilterEditable: false
@@ -20,13 +20,13 @@
   retry:
     delay: '10'
     retry: '3'
-  # schedule:
-  #   crontab: '0 */5 * ? * * *'
+  schedule:
+    crontab: '0 */5 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\v2\GetProactiveGxTicket\GetProactiveGxTicket.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\Gestao_X-Client_Scripts\GetTicketUpdate\GetTicketUpdate.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1

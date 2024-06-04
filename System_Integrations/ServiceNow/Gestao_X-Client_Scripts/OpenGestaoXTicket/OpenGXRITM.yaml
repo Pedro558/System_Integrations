@@ -7,7 +7,10 @@
   nodeFilterEditable: false
   options: 
   - hidden: true 
-    name: appid 
+    name: type 
+    value: ritm
+  - hidden: true 
+    name: appid
     secure: true 
     storagePath: keys/project/System_Integrations/azure_app_id
     valueExposed: true 
@@ -20,13 +23,13 @@
   retry:
     delay: '10'
     retry: '3'
-  # schedule:
-  #   crontab: '0 */1 * ? * * *'
+  schedule:
+    crontab: '0 */1 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\OpenGestaoXTicket\OpenGestaoXTicket.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\Gestao_X-Client_Scripts\OpenGestaoXTicket\OpenGestaoXTicket.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1
