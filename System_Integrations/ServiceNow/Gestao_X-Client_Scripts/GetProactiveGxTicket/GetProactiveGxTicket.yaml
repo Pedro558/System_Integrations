@@ -1,6 +1,6 @@
 - id: id
   name: Gestão X - Get proactively opened tickets
-  group: V2/ServiceNow Integration 
+  group: ServiceNow Integration/Gestão X
   description: Fetches tickets from Gestão X that are not already integrated
   executionEnabled: true
   loglevel: INFO

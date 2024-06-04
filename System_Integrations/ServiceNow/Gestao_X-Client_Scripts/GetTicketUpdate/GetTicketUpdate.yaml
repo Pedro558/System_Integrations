@@ -1,6 +1,6 @@
 - id: id
   name: Gestão X - Get ticket history and update ServiceNow
-  group: V2/ServiceNow Integration  
+  group: ServiceNow Integration/Gestão X
   description: Fetches ticket history from active tickets within Gestão X and if the ticket is already open on ServiceNow, uploads new updates to 'u_integradora_gestao_x_atualizacoes'
   executionEnabled: true
   loglevel: INFO

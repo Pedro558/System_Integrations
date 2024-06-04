@@ -1,6 +1,6 @@
 - id: id
   name: Gestão X - Post ServiceNow ticket work notes to Gestão X
-  group: V2/ServiceNow Integration 
+  group: ServiceNow Integration/Gestão X 
   description: Checks u_integradora_gestao_x_atualizacao for posts with the "not posted"
   executionEnabled: true
   loglevel: INFO
