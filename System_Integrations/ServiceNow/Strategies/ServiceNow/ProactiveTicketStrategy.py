@@ -114,7 +114,7 @@ class ProactiveTicketStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessin
                             "caller_id": "7f73108d87624e1405eaa8630cbb3541", #usuário dummy everest
                         },
                         "req":{
-                            "requested_for": "740d35fe1b6e2110bef1a79fe54bcbb9", #matricula dummy da empresa
+                            "requested_for": "740d35fe1b6e2110bef1a79fe54bcbb9", # matricula dummy da empresa
                             "opened_by":"7f73108d87624e1405eaa8630cbb3541", #matricula dummy da everest
                         }
                     }
@@ -123,11 +123,11 @@ class ProactiveTicketStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessin
                     opener_requester ={
                         "inc":{
                             "company": "707fbf951bfcd110bef1a79fe54bcb42", #company cliente
-                            "caller_id": "a45641c387bb655005eaa8630cbb35d8"#"7f73108d87624e1405eaa8630cbb3541", #usuário dummy everest
+                            "caller_id": "7f73108d87624e1405eaa8630cbb3541"# usuário dummy everest
                         },
                         "req":{
                             "requested_for": "a45641c387bb655005eaa8630cbb35d8", #matricula dummy da empresa
-                            "opened_by":"a45641c387bb655005eaa8630cbb35d8" #matricula dummy da everest
+                            "opened_by":"7f73108d87624e1405eaa8630cbb3541" # matricula dummy da everest
                             # EM PROD USAR: 7f73108d87624e1405eaa8630cbb3541
                         }
                     }

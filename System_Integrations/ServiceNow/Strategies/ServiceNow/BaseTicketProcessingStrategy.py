@@ -37,9 +37,9 @@ class BaseTicketProcessingStrategy(ISnowTicketProcessingStrategy):
         self._gestao_x_login_fatl = get_api_token("gestao-x-prd-login-fatl") #"INTEGRACAOELEAFUNDACAOATLANTICO"
         self._gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed") #"INTEGRACAOELEAUNIMED"
 
-        self._servicenow_client_id = "ae6874cab78c8250ccc109956c8cc239" #get_api_token('servicenow-prd-client-id-oauth')
-        self._servicenow_client_secret = "m^mbYcSqG@" #get_api_token('servicenow-prd-client-secret-oauth')
-        self._service_now_refresh_token = "mT7eo3nX8mesAWKvlRTgKTRW2qYb7F-NluXpDZMmrmIn0UZ9Ak_7cwoIS4s5DKo8wfxUGq3732g3iVam9RlQ4A" # get_api_token('servicenow-prd-refresh-token-oauth')
+        self._servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth') #"ae6874cab78c8250ccc109956c8cc239"
+        self._servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth') #"m^mbYcSqG@"
+        self._service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth') #"mT7eo3nX8mesAWKvlRTgKTRW2qYb7F-NluXpDZMmrmIn0UZ9Ak_7cwoIS4s5DKo8wfxUGq3732g3iVam9RlQ4A" 
 
         self._token = get_servicenow_auth_token(self._url_snow, self._servicenow_client_id, self._servicenow_client_secret, self._service_now_refresh_token)
 
