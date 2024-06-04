@@ -145,7 +145,8 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 valueMobilePhone = contactInfo[0]["mobile_phone"]
                 valueCompanySysId = contactInfo[0]["company.sys_id"]
 
-            descricao = '---TESTE INTEGRAÇÃO---\n' #NECESSARIO EM DEV
+            #descricao = '---TESTE INTEGRAÇÃO---\n' #NECESSARIO EM DEV
+            
             login_solicitante, _ = super().get_login_solicitante(valueCompanySysId, descricao) #valueCompanySysId, descricao)
             
             if ritm['cat_item.name']:

@@ -61,6 +61,8 @@ class ProactiveTicketStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessin
         if not self.GX_tickets:
             raise Exception("No new proactive tickets to process")
         for ticket in self.GX_tickets:
+            if '---TESTE INTEGRAÇÃO---' in ticket['DESCRICAO']:
+                    continue
             if self._does_it_exist(ticket['CODIGO']):
                 print(f"Ticket {ticket['CODIGO']} já foi integrado")
                 continue
