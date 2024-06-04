@@ -75,7 +75,7 @@ class BaseUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessingStra
         else:
             found = False
         
-        return found, lookUp
+        return found#, lookUp
     
     # def _get_updates_from_ticket(self, code):
     #     table = "u_integradora_gestao_x_atualizacoes"
@@ -111,7 +111,8 @@ class BaseUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessingStra
                 status = entry.get('STATUS_ID')
                 data_historico = entry.get('DATA_HISTORICO')
                 breakpoint()
-                update_found, update_data = self._has_it_been_updated(codigo,data_historico)
+                #update_found, update_data = self._has_it_been_updated(codigo,data_historico)
+                update_found = self._has_it_been_updated(codigo,data_historico)
                 if update_found:
                     continue
 
