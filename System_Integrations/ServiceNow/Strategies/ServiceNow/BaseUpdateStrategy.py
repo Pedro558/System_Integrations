@@ -110,7 +110,7 @@ class BaseUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessingStra
                 descricao = entry.get('DESCRICAO')
                 status = entry.get('STATUS_ID')
                 data_historico = entry.get('DATA_HISTORICO')
-                breakpoint()
+                
                 #update_found, update_data = self._has_it_been_updated(codigo,data_historico)
                 update_found = self._has_it_been_updated(codigo,data_historico)
                 if update_found:
@@ -155,7 +155,6 @@ class BaseUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessingStra
                     #     self.gx_updates_to_post.append(update)
 
                 # else:
-                breakpoint()
 
                 entry_dic = {
                     #"exist": found,
