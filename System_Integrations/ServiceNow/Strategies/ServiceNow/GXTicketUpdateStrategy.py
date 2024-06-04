@@ -58,7 +58,7 @@ class GXTicketUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
 
             params = {
                 "CodigoChamado": CodigoChamado,
-                "Token": self.gestao_x_token
+                "Token": self._gestao_x_token
             }
 
             detalhes_chamados = get_gestao_x(url, params = params)
@@ -75,7 +75,7 @@ class GXTicketUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 "u_data_da_atualizacao": work_note["u_data_da_atualizacao"],
                 "body":{
                     "CodigoChamado": CodigoChamado,
-                    "Token": self.gestao_x_token,
+                    "Token": self._gestao_x_token,
                     "Descricao": "Atualização através do ServiceNow:\n"+work_note['u_descricao'],
                     "Status": status,
                     "LoginResponsavel": loginResponsavel #TODO pendente atualização do Paulo sobre essa API
