@@ -5,6 +5,6 @@ $activateScript = Join-Path -Path $venvPath -ChildPath "Scripts\Activate.ps1"
 
 # Run your Python script
 $scriptPath = "C:\rundeck\projects\System_Integrations\ScmImport"
-$scriptModule = "System_Integrations.ServiceNow.Gestao_X-Client_Scripts.PostTicketUpdate.PostTicketUpdate"
+$scriptModule = "System_Integrations.ServiceNow.Gestao_X_Client_Scripts.GetTicketUpdate.GetTicketUpdate"
 Set-Location -Path $scriptPath
 python -m $scriptModule
