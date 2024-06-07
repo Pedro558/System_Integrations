@@ -8,17 +8,20 @@ def get_servicenow_auth_token(envUrl, clientId, clientSecret, refreshToken):
     url = envUrl
     url += "/" if not url.endswith("/") else ""
     url += 'oauth_token.do'
-    
+
     body = {
         'grant_type': 'refresh_token',
         'client_id':clientId,
         'client_secret':clientSecret,
         'refresh_token':refreshToken,
     }
-
+    print(url+"\n")
     response = requests.post(url, data=body)
     data = response.json()
-
+    print(data+"\n")
+    print(response.status_code)
+    print(response.reason)
+    
     return data['access_token']
 
 
