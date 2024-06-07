@@ -5,7 +5,7 @@ from System_Integrations.ServiceNow.Strategies.ServiceNow.ServiceNowTicketProces
 
 #URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
-url_servicenow_prd = "https://servicenow.eleadatacenters.com/"
+url_servicenow_prd = "https://servicenow.eleadigital.com/"
 
 type = os.getenv("RD_OPTION_TYPE")
 
