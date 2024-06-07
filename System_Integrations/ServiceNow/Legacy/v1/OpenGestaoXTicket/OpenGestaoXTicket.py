@@ -10,7 +10,7 @@ from collections import defaultdict
 
 #URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
-url_servicenow_prd = "https://servicenow.eleadigital.com/"
+url_servicenow_prd = "https://servicenow.eleadatacenters.com/"
 
 #Tokens produção
 gestao_x_login = get_api_token('gestao-x-prd-login')

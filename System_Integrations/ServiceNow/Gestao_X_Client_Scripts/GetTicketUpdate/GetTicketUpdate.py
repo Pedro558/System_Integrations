@@ -3,7 +3,7 @@ from System_Integrations.ServiceNow.Strategies.ServiceNow.ServiceNowTicketProces
 
 #URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
-url_servicenow_prd = "https://servicenow.eleadigital.com/"
+url_servicenow_prd = "https://servicenow.eleadatacenters.com/"
 
 
 strat = BaseUpdateStrategy(
