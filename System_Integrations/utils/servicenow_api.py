@@ -5,7 +5,10 @@ import json
 
 #     BUSCA TOKEN DE AUTORIZAÇÃO NO AMBIENTE DO SERVICENOW
 def get_servicenow_auth_token(envUrl, clientId, clientSecret, refreshToken):
-    url = envUrl+'/oauth_token.do'
+    url = envUrl
+    url += "/" if not url.endswith("/") else ""
+    url += 'oauth_token.do'
+    
     body = {
         'grant_type': 'refresh_token',
         'client_id':clientId,
