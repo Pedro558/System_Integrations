@@ -15,10 +15,10 @@ def get_servicenow_auth_token(envUrl, clientId, clientSecret, refreshToken):
         'client_secret':clientSecret,
         'refresh_token':refreshToken,
     }
-    print(url+"\n")
+    print(url)
     response = requests.post(url, data=body)
     data = response.json()
-    print(data+"\n")
+    print(data)
     print(response.status_code)
     print(response.reason)
     
