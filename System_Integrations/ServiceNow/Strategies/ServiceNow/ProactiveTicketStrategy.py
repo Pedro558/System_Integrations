@@ -146,7 +146,8 @@ class ProactiveTicketStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessin
                         "short_description": "[EVEREST] Ticket: "+ticket['CODIGO'],
                         "description": "Ticket "+ticket['CODIGO']+" aberto originalmente no Gestão X da Everest e replicado através da integração.\nMaiores detalhes nas notas de atualização do ticket.",
                         "state": "New",
-                        "assignment_group": "Gr.Suporte N3"
+                        "assignment_group": "Gr.Suporte N3",
+                        "u_is_integrated": "true"
                     }
                 }
 
@@ -168,7 +169,7 @@ class ProactiveTicketStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessin
                             "assignment_group":"Gr.Suporte N3",
                             "short_description": "[EVEREST] Ticket: "+ticket['CODIGO'],
                             "description": "Ticket "+ticket['CODIGO']+" aberto originalmente no Gestão X da Everest e replicado através da integração.\nMaiores detalhes nas notas de atualização do ticket.",
-                            "u_is_integrated":"true",
+                            "u_is_integrated": "true",
                             "state":"new"
                         },
                         "patch": {
