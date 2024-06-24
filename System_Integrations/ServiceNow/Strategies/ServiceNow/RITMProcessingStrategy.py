@@ -128,6 +128,7 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 #END GET VARIABLES
 
                 #GET CONTACT
+                print(aQuestionContact)
                 aQuestionContact = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Contact"]
                 table_contacts = "sys_user"
                 contactParams = {
