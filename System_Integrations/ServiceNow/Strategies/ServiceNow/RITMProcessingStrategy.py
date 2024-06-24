@@ -128,7 +128,7 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 #END GET VARIABLES
 
                 #GET CONTACT
-                aQuestionContact = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Contact"]
+                aQuestionContact = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] in ["Contact","Requested for"]]
                 table_contacts = "sys_user"
                 contactParams = {
                     "sysparm_query": "sys_id="+aQuestionContact[0]["sc_item_option.value"],
@@ -145,7 +145,8 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                 valueMobilePhone = contactInfo[0]["mobile_phone"]
                 valueCompanySysId = contactInfo[0]["company.sys_id"]
 
-            #descricao = '---TESTE INTEGRAÇÃO---\n' #NECESSARIO EM DEV
+            #NECESSARIO EM DEV
+            #descricao = '---TESTE INTEGRAÇÃO---\n' 
             
             login_solicitante, _ = super().get_login_solicitante(valueCompanySysId, descricao) #valueCompanySysId, descricao)
             
@@ -292,7 +293,35 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                             descricao += self._get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])
                         elif valueWhatService == ' firewall_nat_rule_delete':
                             descricao += self._get_multi_row_question_answer(ritm['sys_id'], ritm['cat_item.name'])                     
+                    
+                    #Item de catalogo do portal de serviços, não do portal de cliente como os demais
+                    case 'Single Requests':
+                        aQuestionWhatSite = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == 'What site?']
+                        valueWhatSite = aQuestionWhatSite[0]["sc_item_option.value"] if len(aQuestionWhatSite) > 0 else None
 
+                        siteParams = {
+                            'sysparm_query':f'sys_id={valueWhatSite}',
+                            'sysparm_display_value':'true',
+                            'sysparm_exclude_reference_link':'true'
+                            'sysparm_fields''name',
+                            'sysparm_limit':'1'
+                        }
+                        siteRequest = get_servicenow_table_data(self._url_snow, 'cmn_location',params = siteParams, token = self._token)
+                        valueSite = siteRequest[0]['name']
+
+                        descriptionConfig = [
+                            {"var": "Summary", "msg": "\n\nResumo:\n" },
+                            {"var": "Description", "msg": "\n\nDescrição:\n" },
+                        ]
+
+                        descricao += f"\nRITM no ServiceNow Elea: {ritm['number']}"
+                        descricao += f"\nSolicitante: {valueContact}"
+                        descricao += f"\nEmpresa: {valueCompany}"
+                        descricao += f"\nEmail: {valueEmail}"
+                        descricao += f"\nTelefone 1: {valuePhone}"
+                        descricao += f"\nTelefone 2: {valueMobilePhone}"
+                        descricao += f"\nLocal: {valueSite}"
+                        descricao += self._descriptionBuilder(variables, descriptionConfig) 
         
             ticket_to_post =  {
                 "ticket_number": ritm['number'],
