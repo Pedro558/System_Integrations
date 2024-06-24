@@ -123,12 +123,11 @@ class RITMProcessingStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessing
                     "sysparm_fields": "sys_id, sc_item_option.item_option_new.question_text, sc_item_option.value, sc_item_option.order"
                 }
                 variables = get_servicenow_table_data(self._url_snow, table_variables, params = params, token = self._token)
-
+                print(variables)
                 descricao = ""
                 #END GET VARIABLES
 
                 #GET CONTACT
-                print(aQuestionContact)
                 aQuestionContact = [variable for variable in variables if variable["sc_item_option.item_option_new.question_text"] == "Contact"]
                 table_contacts = "sys_user"
                 contactParams = {
