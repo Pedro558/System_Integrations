@@ -114,7 +114,7 @@ def does_it_exist(code, params, token):
 
 
 
-#Caso não exista uma RITM criada no ServiceNow para documentar o Ticket do Gestão X, cria essa RITM, atribuida ao grupo Gr.Suporte N3 e constando como já integrada.
+#Caso não exista uma RITM criada no ServiceNow para documentar o Ticket do Gestão X, cria essa RITM, atribuida ao grupo Gr.Suporte Everest e constando como já integrada.
 #Essa ritm será atualizada normalmente junto das demais que estão integradas.
 def create_proactive_ritm(tickets, token):  
     try:
@@ -139,7 +139,7 @@ def create_proactive_ritm(tickets, token):
                     continue
                 if not does_it_exist(ticket['CODIGO'], params_encoded_query, token):
                     body = {
-                        "assignment_group":"Gr.Suporte N3",
+                        "assignment_group":"Gr.Suporte Everest",
                         "u_is_integrated":"true",
                         "state":"new"
                     }
