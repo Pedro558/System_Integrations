@@ -1,7 +1,7 @@
 import re, os
-from typing import override
 import pandas as pd
 from unidecode import unidecode
+from commons.pandas.utils import *
 
 from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.utils.parser import get_value
@@ -12,9 +12,9 @@ load_dotenv(override=True)
 
 url_snow = os.getenv("snow_url")
 
-servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth') #os.getenv("snow_client_id")
-servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth') #os.getenv("snow_client_secret")
-service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth') #os.getenv("snow_refresh_token")
+servicenow_client_id = os.getenv("snow_client_id") #get_api_token('servicenow-prd-client-id-oauth')
+servicenow_client_secret = os.getenv("snow_client_secret") #get_api_token('servicenow-prd-client-secret-oauth')
+service_now_refresh_token = os.getenv("snow_refresh_token") #get_api_token('servicenow-prd-refresh-token-oauth')
 
 token = get_servicenow_auth_token(url_snow, servicenow_client_id, servicenow_client_secret, service_now_refresh_token)
 
@@ -23,33 +23,14 @@ path = "C:/Users/filipe.uccelli/source/System_Integration/System_Integrations/Se
 columns_to_extract = ["CROSS ID", "Data "]
 # df_dh_depara = pd.read_excel(f"{path}De_Para Data Hall.xlsx")
 
-def get_df_from_excel(path, columns=[]):
-    try:
-        df = pd.read_excel(path)
-    except:
-        df = pd.DataFrame(columns)
-
-    return df
-      
-def combine_data(dataframes, columns_to_extract, combined=None):
-    new_data_df = pd.concat(dataframes, ignore_index=True)
-    # Merge the new data with the existing combined dataframe
-    merged_df = pd.concat([combined, new_data_df]).drop_duplicates(subset=columns_to_extract, keep='last')
-    if columns_to_extract:
-        merged_df = merged_df[columns_to_extract]
-        
-    return merged_df
-
-def remove_acento(valor):
-    if isinstance(valor, str):
-        return unidecode(valor)
-    return valor
-
-def remove_site_prefix(value:str):
+def remove_site_prefix(value:str, sites):
     if not isinstance(value, str): return value
 
-    sites_options = "|".join(sites)
-    pattern = rf"^({sites_options})-(\d+|T|SS|SL)-"
+    sites_aux = sites + ["BSB1", "POA2", "SPO"]
+    sites_options = "|".join(sites_aux)
+    pattern = rf"^({sites_options})-(\d+|T|SS|SL)?-?"
+    # pattern = rf"^({sites_options})-(\d+|T|SS|SL)-"
+
     new_value = value
     # if value.startswith(f"{site}-"): new_value = value.replace(f"{site}-", "")
     match = re.match(pattern, value)
@@ -57,7 +38,14 @@ def remove_site_prefix(value:str):
         new_value = re.sub(pattern, "", value)
 
     return new_value
-        
+
+def merge_de_para(df, lookup):
+    merged_df = df.merge(lookup, on=['Site', 'De'], how='left', suffixes=('', '_new'))
+    merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
+    merged_df = merged_df.reset_index()
+    merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
+    return merged_df[["Site", "De", "Para"]]
+     
 
 dataframes = []
 for site in sites:
@@ -132,7 +120,6 @@ for row in df.iterrows():
 
 df = pd.DataFrame(dict_df)
 
-
 snow_data_halls = get_servicenow_table_data(url_snow, "u_cmdb_ci_data_hall", {"sysparm_display_value": True}, token)
 dict_dh_df = {"Site": [], "De": [], "Para": []}
 for dh in snow_data_halls:
@@ -142,16 +129,15 @@ for dh in snow_data_halls:
 
 
 lookup_data_hall = get_df_from_excel(path+"de_para_data_hall.xlsx", {"De": [], "Para": []})
-lookup_data_hall["De"] = lookup_data_hall["De"].apply(remove_site_prefix)
+lookup_data_hall["De"] = lookup_data_hall["De"].apply(lambda value: remove_site_prefix(value, sites))
 
 if not lookup_data_hall.empty:
-    merged_df = df.merge(lookup_data_hall, on=['Site', 'De'], how='right', suffixes=('', '_new'))
-    merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
-    merged_df = merged_df.reset_index()
-    merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
-    df = merged_df[["Site", "De", "Para"]]
-
-
+    df = merge_de_para(df, lookup_data_hall)
+    # merged_df = df.merge(lookup_data_hall, on=['Site', 'De'], how='left', suffixes=('', '_new'))
+    # merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
+    # merged_df = merged_df.reset_index()
+    # merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
+    # df = merged_df[["Site", "De", "Para"]]
 
 combined_lookup_dh = df
 combined_lookup_dh["De"] = combined_lookup_dh["De"].str.strip()
@@ -160,13 +146,20 @@ combined_lookup_dh.dropna(subset=['De'])
 combined_lookup_dh = combined_lookup_dh.drop_duplicates(subset=['Site', 'De', "Para"])
 
 df_to_compare = pd.DataFrame(dict_dh_df)
-df_to_compare["De"] = df_to_compare["De"].apply(remove_site_prefix)
+df_to_compare["Para"] = df_to_compare["De"]
+df_to_compare["De"] = df_to_compare["De"].apply(lambda value: remove_site_prefix(value, sites))
+# lookup = pd.Series(df_to_compare.Para.values, index=df_to_compare.De).to_dict()
 
+if not df_to_compare.empty:
+    combined_lookup_dh = merge_de_para(combined_lookup_dh, df_to_compare)
+
+# combined_lookup_dh['Para'] = combined_lookup_dh['De'].map(lookup).fillna(combined_lookup_dh['De'])
+breakpoint()
 # merged_df = combined_lookup_dh.merge(df_to_compare[['Site', 'De']], on=['Site', 'De'], how='inner')
 # indexes_to_drop = merged_df.index
 # combined_lookup_dh = combined_lookup_dh.drop(indexes_to_drop)
-mask = combined_lookup_dh.set_index(['Site', 'De']).index.isin(df_to_compare.set_index(['Site', 'De']).index)
-combined_lookup_dh = combined_lookup_dh[~mask]
+# mask = combined_lookup_dh.set_index(['Site', 'De']).index.isin(df_to_compare.set_index(['Site', 'De']).index)
+# combined_lookup_dh = combined_lookup_dh[~mask]
 
 combined_lookup_dh.to_excel(path+"de_para_data_hall.xlsx", index=False)
 
@@ -212,7 +205,7 @@ for rack in snow_racks:
 
 
 lookup_rack = get_df_from_excel(path+"de_para_rack.xlsx", {"De": [], "Para": []})
-lookup_rack["De"] = lookup_rack["De"].apply(remove_site_prefix)
+lookup_rack["De"] = lookup_rack["De"].apply(lambda value: remove_site_prefix(value, sites))
 
 if not lookup_rack.empty:
     merged_df = df.merge(lookup_rack, on=['Site', 'De'], how='right', suffixes=('', '_new'))
