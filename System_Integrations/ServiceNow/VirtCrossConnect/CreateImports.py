@@ -11,12 +11,6 @@ load_dotenv(override=True)
 
 url_snow = os.getenv("snow_url")
 
-servicenow_client_id = os.getenv("snow_client_id") #get_api_token('servicenow-prd-client-id-oauth')
-servicenow_client_secret = os.getenv("snow_client_secret") #get_api_token('servicenow-prd-client-secret-oauth')
-service_now_refresh_token = os.getenv("snow_refresh_token") #get_api_token('servicenow-prd-refresh-token-oauth')
-
-token = get_servicenow_auth_token(url_snow, servicenow_client_id, servicenow_client_secret, service_now_refresh_token)
-
 pattern = re.compile(r'^[A-Za-z0-9\-]+:[A-Za-z0-9\-]+:[A-Za-z0-9\-]+:[A-Za-z0-9\-\\\/]+$')
 
 
@@ -56,16 +50,18 @@ sites = ["RJO1", "SPO1", "POA1", "CTA1", "BSB2"]
 path = "C:/Users/filipe.uccelli/source/System_Integration/System_Integrations/ServiceNow/VirtCrossConnect/"
 pathImports = f"{path}import/"
 
-lookup_customer_all = get_df_from_excel(path+"de_para_customer.xlsx", {"De": [], "Para": []})
-lookup_data_hall_all = get_df_from_excel(path+"de_para_data_hall.xlsx", {"De": [], "Para": []})
-lookup_rack_all = get_df_from_excel(path+"de_para_rack.xlsx", {"De": [], "Para": []})
+lookup_customer_all = get_df_from_excel(pathImports+"_lookups/de_para_customer.xlsx", {"De": [], "Para": []})
+lookup_data_hall_all = get_df_from_excel(pathImports+"_lookups/de_para_data_hall.xlsx", {"De": [], "Para": []})
+lookup_rack_all = get_df_from_excel(pathImports+"_lookups/de_para_rack.xlsx", {"De": [], "Para": []})
 
 for site in sites:
+    df = get_df_from_excel(f"{pathImports}/{site}/cross_{site}_data.xlsx")
+    if df.empty: continue
+
     lookup_customer = lookup_customer_all[lookup_customer_all["Site"] == site]
     lookup_data_hall = lookup_data_hall_all[lookup_data_hall_all["Site"] == site]
     lookup_rack = lookup_rack_all[lookup_rack_all["Site"] == site]
 
-    df = get_df_from_excel(f"{path}cross_{site}_data.xlsx")
     df_import = get_df_from_excel(f"{pathImports}{site}_import.xlsx")
 
     df["Site"] = site
@@ -78,6 +74,7 @@ for site in sites:
     lookup_customer_dict = pd.Series(lookup_customer.Para.values, index=lookup_customer.De).to_dict()
     df['Cliente Ponta A'] = df['Cliente Ponta A'].map(lookup_customer_dict).fillna(df['Cliente Ponta A'])
     df['Cliente Ponta B'] = df['Cliente Ponta B'].map(lookup_customer_dict).fillna(df['Cliente Ponta B'])
+    df['Cliente Final'] = df['Cliente Final'].map(lookup_customer_dict).fillna(df['Cliente Final'])
 
     # => data hall (Data Hall / Data Hall Ponta B / Saltos)
     # saltos = ["Salto 1", "Salto 2", "Salto 3", "Salto 4", "Salto 5"]
@@ -93,6 +90,7 @@ for site in sites:
         processed_values = df[salto].apply(lambda value: replace_data_hall(value, lookup_data_hall_dict))
         processed_values = processed_values.fillna("")
         invalid_rows = processed_values[processed_values.notna() & processed_values.str.startswith("[INVALID_FORMAT]=>")]
+        processed_values = processed_values.str.replace("[INVALID_FORMAT]=>", "")
         invalid_rows = invalid_rows.str.replace("[INVALID_FORMAT]=>", "")
         invalid_rows = df[df[salto].isin(invalid_rows)]
         # invalid_rows[salto] = invalid_rows[salto].str.replace("[INVALID_FORMAT]=>", "")

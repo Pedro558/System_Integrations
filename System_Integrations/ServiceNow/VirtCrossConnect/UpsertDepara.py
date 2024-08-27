@@ -18,8 +18,9 @@ service_now_refresh_token = os.getenv("snow_refresh_token") #get_api_token('serv
 
 token = get_servicenow_auth_token(url_snow, servicenow_client_id, servicenow_client_secret, service_now_refresh_token)
 
-sites = ["RJO1", "SPO1", "POA1", "CTA1", "BSB2"]
+sites = ["RJO1", "SPO1", "POA1", "CTA1", "BSB1", "BSB2"]
 path = "C:/Users/filipe.uccelli/source/System_Integration/System_Integrations/ServiceNow/VirtCrossConnect/"
+pathImports = f"{path}import/"
 columns_to_extract = ["CROSS ID", "Data "]
 # df_dh_depara = pd.read_excel(f"{path}De_Para Data Hall.xlsx")
 
@@ -40,24 +41,31 @@ def remove_site_prefix(value:str, sites):
     return new_value
 
 def merge_de_para(df, lookup):
-    merged_df = df.merge(lookup, on=['Site', 'De'], how='left', suffixes=('', '_new'))
-    merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
-    merged_df = merged_df.reset_index()
-    merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
-    return merged_df[["Site", "De", "Para"]]
+    # merged_df = df.merge(lookup, on=['Site', 'De'], how='left', suffixes=('', '_new'))
+    # merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
+    # merged_df = merged_df.reset_index()
+    # merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
+    # return merged_df[["Site", "De", "Para"]]
+    merged_right = df.merge(lookup, on=['Site', 'De'], how='right', suffixes=('', '_new'))
+    merged_right['Para'] = merged_right['Para_new'].combine_first(merged_right['Para'])
+    final_merged = df.merge(merged_right, on=['Site', 'De'], how='outer', suffixes=('', '_final'))
+    final_merged['Para'] = final_merged['Para_final'].combine_first(final_merged['Para'])
+    final_merged = final_merged.drop_duplicates(subset=['Site', 'De', "Para"])
+    # breakpoint()
+    return final_merged[["Site", "De", "Para"]]
      
 
 dataframes = []
 for site in sites:
-    df = get_df_from_excel(f"{path}cross_{site}_data.xlsx")
+    df = get_df_from_excel(f"{pathImports}{site}/cross_{site}_data.xlsx")
     df["Site"] = site
     dataframes.append(df)
 
 # ===
 # Custoemer
 # ===
-lookup_customer = get_df_from_excel(path+"de_para_customer.xlsx", {"De": [], "Para": []})
-df = combine_data(dataframes, ["Site", "Cliente Ponta A", "Cliente Ponta B"])
+lookup_customer = get_df_from_excel(f"{pathImports}_lookups/de_para_customer.xlsx", {"De": [], "Para": []})
+df = combine_data(dataframes, ["Site", "Cliente Ponta A", "Cliente Ponta B", "Cliente Final"])
 dict_df = {"Site": [], "De": [], "Para": []}
 for row in df.iterrows():
     dict_df["Site"].append(row[1]["Site"])
@@ -68,6 +76,10 @@ for row in df.iterrows():
     dict_df["De"].append(row[1]["Cliente Ponta B"])
     dict_df["Para"].append(None)
 
+    dict_df["Site"].append(row[1]["Site"])
+    dict_df["De"].append(row[1]["Cliente Final"])
+    dict_df["Para"].append(None)
+
 df = pd.DataFrame(dict_df)
 
 snow_accounts = get_servicenow_table_data(url_snow, "customer_account", {}, token)
@@ -75,11 +87,14 @@ snow_accounts_names = [x["name"] for x in snow_accounts]
 
 # combined_lookup_customers = combine_data([df, lookup_customer], ["Site", "De", "Para"])
 if not lookup_customer.empty:
-    merged_df = df.merge(lookup_customer, on=['Site', 'De'], how='right', suffixes=('', '_new'))
-    merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
-    merged_df = merged_df.reset_index()
-    merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
-    df = merged_df[["Site", "De", "Para"]]
+    merged_right = df.merge(lookup_customer, on=['Site', 'De'], how='right', suffixes=('', '_new'))
+    merged_right['Para'] = merged_right['Para_new'].combine_first(merged_right['Para'])
+    final_merged = df.merge(merged_right, on=['Site', 'De'], how='outer', suffixes=('', '_final'))
+    final_merged['Para'] = final_merged['Para_final'].combine_first(final_merged['Para'])
+    final_merged = final_merged.drop_duplicates(subset=['Site', 'De', "Para"])
+    df = final_merged[["Site", "De", "Para"]]
+
+
 
 combined_lookup_customers = df
 combined_lookup_customers["De"] = combined_lookup_customers["De"].str.strip()
@@ -128,7 +143,7 @@ for dh in snow_data_halls:
     dict_dh_df["Para"].append(None)
 
 
-lookup_data_hall = get_df_from_excel(path+"de_para_data_hall.xlsx", {"De": [], "Para": []})
+lookup_data_hall = get_df_from_excel(f"{pathImports}_lookups/de_para_data_hall.xlsx", {"De": [], "Para": []})
 lookup_data_hall["De"] = lookup_data_hall["De"].apply(lambda value: remove_site_prefix(value, sites))
 
 if not lookup_data_hall.empty:
@@ -204,15 +219,18 @@ for rack in snow_racks:
     dict_rack_df["Para"].append(None)
 
 
-lookup_rack = get_df_from_excel(path+"de_para_rack.xlsx", {"De": [], "Para": []})
+lookup_rack = get_df_from_excel(f"{pathImports}_lookups/de_para_rack.xlsx", {"De": [], "Para": []})
 lookup_rack["De"] = lookup_rack["De"].apply(lambda value: remove_site_prefix(value, sites))
 
-if not lookup_rack.empty:
-    merged_df = df.merge(lookup_rack, on=['Site', 'De'], how='right', suffixes=('', '_new'))
-    merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
-    merged_df = merged_df.reset_index()
-    merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
-    df = merged_df[["Site", "De", "Para"]]
+if not lookup_data_hall.empty:
+    df = merge_de_para(df, lookup_rack)
+
+# if not lookup_rack.empty:
+#     merged_df = df.merge(lookup_rack, on=['Site', 'De'], how='right', suffixes=('', '_new'))
+#     merged_df = merged_df.drop_duplicates(subset=['Site', 'De', "Para_new"])
+#     merged_df = merged_df.reset_index()
+#     merged_df['Para'] = merged_df['Para_new'].combine_first(df['Para'])
+#     df = merged_df[["Site", "De", "Para"]]
 
 
 combined_lookup_rack = df
