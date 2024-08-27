@@ -17,15 +17,15 @@ function get_data_hall(dataHallName) {
 	return datahallGR.next();
 }
 
-function get_rack(rackName, dataHallName, customerName) {
+function get_rack(rackName, dataHallName) {
 	var rackGR = new GlideRecord("cmdb_ci_rack");
 	// rackGR.addQuery("name", rackName);
 	// rackGR.addQuery("u_data_hall.name", dataHallName);
 	// rackGR.addQuery("company.name", customerName);
 	rackGR.addEncodedQuery("nameSTARTSWITH"+rackName+
-							"^u_data_hall.nameSTARTSWITH"+dataHallName+
-							"^company.nameSTARTSWITH"+customerName+
-							"^ORcompanyISEMPTY"
+							"^u_data_hall.nameSTARTSWITH"+dataHallName
+							// "^company.nameSTARTSWITH"+customerName+
+							// "^ORcompanyISEMPTY"
 							);
 	rackGR.query();
 
@@ -43,6 +43,9 @@ function get_rack(rackName, dataHallName, customerName) {
 	try {
 		var cross_id = source.u_id_cross;
 		var errors = [];
+
+		target.u_active = source.u_status == "Ativo" ? 1 : 0;
+		target.u_legado = source.u_legado == "SIM" ? 1 : 0;
 
 		var crossGR = new GlideRecord("u_cmdb_ci_cross_connect");
 		crossGR.addQuery("name", cross_id);
@@ -62,6 +65,10 @@ function get_rack(rackName, dataHallName, customerName) {
 		customerB = get_customer(source.u_cliente_ponta_b);
 		if (!customerB) errors.push("Cliente (B) "+source.u_cliente_ponta_b+" não encontrado");
 
+        // check if final customer exists
+		customerFinal = get_customer(source.u_cliente_final);
+		if (!customerFinal) errors.push("Cliente final "+source.u_cliente_final+" não encontrado");
+
 		datahallA = get_data_hall(source.u_data_hall);
 		if (!datahallA) errors.push("data hall (A) "+source.u_data_hall+" não encontrado"); 
 
@@ -69,18 +76,18 @@ function get_rack(rackName, dataHallName, customerName) {
 		if (!datahallB) errors.push("data hall (B) "+source.u_data_hall_ponta_b+" não encontrado");
 
 		// check if rack inside data hall exists (A) 
-		racksFound = get_rack(source.u_rack_ponta_a, source.u_data_hall, source.u_cliente_ponta_a);
-		if (!racksFound || racksFound.lengh == 0) errors.push("Rack (A) "+source.u_rack_ponta_a+" dentro de data hall "+source.u_data_hall+" de cliente "+source.u_cliente_ponta_a+", não encontrado");
+		racksFound = get_rack(source.u_rack_ponta_a, source.u_data_hall);
+		if (!racksFound || racksFound.lengh == 0) errors.push("Rack (A) "+source.u_rack_ponta_a+" dentro de data hall "+source.u_data_hall+", não encontrado");
 		if (racksFound.lengh > 1) {
-			errors.push("Mais de um Rack foi detectado para combinação (A) : Rack "+source.u_rack_ponta_a+", Data hall "+source.u_data_hall+", Cliente"+source.u_cliente_ponta_a);
+			errors.push("Mais de um Rack foi detectado para combinação (A) : Rack "+source.u_rack_ponta_a+", Data hall "+source.u_data_hall);
 		}
 		target.u_rack_ponta_a = racksFound[0].sys_id;
 
 		// check if rack inside data hall exists (B)
 		racksFound = get_rack(source.u_rack_ponta_b, source.u_data_hall_ponta_b, source.u_cliente_ponta_b);
-		if (!racksFound || racksFound.lengh == 0) errors.push("Rack (B) "+source.u_rack_ponta_b+" dentro de data hall "+source.u_data_hall_ponta_b+" de cliente "+source.u_cliente_ponta_b+", não encontrado");
+		if (!racksFound || racksFound.lengh == 0) errors.push("Rack (B) "+source.u_rack_ponta_b+" dentro de data hall "+source.u_data_hall_ponta_b+", não encontrado");
 		if (racksFound.lengh > 1) {
-			errors.push("Mais de um Rack foi detectado para combinação (B) : Rack "+source.u_rack_ponta_b+", Data hall "+source.u_data_hall_ponta_b+", Cliente"+source.u_cliente_ponta_b);
+			errors.push("Mais de um Rack foi detectado para combinação (B) : Rack "+source.u_rack_ponta_b+", Data hall "+source.u_data_hall_ponta_b);
 		}
 
 		if (errors.length > 0) throw errors;
@@ -89,6 +96,8 @@ function get_rack(rackName, dataHallName, customerName) {
 
 	}
 	catch(error) {
+		if (source.u_legado == "SIM") return;
+
 		errors = error.join("\n");
 		log.error(source.u_id_cross+" => \n"+ errors);
 		ignore = true;
