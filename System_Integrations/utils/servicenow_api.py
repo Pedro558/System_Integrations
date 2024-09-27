@@ -69,6 +69,7 @@ def post_to_servicenow_table(envUrl, table_name, data, token, params={}):
             return {
                 #"item": ticket['item'],
                 "response": response.__dict__,
+                "response_http": response,
                 "error": False
             }
         else:
