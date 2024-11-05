@@ -36,6 +36,7 @@ class BaseTicketProcessingStrategy(ISnowTicketProcessingStrategy):
         self._gestao_x_login_dimed = get_api_token("gestao-x-prd-login-dimed") #"INTEGRACAOELEADIMED"
         self._gestao_x_login_fatl = get_api_token("gestao-x-prd-login-fatl") #"INTEGRACAOELEAFUNDACAOATLANTICO"
         self._gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed") #"INTEGRACAOELEAUNIMED"
+        self._gestao_x_login_light = get_api_token("gestao-x-prd-login-light") #"INTEGRACAOELEALIGHT"
 
         self._servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth') #"ae6874cab78c8250ccc109956c8cc239"
         self._servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth') #"m^mbYcSqG@"
@@ -56,12 +57,15 @@ class BaseTicketProcessingStrategy(ISnowTicketProcessingStrategy):
             #DIMED
             case "2c7fbf951bfcd110bef1a79fe54bcb07":
                 login_solicitante = self._gestao_x_login_dimed
-            #FATL                                                       b47fbf951bfcd110bef1a79fe54bcb79
+            #FATL
             case "b47fbf951bfcd110bef1a79fe54bcb79":
                 login_solicitante = self._gestao_x_login_fatl
             #UNIMED
             case "287fbf951bfcd110bef1a79fe54bcb04":
                 login_solicitante = self._gestao_x_login_unimed
+            #LIGHT
+            case "3a402ca71b9379502ff06280f54bcb72":
+                login_solicitante = self._gestao_x_login_light
             case _:
                 login_solicitante = self._gestao_x_login
                 descricao += "Solicitação feita por cliente não pré cadastrado na integração.\nFavor entrar em contato com o Service Desk para avaliar.\nCaso necessário comunique a equipe de integração.\n\n"

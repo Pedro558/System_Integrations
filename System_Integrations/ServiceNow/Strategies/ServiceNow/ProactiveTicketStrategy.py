@@ -120,6 +120,17 @@ class ProactiveTicketStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessin
                             "opened_by":"7f73108d87624e1405eaa8630cbb3541", #matricula dummy da everest
                         }
                     }
+                case "ELL": #LIGHT
+                    opener_requester = {
+                        "inc":{
+                            "company": "3a402ca71b9379502ff06280f54bcb72", #company cliente
+                            "caller_id": "7f73108d87624e1405eaa8630cbb3541", #usuário dummy everest
+                        },
+                        "req":{
+                            "requested_for": "2a78d2f5870d861036dea9790cbb35cb", #matricula dummy da empresa
+                            "opened_by":"7f73108d87624e1405eaa8630cbb3541", #matricula dummy da everest
+                        }
+                    }
                 case _:  #OUTROS
                     #TODO VALIDAR TODOS OS SYS_ID DE PRD
                     opener_requester ={
