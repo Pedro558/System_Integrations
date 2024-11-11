@@ -53,7 +53,7 @@ def get_auth_token():
 
 
 
-#Busca RITMs no ServiceNow onde "Assignment Group" é Gr.Suporte N3, "Is Integrated" é false E o estado não é final
+#Busca RITMs no ServiceNow onde "Assignment Group" é Gr.Suporte Everest, "Is Integrated" é false E o estado não é final
 #UTIL
 def fetch_ritm_servicenow(url, params, token):    
                                                #3ee6ef4c1bb8d510bef1a79fe54bcbb3 <- Sys_ID PRODUÇÃO É O MESMO DE DEV

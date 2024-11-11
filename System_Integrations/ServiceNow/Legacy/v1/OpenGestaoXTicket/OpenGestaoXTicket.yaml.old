@@ -1,7 +1,7 @@
 - id: id
   name: Gestão X - Post new RITM to Gestão X
   group: ServiceNow Integration 
-  description: Checks for tickets that are not integrated and that have assignment group set to Gr.Suporte N3 and posts them to Gestão X, then posts the integration status back to ServiceNow
+  description: Checks for tickets that are not integrated and that have assignment group set to Gr.Suporte Everest and posts them to Gestão X, then posts the integration status back to ServiceNow
   executionEnabled: true
   loglevel: INFO
   nodeFilterEditable: false
