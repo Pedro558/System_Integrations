@@ -8,15 +8,18 @@ instructions = """
 Eu preciso padronizar os nomes, as interfaces e a classificação de uma série de ativos, o padrão irá variar dependendo do tipo do ativo:
 Patch Panels: 
     - Classificação: Patch Panel
-    - Nomes: PP01, PP02, PP03 e etc
     - Interfaces: PT01, PT02, PT03 e etc
+    - VOCE DEVE MANTER O NOME ORIGINAL DOS PATCH PANELS, NÃO ALTERE SUA NUMERAÇÃO
 DIO:
     - Classificação: DIO
-    - Nomes: DIO01, DIO02, DIO03 e etc
+    - Nomes: DIO01, DIO02, DIO03, PP:FO (FO = Fibra óptica)
     - Interfaces: Extrair dos demais campos a informação de módulo ou slot, ao encontrar deve remove-la do campo de origem e inseri-la no campo interface da seguinte maneira:
         MODA/PT1-2, MODB/PT3-4 MOD1/PT1-2, MOD1/PT2-3, MOD2/PT4-5 e etc (Caso não haja a informação de módulo: MODX/PT1-2 e etc)
         Se na interface de um DIO houver apenas uma porta listada e não um par, deve-se tratar da seguinte maneira:
             - MOD1/PT1 => MOD1/PT1-2, MODB/PT5 => MODB/PT9-10 
+        - MOD1/PT1 => MOD1/PT1-2, MODB/PT5 => MODB/PT9-10 
+    - MOD1/PT1 => MOD1/PT1-2, MODB/PT5 => MODB/PT9-10 
+    - VOCE DEVE MANTER O NOME ORIGINAL DOS DIO, NÃO ALTERE SUA NUMERAÇÃO
 Classificados como Virtual:
     - Classificação:
         - DIO: se encontrar DIO no nome do ativo
@@ -45,7 +48,10 @@ Classificados como Elea:
 
 Considerações:
     - O unico campo vazio que pode ser preenchido é o Classificação (IMPORTANTE).
-
+    - Caso o campo classificação esteja preenchido, você só pode altera-lo caso o cliente seja ELEA. OU se o cliente for outro, só pode alterar para virtual (QUANDO NECESSáRIO).
+    - O Campo asset só pode ser modificado quando movimentado a informação de MOD OU SLOT para o campo interface, ou quando seguindo alguma regra descrita acima, no mais, mantenha ele intacto.
+    - SEJA CONSISTENTE NAS TRATATIVAS, se vc aplicou uma tratativa para um asset virtual de mover a informação de MOD OU SLOT para o campo interface faça isso aos demais, NÃO trate parte dos dados de uma forma e a outra parte de outra. SEJA CONSISTENTE.
+    
 Abaixo está uma lista de exemplos de json antes e depois dos tratamentos corretos:
 <JSON-EXEMPLOS>
 
@@ -186,39 +192,52 @@ if not (exemplo.empty and gabarito.empty):
 
         instructions = instructions.replace("<JSON-EXEMPLOS>", content)
 
-def parse_file(path, site):
-    df = pd.read_json(f"{path}/{site}_assets_maritaca.json")
-    df.to_excel(f"{path}/{site}_assets_maritaca.xlsx")
+def parse_file(pf, path, site):
+    if pf == 'json':
+        df = pd.read_json(f"{path}/{site}_assets_maritaca.json")
+        df.to_excel(f"{path}/{site}_assets_maritaca.xlsx", index=True)
+    elif pf == 'xlsx':
+        df = pd.read_excel(f"{path}/{site}_assets_maritaca.xlsx")
+        df = df.to_dict(orient="records")
+        with open(f"{path}/{site}_assets_maritaca.json", 'w', encoding='utf-8') as f:
+            json.dump(df, f, ensure_ascii=False, indent=4)
 
-def merge(df1, df2, how="right", on=["key"]):
+
+def merge(df1, df2, how="right", on=["key"], apply_before_cleanup=lambda x:x):
     merged = pd.merge(df1, df2, how=how, on=on, suffixes=('', '_new'))
+    merged = apply_before_cleanup(merged)
+
     for column in df2.columns:
-        if column in df1.columns:
-            merged[column] = merged[column + '_new'].combine_first(merged[column]) if column + '_new' in merged.columns else merged[column]
-        else:
-            merged[column] = merged[column + '_new'] if column + '_new' in merged.columns else merged[column]
+        try:
+            if column in df1.columns:
+                merged[column] = merged[column + '_new'].combine_first(merged[column]) if column + '_new' in merged.columns else merged[column]
+            else:
+                merged[column] = merged[column + '_new'] if column + '_new' in merged.columns else merged[column]
+        except Exception as e:
+            breakpoint()
 
     merged = merged.loc[:, ~merged.columns.str.endswith('_new')] 
     return merged
 
 
 def merge_outer_right(df_old, df_new, on=["key"]):
-    merged_right = merge(df_old, df_new, "right", on)
-    merged_outer_right = merge(merged_right, df_new, "outer", on)
+    # merged_right = merge(df_old, df_new, "right", on)
+    # breakpoint()
+    merged_outer_right = merge(df_old, df_new, "outer", on)
     return merged_outer_right
 
 
 parser = argparse.ArgumentParser(description="process some flags.")
 parser.add_argument('-s', '--site', type=str, help='site to perform the processing (uses the <site>_assets.json file)')
 parser.add_argument('-y', action='store_true', default=False, help='process data no matter token count')
-parser.add_argument('-pf', action='store_true', default=False, help='parses existing processed json file to xlsx')
+parser.add_argument('-pf', '--parsefile', type=str, help='"json" or "xlsx" the one informed will overwrite the other one')
 
 if __name__ == '__main__':
 
     args = parser.parse_args()
     site = args.site
     args_y = args.y
-    pf = args.pf
+    pf = args.parsefile
 
     path = f"{pathImports}{site}"
     # pathfile = f"{path}/{site}_assets.json"
@@ -229,8 +248,22 @@ if __name__ == '__main__':
         print(f"Site {site} not supported, must be one of: {', '.join(sites)}")
         exit()
 
-    if pf:
-        parse_file(path, site)
+    supported_pf = ['json', 'xlsx']
+    if pf and pf.lower() not in supported_pf:
+        print(f"Parse file option not supported, must be one of: {', '.join(supported_pf)}")
+        exit()
+    elif not site:
+        print(f"To parse file, Site must be provided.")
+        exit() 
+    elif pf:
+        msg = f"Are you sure you wanna the {pf} file to overwrite the other?"
+        print(f"---> {msg} [Y/N]")
+        awnser = "N"
+        while (awnser := input("> ").upper()) not in ["Y", "N"]:
+            print("Use [Y/N]")
+        if awnser != "Y": exit()
+
+        parse_file(pf, f"{pathImports}{site}", site)
         exit()
     
     columns_to_process = ["ID Cross", "Cliente", "Data Hall", "Rack", "Asset", "Interface", "Classificação", "index"]
@@ -248,6 +281,10 @@ if __name__ == '__main__':
         exit()
 
     already_ajusted = get_df_from_json(f"{path}/{site}_assets_maritaca.json")
+
+    # used to keep track of maritaca original answers 
+    original_already_ajusted = get_df_from_json(f"{path}/{site}_assets_maritaca_original.json")
+
     to_adjust_number = len(list_assets)
     adjusted_number = 0
     list_already_ajusted = already_ajusted.to_dict(orient='records')
@@ -262,68 +299,62 @@ if __name__ == '__main__':
     adjusted_percentage = round(adjusted_percentage, 2)
     print(f"---> data treated {adjusted_percentage}% ({adjusted_number}/{to_adjust_number})")
 
-    if not list_assets_to_treat: exit()
+    list_assets_to_treat_adjusted = [] 
+    if list_assets_to_treat:
+        # TEST
+        # breakpoint()
+        list_assets_to_treat = list_assets_to_treat[0:100]
 
+        token_count = get_token_count(list_assets_to_treat)
+        default_message = f"At least {token_count} tokens will be consumed to process this data."
+        if not args_y:
+            print(f"---> {default_message} Proceed? [Y/N]")
+            awnser = "N"
+            while (awnser := input("> ").upper()) not in ["Y", "N"]:
+                print("Use [Y/N]")
 
-    # TEST
-    list_assets_to_treat = list_assets_to_treat[0:1]
+            if awnser != "Y": exit()
+        else:
+            print("---> "+default_message)
 
-
-
-    token_count = get_token_count(list_assets_to_treat)
-    default_message = f"At least {token_count} tokens will be consumed to process this data."
-    if not args_y:
-        print(f"---> {default_message} Proceed? [Y/N]")
-        awnser = "N"
-        while (awnser := input("> ").upper()) not in ["Y", "N"]:
-            print("Use [Y/N]")
-
-        if awnser != "Y": exit()
-    else:
-        print("---> "+default_message)
-
-    
-    list_assets_to_treat_adjusted = execute_ai(list_assets_to_treat)
+        list_assets_to_treat_adjusted = execute_ai(list_assets_to_treat)
 
     # df_final = df_new_ajusted.combine_first(already_ajusted)
     df_new_ajusted = pd.json_normalize(list_assets_to_treat_adjusted)
 
     df_final = df_new_ajusted
+    if df_final.empty: df_final = already_ajusted
+
     if not already_ajusted.empty:
-       df_final["key"] = df_final["index"]
-       already_ajusted["key"] = already_ajusted["index"]
-       df_final = merge_outer_right(already_ajusted, df_final, on=["key"])
-       df_final["index"] = df_final["index"].astype(int)
-       df_final = df_final.drop(columns=["key"])
-       # merged_right = pd.merge(already_ajusted, df_new_ajusted, how='right', on=['key'], suffixes=('', '_new'))
-       # for column in df_new_ajusted.columns:
-       #     if column in already_ajusted.columns:
-       #         merged_right[column] = merged_right[column + '_new'].combine_first(merged_right[column]) if column + '_new' in merged_right.columns else merged_right[column]
-       #     else:
-       #         merged_right[column] = merged_right[column + '_new'] if column + '_new' in merged_right.columns else merged_right[column]
+        df_final["key"] = df_final["index"]
+        already_ajusted["key"] = already_ajusted["index"]
+        df_final = merge_outer_right(already_ajusted, df_final, on=["key"])
+        df_final["index"] = df_final["index"].astype(int)
+        df_final = df_final.drop(columns=["key"])
 
-       # merged_right = merged_right.loc[:, ~merged_right.columns.str.endswith('_new')] 
+        # if original_already_ajusted.empty: original_already_ajusted = df_final
 
-       # df_final = already_ajusted
-       # df_final = df_final.merge(merged_right, on=['key'], how='outer', suffixes=('', '_new'))
-       # for column in df_new_ajusted.columns:
-       #     if column in already_ajusted.columns:
-       #         df_final[column] = df_final[column + '_new'].combine_first(df_final[column]) if column + '_new' in df_final.columns else df_final[column]
-       #     else:
-       #         df_final[column] = df_final[column + '_new'] if column + '_new' in df_final.columns else df_final[column]
+        # original_already_ajusted["key"] = original_already_ajusted["index"]
+        # already_ajusted["key"] = already_ajusted["index"]
+        # original_already_ajusted = merge_outer_right(already_ajusted, original_already_ajusted, on=["key"])
+        # original_already_ajusted["index"] = original_already_ajusted["index"].astype(int)
+        # original_already_ajusted = original_already_ajusted.drop(columns=["key"])
 
-       # df_final = df_final.loc[:, ~df_final.columns.str.endswith('_new')]
-       # df_final["index"] = df_final["index"].astype(int)
-       # df_final = df_final.drop(columns=["key"])
+    def determine_asset_name(df):
+        # In some cases, maritaca was changing the Patch Panel name wrongfully
+        # this is to make sure the original PP name is used
+        def _analyze(row):
+            if 'Patch Panel' in [row['Classificação'], row['Classificação_new']]:
+                matches = re.findall(r'^PP(\d+|[A-Z])$', str(row['Asset']))
+                return row["Asset"] if matches else row["Asset_new"]
 
-    df = merge(df_assets, df_final, how='right', on=["index"])
-    # df = df_assets.merge(df_final, how="right", on=["index"], suffixes=('', '_new'))
-    # for column in df_assets.columns:
-    #     if column in df.columns:
-    #         df[column] = df[column + '_new'].combine_first(df[column]) if column + '_new' in df.columns else df[column]
-    #     else:
-    #         df[column] = df[column + '_new'] if column + '_new' in df.columns else df[column]
+        df["Asset_new"] = df.apply(_analyze, axis=1) 
+        return df
 
+    # ===
+    # Updates maritaca file
+    # ===
+    df = merge(df_assets, df_final, how='right', on=["index"], apply_before_cleanup=determine_asset_name)
     df = df.loc[:, ~df.columns.str.endswith('_new')]
     df["index"] = df["index"].astype(int)
 
@@ -332,3 +363,26 @@ if __name__ == '__main__':
 
     # df = pd.json_normalize(list_assets_adjusted)
     df.to_excel(f"{path}/{site}_assets_maritaca.xlsx", index=False)
+    # original_already_ajusted.to_excel(f"{path}/{site}_assets_maritaca_original.xlsx", index=False)
+    
+
+    # ===
+    # Assets: on match update, keep old ones
+    # === 
+    merged_df = pd.merge(df_assets, df_final, on='index', how='outer', suffixes=('_df1', '_df2'))
+
+    if "Classificacao" in df_final.columns: del df_final["Classificacao"]
+    if "Classificacao" in merged_df.columns: del merged_df["Classificacao"]
+
+    columns_to_clean_up = [x for x in df_final.columns if x not in ["index"]]
+    for column in columns_to_clean_up:
+        if column in ["index"]: continue
+        merged_df[column] = merged_df[f'{column}_df2'].combine_first(merged_df[f'{column}_df1'])
+
+    merged_df = merged_df.drop(columns=[f'{column}_df1' for column in columns_to_clean_up] + [f'{column}_df2' for column in columns_to_clean_up])
+
+    with open(f"{path}/{site}_assets.json", 'w', encoding='utf-8') as f:
+        json.dump(merged_df.to_dict(orient="records"), f, ensure_ascii=False, indent=4)
+
+    # df = pd.json_normalize(list_assets_adjusted)
+    merged_df.to_excel(f"{path}/{site}_assets.xlsx", index=False)

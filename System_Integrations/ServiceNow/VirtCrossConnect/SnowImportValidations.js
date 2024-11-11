@@ -36,6 +36,16 @@ function get_rack(rackName, dataHallName) {
 	return racksFound;
 }
 
+function get_ritm(ritmName) {
+	var ritm = new GlideRecord("sc_req_item");
+	ritm.initialize();
+	ritm.addEncodedQuery("numberSTARTSWITH"+ritmName);
+	ritm.query();
+	ritm.next();
+
+	return ritm;
+}
+
 
 (function transformRow(source, target, map, log) {
 	ignore = false;
@@ -46,6 +56,10 @@ function get_rack(rackName, dataHallName) {
 
 		target.u_active = source.u_status == "Ativo" ? 1 : 0;
 		target.u_legado = source.u_legado == "SIM" ? 1 : 0;
+
+		var re = /^ID-(RJO1|SPO1|BSB1|BSB2|CTA|POA1)-\d+$/;
+		if (cross_id && !re.test(cross_id))
+			errors.push("ID Cross "+ cross_id +" não segue padrão estabelecido");
 
 		var crossGR = new GlideRecord("u_cmdb_ci_cross_connect");
 		crossGR.addQuery("name", cross_id);
@@ -77,7 +91,8 @@ function get_rack(rackName, dataHallName) {
 
 		// check if rack inside data hall exists (A) 
 		racksFound = get_rack(source.u_rack_ponta_a, source.u_data_hall);
-		if (!racksFound || racksFound.lengh == 0) errors.push("Rack (A) "+source.u_rack_ponta_a+" dentro de data hall "+source.u_data_hall+", não encontrado");
+		if (!racksFound || racksFound.lengh == 0 && (datahallA && !datahallA.u_virtual)) // Rack vazio é permitido em DH virtuais (SALAS que não são DHs ou que não são ELEA) 
+			errors.push("Rack (A) "+source.u_rack_ponta_a+" dentro de data hall "+source.u_data_hall+", não encontrado");
 		if (racksFound.lengh > 1) {
 			errors.push("Mais de um Rack foi detectado para combinação (A) : Rack "+source.u_rack_ponta_a+", Data hall "+source.u_data_hall);
 		}
@@ -85,14 +100,22 @@ function get_rack(rackName, dataHallName) {
 
 		// check if rack inside data hall exists (B)
 		racksFound = get_rack(source.u_rack_ponta_b, source.u_data_hall_ponta_b, source.u_cliente_ponta_b);
-		if (!racksFound || racksFound.lengh == 0) errors.push("Rack (B) "+source.u_rack_ponta_b+" dentro de data hall "+source.u_data_hall_ponta_b+", não encontrado");
+		if (!racksFound || racksFound.lengh == 0 && (datahallB && !datahallB.u_virtual)) // Rack vazio é permitido em DH virtuais (SALAS que não são DHs ou que não são ELEA)
+			errors.push("Rack (B) "+source.u_rack_ponta_b+" dentro de data hall "+source.u_data_hall_ponta_b+", não encontrado");
 		if (racksFound.lengh > 1) {
 			errors.push("Mais de um Rack foi detectado para combinação (B) : Rack "+source.u_rack_ponta_b+", Data hall "+source.u_data_hall_ponta_b);
 		}
 
-		if (errors.length > 0) throw errors;
-
 		target.u_rack_ponta_b = racksFound[0].sys_id;
+
+		if (source.u_número_chamado) {
+			ritm = get_ritm(source.u_número_chamado);
+			if (!ritm.sys_id) log.warn("(AVISO) "+source.u_id_cross+" => \n"+"RITM "+source.u_número_chamado+" não encontrado");
+
+			// log.warn("SOURCE "+ source.u_número_chamado+"\nFOUND "+ ritm.number + " " + ritm.sys_id);
+		}
+
+		if (errors.length > 0) throw errors;		
 
 	}
 	catch(error) {

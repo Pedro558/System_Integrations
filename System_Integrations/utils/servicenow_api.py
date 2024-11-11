@@ -79,6 +79,7 @@ def post_to_servicenow_table(envUrl, table_name, data, token, params={}):
         return {
             #"item": ticket,
             "response": response.__dict__,
+            "response_http": response,
             "error": True,
             "errorMsg": error # TODO AQUI verificar como extrair mensagem
         }
@@ -119,3 +120,29 @@ def descriptionBuilder(variables, descConfig):
         descricao += config["msg"] + aValue[0]["sc_item_option.value"] if aValue[0]["sc_item_option.value"] else ""
         
     return descricao
+
+def new_cross_validation(envUrl, headers, params, data):
+    url = envUrl + '/api/eldi/new_cross/validate'
+    response = requests.get(url, headers=headers, params=params, data=json.dumps(data))
+    try:
+        if response.status_code == 200 or response.status_code == 201:
+            return {
+                #"item": ticket['item'],
+                "response": response,
+                "error": False
+            }
+        else:
+            response.raise_for_status()
+
+    except Exception as error:
+        return {
+            #"item": ticket,
+            "response": response,
+            "error": True,
+            "errorMsg": error # TODO AQUI verificar como extrair mensagem
+        }
+
+
+
+
+

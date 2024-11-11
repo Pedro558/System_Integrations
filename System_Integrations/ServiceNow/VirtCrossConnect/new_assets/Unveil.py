@@ -1,3 +1,4 @@
+import argparse
 import json
 import re, os
 from turtle import back
@@ -91,9 +92,60 @@ def apply_lookup(df, dict_lookup, target_column, fillna=None):
 def create_concat_column(df, column_to_concat, sep="-"):
     return df[column_to_concat].fillna("").astype(str).agg(sep.join, axis=1)
 
+def parse_file(pf, path, site):
+    if pf == 'json':
+        df = pd.read_json(f"{path}/{site}_assets.json")
+        df.to_excel(f"{path}/{site}_assets.xlsx", index=True)
+    elif pf == 'xlsx':
+        df = pd.read_excel(f"{path}/{site}_assets.xlsx")
+        df = df.to_dict(orient="records")
+        with open(f"{path}/{site}_assets.json", 'w', encoding='utf-8') as f:
+            json.dump(df, f, ensure_ascii=False, indent=4)
+
+
+
+parser = argparse.ArgumentParser(description="process some flags.")
+parser.add_argument('-s', '--site', type=str, help='site to perform the processing (uses the <site>_assets.json file)')
+parser.add_argument('-y', action='store_true', default=False, help='process data no matter token count')
+parser.add_argument('-pf', '--parsefile', type=str, help='"json" or "xlsx" the one informed will overwrite the other one')
+
 if __name__ == '__main__':
 
-    for site in sites:
+    args = parser.parse_args()
+    args_site = args.site
+    args_y = args.y
+    pf = args.parsefile
+
+    if args_site and args_site not in sites:
+        print(f"Site {args_site} not supported, must be one of: {', '.join(sites)}")
+        exit()
+    
+    sites_to_unveil = [x for x in sites if x == args_site] if args_site else sites
+
+    supported_pf = ['json', 'xlsx']
+    if pf and pf.lower() not in supported_pf:
+        print(f"Parse file option not supported, must be one of: {', '.join(supported_pf)}")
+        exit()
+    elif not args_site:
+        print(f"To parse file, Site must be provided.")
+        exit() 
+    elif pf:
+        msg = f"Are you sure you wanna the {pf} file to overwrite the other?"
+        print(f"---> {msg} [Y/N]")
+        awnser = "N"
+        while (awnser := input("> ").upper()) not in ["Y", "N"]:
+            print("Use [Y/N]")
+        if awnser != "Y": exit()
+
+        parse_file(pf, f"{pathImports}{args_site}", args_site)
+        exit()
+
+    for site in sites_to_unveil:
+        df_assets = get_df_from_excel(f"{pathImports}{site}/{site}_assets.json")
+        if not df_assets.empty:
+            print(f"There is already an existing {site}_assets.json file")
+            exit()
+
         df = get_df_from_excel(f"{pathImports}{site}/snow_cross_{site}_data.xlsx")
         df_depara = get_df_from_excel(f"{pathImports}{site}/{site}_de_para_assets.xlsx")
         if df.empty: continue
@@ -107,6 +159,7 @@ if __name__ == '__main__':
         hops_columns = ["Jump 1", "Jump 2", "Jump 3", "Jump 4", "Jump 5", "Jump 6", "Jump 7"]
 
         for row in df.iterrows():
+
             for column in hops_columns:
                 err, asset = extract_info_from_hop(row, column, source=column)
                 if err: 
