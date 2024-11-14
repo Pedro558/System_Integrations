@@ -29,18 +29,18 @@ class BaseTicketProcessingStrategy(ISnowTicketProcessingStrategy):
 
     def get_auth(self):
         # TODO deifinir como privado
-        self._gestao_x_login = get_api_token('gestao-x-prd-login') #"INTEGRACAOELEA"
-        self._gestao_x_token = get_api_token('gestao-x-prd-api-token') #"cJV3s9yjRStcS0LHV0boSQ=="
+        self._gestao_x_login = get_api_token('gestao-x-prd-login')
+        self._gestao_x_token = get_api_token('gestao-x-prd-api-token')
 
-        self._gestao_x_login_arauco = get_api_token("gestao-x-prd-login-arauco") #"INTEGRACAOELEAARAUCO"
-        self._gestao_x_login_dimed = get_api_token("gestao-x-prd-login-dimed") #"INTEGRACAOELEADIMED"
-        self._gestao_x_login_fatl = get_api_token("gestao-x-prd-login-fatl") #"INTEGRACAOELEAFUNDACAOATLANTICO"
-        self._gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed") #"INTEGRACAOELEAUNIMED"
-        self._gestao_x_login_light = get_api_token("gestao-x-prd-login-light") #"INTEGRACAOELEALIGHT"
+        self._gestao_x_login_arauco = get_api_token("gestao-x-prd-login-arauco")
+        self._gestao_x_login_dimed = get_api_token("gestao-x-prd-login-dimed")
+        self._gestao_x_login_fatl = get_api_token("gestao-x-prd-login-fatl")
+        self._gestao_x_login_unimed = get_api_token("gestao-x-prd-login-unimed")
+        self._gestao_x_login_light = get_api_token("gestao-x-prd-login-light")
 
-        self._servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth') #"ae6874cab78c8250ccc109956c8cc239"
-        self._servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth') #"m^mbYcSqG@"
-        self._service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth') #"mT7eo3nX8mesAWKvlRTgKTRW2qYb7F-NluXpDZMmrmIn0UZ9Ak_7cwoIS4s5DKo8wfxUGq3732g3iVam9RlQ4A" 
+        self._servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth')
+        self._servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth')
+        self._service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth')
 
         self._token = get_servicenow_auth_token(self._url_snow, self._servicenow_client_id, self._servicenow_client_secret, self._service_now_refresh_token)
 
