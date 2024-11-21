@@ -1,114 +1,130 @@
-import datetime
-from http.client import HTTPException
-import requests, os, json, time
+import pymysql, os, re
+from datetime import datetime, timedelta
 from dotenv import load_dotenv
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from System_Integrations.utils.netbox_api import get_tenants
+from System_Integrations.utils.servicenow_api import get_servicenow_auth_token, get_servicenow_table_data
+from System_Integrations.utils.parser import get_value
+from collections import defaultdict
 
 load_dotenv(override=True)
-api_token_test = os.getenv("zabbix_api_token_test")
 
-def get_data_test(url, headers, data):
-    response = requests.post(url=url, headers=headers, data=json.dumps(data), verify=False)
-    return response 
+# ===
+# NETBOX
+# ===
+netbox_url = os.getenv("netbox_test_url")
+netbox_api_key = os.getenv("netbox_test_api_key")
+netbox_headers = {
+    "Authorization": f"Token {netbox_api_key}"
+}
+netbox_tenants = get_tenants(netbox_url, netbox_headers)
+
+# ===
+# SNOW
+# ===
+snow_url = os.getenv("snow_url")
+snow_client_id = os.getenv("snow_client_id")
+snow_client_secret = os.getenv("snow_client_secret")
+snow_refresh_token = os.getenv("snow_refresh_token")
+token = get_servicenow_auth_token(snow_url, snow_client_id, snow_client_secret, snow_refresh_token)
+
+clients_fields = ["sys_id, name, number"]
+snow_accounts = get_servicenow_table_data(snow_url, "customer_account", {"sysparm_display_value": True, "sysparm_fields":", ".join(clients_fields)}, token)
+
+# Database connection parameters
+db_params = {
+    'host': os.getenv("zabbix_db_ip"),
+    'database': os.getenv("zabbix_db_name"),
+    'user': os.getenv("zabbix_db_user"),
+    'password': os.getenv("zabbix_db_pwd"),
+    'port': 3306
+}
+conn = pymysql.connect(**db_params)
+cursor = conn.cursor()
+
+query_items = f"""
+SELECT itemid, name, interfaceid, uuid, hostid
+FROM items
+WHERE
+    name like '%\Bits%' 
+    and ( 
+        name LIKE '%ACCT%'
+        or name LIKE '%Elea OnRamp%'
+        or name LIKE '%Elea Connect%'
+        or name Like '%Elea Metro Connect%' 
+    )
+"""
+
+cursor.execute(query_items)
+items = cursor.fetchall()
+breakpoint()
+
+
+# TEST LOOK FOR LINK THAT WAS RENAMED
+# interface_groups = defaultdict(list)
+
+# for item in items:
+#     # Extract the interface from the description
+#     interface = item[1].split(' ')[1].split('(')[0]  # Extract the interface part
+#     interface_groups[interface].append(item)
+
+# # Filter for interfaces with duplicates
+# duplicates = {k: v for k, v in interface_groups.items() if len(v) > 1}
+
+# # Output the results
+# for interface, group in duplicates.items():
+#     print(f"Interface: {interface}")
+#     for entry in group:
+#         print(f"  {entry}")
+
+breakpoint()
+
+
+aItems = []
+
+# Prepares netbox info to be consumed
+acct_config_name = [x for x in netbox_tenants if x["custom_fields"]["config_name"]] # tenants that have config name setted
+acct_config_name = [( # Transforms it into a tuple of (<ACCT>, <List of the config options>)
+                        x["custom_fields"]["number"], 
+                        list(map(str.lstrip, x["custom_fields"]["config_name"].upper().split(",")))
+                    ) for x in acct_config_name]
+
+for item in items:
+    cid = ""
+    acct = ""
+    config_name_found = ""
     
-url = "https://10.11.70.90/zabbix/api_jsonrpc.php"
-headers = {
-    "Authorization": f"Bearer {api_token_test}",
-    "Content-Type": "application/json"
-}
-data = {
-    "jsonrpc": "2.0",
-    "method": "item.get",
-    "params": {
-        # "output": ["itemid", "name", "tags", "host"],
-        "output": "extend",
-        # "host": "PRP-ELEAD-RJO1-ACX-01",
-        "selectHosts": ["hostid", "name"],  # Include host information
-        "selectInterfaces": ["interfaceid", "ip", "name"],  # Include interface information
-        "search": {
-            "name": "bits"
-        },
-        "tags": [{
-            "tag": "Application", 
-            "value": "ACCT" 
-        }],
-        # "filter": {}
-    },
-    "id": 2
-}
+    interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
+    if not interface: continue
+    if re.search(r"^(Vlan.*|\.\d+)$", interface): continue # starts with Vlan or ends with .<number>
+    
+    if "ACCT" in item[1]:
+        cid = get_value(item, lambda x: x[0].split(" - ")[1], None)
+        acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
+        config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
 
-print("Buscando links")
-start = time.time()
-response = get_data_test(url=url, headers=headers, data=data)
-end = time.time()
-duration = end - start
-print(f"\t-> took {duration:.2f} seconds")
-# breakpoint()
+    else:
+        config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
+        if config_name_found:
+            acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
+            # breakpoint()
+            # for config in acct_config_name:
+            #     try:
+            #     except:
+            #         breakpoint()
+                    
+            #     if acct: break
 
-items = response.json()["result"]
-# breakpoint()
-print(f"\t-> Qtd items: {len(items)}")
-
-path = os.path.dirname(os.path.realpath(__file__))
-with open(f"{path}/data.json", 'w', encoding='utf-8') as f:
-    json.dump(response.json(), f, ensure_ascii=False, indent=4)
-
-items = response.json()['result']
-item_ids = [item['itemid'] for item in items]
-
-data = {
-    "jsonrpc": "2.0",
-    "method": "history.get",
-    "params": {
-        "output": "extend",#["value", "clock"],
-        # "itemids": item_ids[0:42],
-        # "history": 0,  # 0 = numeric (bits sent/received)
-        "sortfield": "clock",
-        "sortorder": "ASC",  # Sort by oldest to newest
-        # "limit": 1,
-        # "time_from": int(datetime.datetime(2024, 1, 1).timestamp()),
-        # "time_till": int(datetime.datetime(2024, 11, 1).timestamp())
-    },
-    "id": 3
-}
-
-# breakpoint()
-print("\nBuscando dados (sent/received)")
-batch_size = 1#40
-iteration = 0
-i = 0
-while i < len(item_ids):
-    try:
-        batch = item_ids[i:i + batch_size]
-        data["params"]["itemids"] = batch
-        print(f"\t---- ")
-        print(f"\t-> Iteration: {iteration}")
-        print(f"\t-> Batch Size: {batch_size}")
-
-        start = time.time()
-        response = get_data_test(url=url, headers=headers, data=data)
-        end = time.time()
-        duration = end - start
-        
+    account = next((x for x in snow_accounts if x["number"] == acct), None)
+    if not account:
+        print("not found", config_name_found, item[1])
         # breakpoint()
-        iteration += 1
-        response.raise_for_status()
-        i += batch_size
 
-        reads = response.json()["result"]
-    
-        print(f"\t-> took {duration:.2f} seconds")
-        print("\t-> Qtd leituras: ", len(reads))
+    aItems.append({
+        "itemid": item[0],
+        "name": item[1],
+        "acct": get_value(account, lambda x: x["number"], None),
+        "account_sys_id": get_value(account, lambda x: x["sys_id"], None),
+        "client_display_name": config_name_found
+    })
 
-        breakpoint()
-
-    except requests.exceptions.HTTPError as error:
-        print("\t-> Error, reducing batch size")
-        batch_size -= 5
-    except Exception as e:
-        print("Unexpected error")
-        print(e)
-        break
-    finally:
-        pass
+breakpoint()

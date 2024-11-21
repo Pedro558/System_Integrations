@@ -1,3 +1,6 @@
 *.xlsx
 *.pyc
 System_Integrations/ServiceNow/VirtCrossConnect/new_assets/*
+
+.env
+venv
