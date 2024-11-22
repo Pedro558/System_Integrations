@@ -100,6 +100,7 @@ SELECT itemid, clock, value
 FROM history_uint
 WHERE itemid IN ({','.join(['%s'] * len(item_ids))})
 """
+# WHERE itemid IN ({','.join(item_ids)})
 # ORDER BY clock ASC 
 # AND clock >= %s;
 # WHERE itemid IN ({','.join(['%s'] * len(item_ids))}) AND clock >= %s;
@@ -110,12 +111,12 @@ history_data = cursor.fetchall()
 breakpoint()
 
 query_trends = f"""
-SELECT * itemid, clock, value_avg
+SELECT itemid, clock, value_avg
 FROM trends_uint
-WHERE itemid IN ({','.join(item_ids[0:1])})
+WHERE itemid IN ({','.join(['%s'] * len(item_ids))})
 """
+# WHERE itemid IN ({','.join(item_ids[0:10])})
 # AND clock >= %s;
-# WHERE itemid IN ({','.join(['%s'] * len(item_ids))}) AND clock >= %s;
 cursor.execute(query_trends, (*item_ids, ))
 
 # Fetch and process results
