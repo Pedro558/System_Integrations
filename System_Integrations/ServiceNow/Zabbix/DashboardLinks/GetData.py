@@ -1,8 +1,9 @@
-import pymysql, os, re
+import pymysql, os, re, json, time
+from random import randint
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from System_Integrations.utils.netbox_api import get_tenants
-from System_Integrations.utils.servicenow_api import get_servicenow_auth_token, get_servicenow_table_data
+from System_Integrations.utils.servicenow_api import get_servicenow_auth_token, get_servicenow_table_data, post_to_servicenow_table, client_monitoring_multi_post
 from System_Integrations.utils.parser import get_value
 from collections import defaultdict
 import bisect
@@ -43,17 +44,27 @@ conn = pymysql.connect(**db_params)
 cursor = conn.cursor()
 
 five_days_ago = int((datetime.now() - timedelta(days=5)).timestamp())
+last_month = int((datetime.now() - timedelta(days=30)).timestamp())
+
 
 query_items = f"""
-SELECT itemid, name, interfaceid, uuid, hostid
-FROM items
+SELECT 
+    item.itemid, item.name, item.interfaceid, item.uuid,
+    item.hostid, host.host hostName,
+    interface.ip AS interface_ip,
+    interface.dns AS interface_dns,
+    interface.port AS interface_port
+FROM items item
+    JOIN hosts host ON item.hostid = host.hostid
+JOIN 
+    interface interface ON item.interfaceid = interface.interfaceid
 WHERE
-    name like '%\Bits%' 
+    item.name like '%\Bits%' 
     and ( 
-        name LIKE '%ACCT%'
-        or name LIKE '%Elea OnRamp%'
-        or name LIKE '%Elea Connect%'
-        or name Like '%Elea Metro Connect%' 
+        item.name LIKE '%ACCT%'
+        or item.name LIKE '%Elea OnRamp%'
+        or item.name LIKE '%Elea Connect%'
+        or item.name Like '%Elea Metro Connect%' 
     )
 """
 
@@ -95,17 +106,21 @@ for item in items:
     cid = ""
     acct = ""
     config_name_found = ""
+    interface = ""
 
     read_type = ""
     match = re.search(r"(Bits received|Bits sent)", item[1])
     if match: read_type = match.group(1)
     
     interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
-    if not interface: continue
+    # if not interface: continue
     if re.search(r"^(Vlan.*|^.*\.\d+$)$", interface): continue # starts with Vlan or ends with <string>.<number>
     
     if "ACCT" in item[1]:
-        cid = get_value(item, lambda x: x[0].split(" - ")[1], None)
+        # breakpoint()
+        cid = get_value(item, lambda x: x[1].split(" - ")[0], "")
+        if "Interface" in cid: cid = cid.split("(")[1]
+
         acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
         config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
 
@@ -113,13 +128,28 @@ for item in items:
         config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
         if config_name_found:
             acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
-            # breakpoint()
-            # for config in acct_config_name:
-            #     try:
-            #     except:
-            #         breakpoint()
-                    
-            #     if acct: break
+            
+    link_type = None
+    # cid = None
+    if "Elea Connect" in item[1]: link_type = "Elea Connect"
+    elif "Elea Metro Connect" in item[1]: link_type = "Elea Metro Connect"
+    elif "Elea OnRamp" in item[1]: link_type = "Elea On Ramp"
+    else:
+        # cid = item[1].split(" - ")[0]
+        if "IC" in cid: link_type = "Elea Connect"
+        elif "MC" in cid: link_type = "Elea Metro Connect"
+        elif "OR" in cid: link_type = "Elea On Ramp"
+
+    need_cid = False
+    # TEMP: generates a temp cid, while definitive solution is still on the works
+    if not cid:
+        need_cid = True
+        length = 8
+        rdm = randint(10**(length-1), (10**length)-1)
+        temp_cid = f"{config_name_found}"
+        if link_type: temp_cid += f" - {link_type}"
+        temp_cid += f" - {rdm}"
+        cid = temp_cid
 
     # if "sent" in read_type: breakpoint()
     account = next((x for x in snow_accounts if x["number"] == acct), None)
@@ -133,14 +163,18 @@ for item in items:
         "account_sys_id": get_value(account, lambda x: x["sys_id"], None),
         "client_display_name": config_name_found,
         "hostid": item[4],
+        "hostName": item[5],
+        "link_type": link_type,
         "interface": interface,
         "read_type": read_type,
+        "cid": cid,
+        "need_cid": need_cid
     })
 
 # SIMPLIFY TESTS
-test_item = aItems[0]
-aItems = [x for x in aItems if x["hostid"] == test_item["hostid"] and x["interface"] == test_item["interface"]]
-breakpoint()
+# breakpoint()
+# test_item = [x for x in aItems if not x["need_cid"]][0] # TESTES
+# aItems = [x for x in aItems if x["hostid"] == test_item["hostid"] and x["interface"] == test_item["interface"]]
 
 aItemIds = [x["itemid"] for x in aItems]
 
@@ -151,14 +185,14 @@ FROM history_uint hUnit
     JOIN hosts host ON item.hostid = host.hostid
 WHERE 
     hUnit.itemid IN ({','.join(['%s'] * len(aItemIds))})
-    and clock <= %s
+    and clock BETWEEN %s and %s
 """
     # and clock <= %s
 
-cursor.execute(query_history, (*aItemIds, five_days_ago))
+cursor.execute(query_history, (*aItemIds, last_month, five_days_ago))
 history_data = cursor.fetchall()
 
-breakpoint()
+# breakpoint()
 def get_item_info(read, aItems):
     corr_item = next((x for x in aItems if read[0] == x["itemid"]), None)
     if not corr_item:
@@ -177,9 +211,8 @@ history_data = [{
     } for x in history_data]
 
 read_types_to_sum = ["Bits received", "Bits sent"]
-total_traffic_data = []
 pair_dict = {}
-breakpoint()
+# breakpoint()
 
 # Step 1: Group by (hostid, interface)
 grouped_data = defaultdict(list)
@@ -189,7 +222,7 @@ for obj in history_data:
     grouped_data[key].append(obj)
 
 # Step 2: Pair by closest time
-breakpoint()
+# breakpoint()
 pairs = []
 unmatched_sent = []
 max_time_diff = 120 # Allowable time difference in seconds
@@ -239,42 +272,8 @@ for key, measurements in grouped_data.items():
             used_indices.add(closest_idx)  # Mark index as used
         else:
             unmatched_sent.append(s)
-        # if s["itemid"] == 49412 and s["time"] == 1731862859:
-        #     breakpoint()
-
-        # # Determine the closest match
-        # try:
-        #     closest_match = None
-        #     closest_idx = None
-
-        #     if pos < len(received):  # Check the right neighbor
-        #         closest_match = received[pos]
-        #         closest_idx = pos
-
-        #     if pos > 0:  # Check the left neighbor
-        #         if pos > len(received): left_match = received[-1]
-        #         else: left_match = received[pos - 1]
-
-        #         if closest_match is None or abs(left_match["time"] - s["time"]) < abs(closest_match["time"] - s["time"]):
-        #             closest_match = left_match
-        #             closest_idx = pos - 1
-
-        # except Exception as error:
-        #     breakpoint()
-        #     print()
-
-        # # Pair if a match is found
-        # if closest_match and closest_idx not in used_indices:
-        #     pairs.append((s, closest_match))
-        #     used_indices.add(closest_idx)
-        #     received.remove(closest_match)  # Remove to avoid re-matching
-        # else:
-        #     pairs_not_found.append(s)
 
         iterations += 1
-
-
-    breakpoint()
 
 # DID NOT WORK BECAUSE THERE ARE MATCHES THAT NEED TO BE MADE BASED ON TIME PROXIMITY
 # for read in history_data:
@@ -305,7 +304,7 @@ for key, measurements in grouped_data.items():
         
 
 
-breakpoint()
+# breakpoint()
 
 # POOR PERFORMANCE
 # half_of_hist_size = len(history_data) / 2 
@@ -332,9 +331,115 @@ breakpoint()
 #         "origin_itemids": [read["itemid"], other_read["itemid"]]
 #     })
     
+def group_by(arr, props):
+    # takes out of list if it is only one element
+    props = props if isinstance(props, list) and len(props) > 1 else props[0]
+    grouped_data = {}
+    for item in arr:
+        if isinstance(props, list):
+            key = tuple(item[prop] for prop in props)
+        else:
+            key = (item[props])
+
+        grouped_data.setdefault(key, []).append(item)
+
+    return grouped_data
+
+grouped_items = group_by(aItems, ["cid"])
+aLinks = []
+for key in grouped_items.keys():
+    item = grouped_items[key]
+    aLinks.append({
+        "u_customer": item[0]["account_sys_id"],
+        "u_device": item[0]["hostName"],
+        "u_interface": item[0]["interface"],
+        "u_link_cid": item[0]["cid"],
+        "u_link_name": item[0]["cid"],
+        "u_link_type": item[0]["link_type"],
+        "original_items": item
+    })
+
+print("\nPosting Links to Snow...")
+for i, link in enumerate(aLinks):
+    print(f"{i+1}/{len(aLinks)} => {link['u_link_cid']}")
+
+    link_to_post = {**link}
+    del link_to_post["original_items"]
+    response = post_to_servicenow_table(snow_url, "u_temp_customer_links", link_to_post, token)
+
+    response = response["response_http"]
+    link["sys_id"] = None
+    try:
+        response.raise_for_status()
+        link["sys_id"] = response.json()["result"]["sys_id"]
+    except Exception as error:
+        print(error)
+        breakpoint()
 
 breakpoint()
+total_traffic_data = []
+for match in pairs:
+    value = match[0]["value"] + match[1]["value"]
+    timeValue = match[0]["time"]
+    match_itemids = [match[0]["itemid"], match[1]["itemid"]]
+
+    link_sys_id = next((x["sys_id"] for x in aLinks 
+                        if get_value(x, lambda x: x["original_items"][0]["itemid"] in match_itemids, None) or 
+                            get_value(x, lambda x: x["original_items"][1]["itemid"] in match_itemids, None)
+                        ), None)
+
+    total_traffic_data.append({
+        "u_value": value,
+        "u_time": datetime.fromtimestamp(timeValue).strftime("%d-%m-%Y %H:%M:%S"), #.strftime("%d/%m/%Y %H:%M:%S"),
+        "u_link": link_sys_id
+    })
 
 
+print(f"\nPost reads to Snow...")
+start = time.time()
+chunk_size = 6000
+iteration = 0
+for i in range(0, len(total_traffic_data), chunk_size):
+    chunk_start = time.time()
 
-weekly_reads = []
+    chunk = total_traffic_data[i:i+chunk_size]
+    iteration += 1
+    print(f"Batch {iteration} ({i+chunk_size}/{len(total_traffic_data)})")
+
+    response = client_monitoring_multi_post(snow_url, chunk, token)
+
+    try:
+        response = response["response"]
+        response.raise_for_status()
+        result = response.json()
+        reads_error = [x for x in result if "error" in x]
+        reads_not_saved = [x for x in result if "sys_id" not in x or not x["sys_id"]]
+        reads_ok = [x for x in result if "error" not in x and x["sys_id"]]
+        
+        print(f"\t=> OK ({len(reads_ok)}) | Error ({len(reads_error)}) | Unkown ({len(reads_not_saved)})")
+
+    except:
+        breakpoint()
+        print(f"\t=> Error in batch{response.json()}")
+
+    chunk_end = time.time()
+    duration = chunk_end - chunk_start
+    print(f"\t=> took {duration:.2f} seconds")
+
+
+end = time.time()
+duration = end - start
+print(f"-> took {duration:.2f} seconds")
+
+# "itemid": item[0],
+# "name": item[1],
+# "acct": get_value(account, lambda x: x["number"], None),
+# "account_sys_id": get_value(account, lambda x: x["sys_id"], None),
+# "client_display_name": config_name_found,
+# "hostid": item[4],
+# "hostName": item[5],
+# "link_type": link_type,
+# "interface": interface,
+# "read_type": read_type,
+# "cid": cid,
+# "need_cid": need_cid
