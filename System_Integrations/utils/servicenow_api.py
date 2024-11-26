@@ -143,6 +143,29 @@ def new_cross_validation(envUrl, headers, params, data):
         }
 
 
+def client_monitoring_multi_post(envUrl, data, token, params={}):
+    url = envUrl + '/api/eldi/client_links_monitoring/multi_insert'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer '+token,
+    }
+    response = requests.post(url, headers=headers, params=params, data=json.dumps(data))
+    try:
+        response.raise_for_status()
+        return {
+            "response": response,
+            "error": False
+        }
+
+    except Exception as error:
+        return {
+            "response": response,
+            "error": True,
+            "errorMsg": error # TODO AQUI verificar como extrair mensagem
+        }
+
+
+
 
 
 
