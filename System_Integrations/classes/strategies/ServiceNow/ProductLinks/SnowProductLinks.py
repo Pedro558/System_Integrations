@@ -4,39 +4,29 @@ from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProduct
 
 class SnowProductLinks(ISnowProductLinks):
 
-    @classmethod #TODO test if this works
-    def auth(self, *agrs):
-        # TODO implement default authentication
-        pass
+    def auth(self, *args):
+        return super().auth(*args)
 
-    @classmethod
-    def get_accounts(self, *agrs):
-        pass
+    def get_accounts(self, *args):
+        return super().get_accounts(*args)
 
-    @classmethod
-    def get_most_recent_read(self, *agrs):
-        pass
+    def get_most_recent_read(self, *args):
+        return super().get_most_recent_read(*args)
 
-    @classmethod
-    def get_most_recent_read_trend(self, *agrs):
-        pass
+    def get_most_recent_read_trend(self, *args):
+        return super().get_most_recent_read_trend(*args)
 
-    @classmethod
-    def process_items_product_links(self, *agrs):
-        pass
+    def process_items_product_links(self, *args):
+        return super().process_items_product_links(*args)
 
-    @classmethod
     def process_history_total_traffic(self, *args):
-        pass
+        return super().process_history_total_traffic(*args)
 
-    @classmethod
     def process_trend_total_traffic(self, *args):
-        pass
+        return super().process_trend_total_traffic(*args)
 
-    @classmethod
     def post_total_traffic_reads(self, *args):
-        pass
+        return super().post_total_traffic_reads(*args)
 
-    @classmethod
     def post_total_traffic_reads_trends(self, *args):
-        pass
+        return super().post_total_traffic_reads_trends(*args)

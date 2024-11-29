@@ -1,11 +1,13 @@
-
-
+import os
 from System_Integrations.classes.requests.zabbix.dataclasses import EnumReadType, EnumSyncType, Read
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinks import SnowProductLinks
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
 from System_Integrations.classes.strategies.zabbix.ProductLinks.IZbxDB import IZbxDB
+from System_Integrations.utils.netbox_api import get_tenants
 from System_Integrations.utils.parser import get_value
 
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 class SyncProductLinksSnow:
     """
@@ -73,16 +75,26 @@ class SyncProductLinksSnow:
 
     def run(self):
         self.db.auth()
+        self.db.connect()
         self.targetSystem.auth()
 
-        self.targetSystem.get_accounts()
+        # Netbox auth
+        netbox_url = os.getenv("netbox_test_url")
+        netbox_api_key = os.getenv("netbox_test_api_key")
+        netbox_headers = {
+            "Authorization": f"Token {netbox_api_key}"
+        }
+        netbox_tenants = get_tenants(netbox_url, netbox_headers) 
+
+        accounts = self.targetSystem.get_accounts()
         mostRecent:Read = self.search_config("get_most_recent_read_target_system")()
         mostRecentTime = get_value(mostRecent, lambda x: x.time, None)
 
         items = self.db.get_items_product_links()
-        self.targetSystem.process_items_product_links(items)
+        items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants)
+        breakpoint()
 
-        data = self.search_config("get_data")(mostRecentTime)
+        data = self.search_config("get_data")(items, mostRecentTime)
         data = self.search_config("process_data")(data)
 
         self.search_config("post_data_target_system")(data)

@@ -6,6 +6,11 @@ class EnumSyncType(Enum):
     HIST = "HIST"
     TRENDS = "TREND"
 
+class EnumReadType(Enum):
+    BITS_SENT = "Bits sent"
+    BITS_RECEIVED = "Bits received"
+    TOTAL_INTERFACE_TRAFFIC = "Total Interface Traffic"
+
 # More about dataclasses here: https://docs.python.org/3/library/dataclasses.html
 @dataclass
 class Host:
@@ -23,14 +28,10 @@ class Item:
     interfaceId:int = field(default_factory=int)
     interfaceName:str = field(default_factory=str)
     uuid:str = field(default_factory=str)
+    readType:EnumReadType = field(default_factory=str)
     host:Host = field(default_factory=Host)
     snowLink:SnowLink = field(default_factory=SnowLink)
 
-
-class EnumReadType(Enum):
-    BITS_SENT = "Bits sent"
-    BITS_RECEIVED = "Bits received"
-    TOTAL_INTERFACE_TRAFFIC = "Total Interface Traffic"
 
 @dataclass
 class Read:
