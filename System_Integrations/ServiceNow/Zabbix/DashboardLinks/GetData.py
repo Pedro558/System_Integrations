@@ -443,3 +443,21 @@ print(f"-> took {duration:.2f} seconds")
 # "read_type": read_type,
 # "cid": cid,
 # "need_cid": need_cid
+
+# ===
+# TRENDS
+# ===
+
+query_trend = f"""
+SELECT hUnit.itemid, hUnit.clock, hUnit.value, host.host hostName 
+FROM trend_uint hUnit
+    JOIN items item ON hUnit.itemid = item.itemid
+    JOIN hosts host ON item.hostid = host.hostid
+WHERE 
+    hUnit.itemid IN ({','.join(['%s'] * len(aItemIds))})
+    and clock BETWEEN %s and %s
+"""
+    # and clock <= %s
+
+cursor.execute(query_trend, (*aItemIds, last_month, five_days_ago))
+history_data = cursor.fetchall()
