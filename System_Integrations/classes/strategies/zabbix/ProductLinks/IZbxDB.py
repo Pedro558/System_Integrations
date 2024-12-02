@@ -8,17 +8,12 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 class IZbxDB(ABC):
-    # host = os.getenv("zabbix_db_ip"),
-    # database = os.getenv("zabbix_db_name"),
-    # user = os.getenv("zabbix_db_user"),
-    # password = os.getenv("zabbix_db_pwd"),
-    # port = 3306
     db_params = {
-        'host': os.getenv("zabbix_db_ip"),
-        'database': os.getenv("zabbix_db_name"),
-        'user': os.getenv("zabbix_db_user"),
-        'password': os.getenv("zabbix_db_pwd"),
-        'port': 3306
+        'host': None,
+        'database': None,
+        'user': None,
+        'password': None,
+        'port': None,
     }
 
     def __init__(self, *args):
@@ -27,7 +22,13 @@ class IZbxDB(ABC):
 
     def auth(self, *args):
         # TODO get secrets from safe
-        pass
+        self.db_params = {
+            'host': os.getenv("zabbix_db_ip"),
+            'database': os.getenv("zabbix_db_name"),
+            'user': os.getenv("zabbix_db_user"),
+            'password': os.getenv("zabbix_db_pwd"),
+            'port': 3306
+        }
 
     def connect(self, *args):
         self.conn = pymysql.connect(**self.db_params)
