@@ -419,8 +419,7 @@ for i in range(0, len(total_traffic_data), chunk_size):
         print(f"\t=> OK ({len(reads_ok)}) | Error ({len(reads_error)}) | Unkown ({len(reads_not_saved)})")
 
     except:
-        breakpoint()
-        print(f"\t=> Error in batch{response.json()}")
+        print(f"\t=> Error in batch {response.json()}")
 
     chunk_end = time.time()
     duration = chunk_end - chunk_start
@@ -450,7 +449,7 @@ print(f"-> took {duration:.2f} seconds")
 
 query_trend = f"""
 SELECT hUnit.itemid, hUnit.clock, hUnit.value, host.host hostName 
-FROM trend_uint hUnit
+FROM trends_uint hUnit
     JOIN items item ON hUnit.itemid = item.itemid
     JOIN hosts host ON item.hostid = host.hostid
 WHERE 

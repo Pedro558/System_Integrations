@@ -37,7 +37,8 @@ class IZbxDB(ABC):
     def get_items_product_links(self, *args):
         pass
 
-    def get_history_of_items(self, 
+    def get_reads_of_items(self, 
+            type:EnumSyncType = EnumSyncType.HIST,
             items:list[Item] = [], 
             mostRecentReadTime = None, 
             *args):
@@ -48,16 +49,27 @@ class IZbxDB(ABC):
             aItemsIds = [x.id for x in items]
         
         where = []
-        query_history = f"""
-            SELECT hUnit.itemid, hUnit.clock, hUnit.value, host.host hostName 
-            FROM history_uint hUnit
-                JOIN items item ON hUnit.itemid = item.itemid
-                JOIN hosts host ON item.hostid = host.hostid
-        """
+        query = ""
+        if type == EnumSyncType.HIST:
+            query = f"""
+                SELECT unit.itemid, unit.clock, unit.value, host.host hostName 
+                FROM history_uint unit
+                    JOIN items item ON unit.itemid = item.itemid
+                    JOIN hosts host ON item.hostid = host.hostid
+            """
+        elif type == EnumSyncType.TRENDS:    
+            query = f"""
+                SELECT unit.itemid, unit.clock, unit.value_avg, host.host hostName 
+                FROM trends_uint unit
+                    JOIN items item ON unit.itemid = item.itemid
+                    JOIN hosts host ON item.hostid = host.hostid
+            """
+
+        if not query: raise Exception(f"No SQL query implemented for type {type}")
 
         if items: 
             where.append(( 
-                f"hUnit.itemid IN ({','.join(['%s'] * len(aItemsIds))})", # filter
+                f"unit.itemid IN ({','.join(['%s'] * len(aItemsIds))})", # filter
                 (*aItemsIds, ) # args
             ))
         if mostRecentReadTime:
@@ -75,14 +87,13 @@ class IZbxDB(ABC):
 
             where = ""
             where += "WHERE " + (" AND ".join(filters))
-            query_history += where
+            query += where
             
-        self.cursor.execute(query_history, (*args, ))
-        history_data = self.cursor.fetchall()
-        breakpoint()
+        self.cursor.execute(query, (*args, ))
+        data = self.cursor.fetchall()
 
         aReads = []
-        for read in history_data:
+        for read in data:
             itemCorr = next((x for x in items if read[0] == x.id), None)
 
             if not itemCorr: continue
@@ -95,8 +106,5 @@ class IZbxDB(ABC):
 
         return aReads
     
-    def get_history_total_traffic(self, *args):
-        pass
-
-    def get_trend_total_traffic(self, *args):
+    def get_total_traffic(self, type:EnumSyncType = EnumSyncType.HIST, items:list[Item]=[], mostRecentReadTime = None,  *args):
         pass

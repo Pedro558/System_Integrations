@@ -2,10 +2,11 @@ import os
 import re
 from abc import ABC, abstractmethod
 from random import randint
-from System_Integrations.classes.requests.zabbix.dataclasses import Host, Item, Read, EnumReadType
+import time
+from System_Integrations.classes.requests.zabbix.dataclasses import EnumSyncType, Host, Item, Read, EnumReadType
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.dataclasses import SnowLink
 from System_Integrations.utils.parser import get_value
-from System_Integrations.utils.servicenow_api import get_servicenow_auth_token, get_servicenow_table_data
+from System_Integrations.utils.servicenow_api import client_monitoring_multi_post, get_servicenow_auth_token, get_servicenow_table_data, patch_servicenow_record, post_to_servicenow_table
 from dotenv import load_dotenv
 from System_Integrations.utils.parser import group_by
 
@@ -58,7 +59,7 @@ class ISnowProductLinks(ABC):
             
             cid = ""
             if "ACCT" in item[1]:
-                cid = get_value(item, lambda x: x[0].split(" - ")[1], "")
+                cid = get_value(item, lambda x: x[1].split(" - ")[0].split("(")[-1], "")
                 acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
 
@@ -111,7 +112,7 @@ class ISnowProductLinks(ABC):
                     client_display_name = config_name_found,
                     cid = corrLink["u_link_name"],
                     linkType = corrLink["u_link_type"],
-                    sys_id = corrLink["sys_id"],
+                    sys_id = corrLink["sys_id"] if corrLink["sys_id"] != "0" else "",
                 )
             else:
                 snowLink = SnowLink(
@@ -133,10 +134,12 @@ class ISnowProductLinks(ABC):
                 snowLink = snowLink,
                 readType = read_type,
             ))
-
+        
+        # test_item = [x for x in aItems if not x.need_cid][0] # TESTES
+        # aItems = [x for x in aItems if x.host.id == test_item.host.id and x.interfaceName == test_item.interfaceName]
         return aItems
 
-    def process_history_total_traffic(self, reads:list[Read]):
+    def process_total_traffic(self, reads:list[Read]):
         data = []
         for read in reads:
             if not read.item.snowLink.sys_id: continue
@@ -149,29 +152,106 @@ class ISnowProductLinks(ABC):
 
         return data
 
-    def process_trend_total_traffic(self, reads:list[Read]):
-        pass
-
     def post_product_links(self, items:list[Item]):
-        grouped_items = group_by(items, ["cid"])
-        breakpoint()
+        grouped_items = group_by(items, ["snowLink.cid"])
         aLinks = []
         for key in grouped_items.keys():
             item = grouped_items[key]
             aLinks.append({
+                "sys_id": item[0].snowLink.sys_id if item[0].snowLink.sys_id else None,
                 "u_customer": item[0].snowLink.account_sys_id,
                 "u_device": item[0].host.name,
                 "u_interface": item[0].interfaceName,
                 "u_link_cid": item[0].snowLink.cid,
                 "u_link_name": item[0].snowLink.cid,
                 "u_link_type": item[0].snowLink.linkType,
-                "original_items": item
+                "original_items": item if item else []
             })
-        
+
+        for i, link in enumerate(aLinks):
+            print(f"{i+1}/{len(aLinks)} => {link['u_link_cid']}")
+
+            link_to_post = {**link}
+            del link_to_post["original_items"]
+            
+            if link_to_post["sys_id"]:
+                response = patch_servicenow_record(self.snow_url, "u_temp_customer_links", link_to_post["sys_id"], link_to_post, self.token)
+            else:
+                del link_to_post["sys_id"]
+                response = post_to_servicenow_table(self.snow_url, "u_temp_customer_links", link_to_post, self.token)
+
+            response = response["response_http"]
+            link["sys_id"] = None
+            try:
+                response.raise_for_status()
+                link["sys_id"] = response.json()["result"]["sys_id"]
+                for item in link["original_items"]:
+                    item.snowLink.sys_id = link["sys_id"]
+
+            except Exception as error:
+                breakpoint()
+                print(error)
+
+        return items
 
 
-    def post_total_traffic_reads(self, reads:list[Read]):
-        pass
+    @staticmethod
+    def process_batches(data, process_batch, chunk_size = 6000, show_print=True):
+        chunk_size = 6000
+        iteration = 0
+        for i in range(0, len(data), chunk_size):
+            chunk = data[i:i+chunk_size]
+            iteration += 1
+            process_batch(chunk, {"iteration": iteration, "start": i, "end": i+chunk_size, "count_list": len(data)})
 
-    def post_total_traffic_reads_trends(self, reads:list[Read]):
-        pass
+    def post_total_traffic_reads(self, reads:list[Read], type:EnumSyncType = EnumSyncType.HIST):
+        total_traffic_data = []
+
+        for read in reads:
+            total_traffic_data.append({
+                "u_value": read.value,
+                "u_time": read.timeStr, 
+                "u_link": read.item.snowLink.sys_id
+            })
+
+        def process_batch(batch, info):
+            start_time = time.time()
+            iteration = info["iteration"]
+            start = info["start"]
+            end = info["end"]
+            count_list = info["count_list"]
+
+            print(f"Batch {iteration} ({start}/{count_list})")
+
+
+            params = {"readType": "total_traffic", "dataType": type.value}
+            response = client_monitoring_multi_post(self.snow_url, batch, self.token, params=params)
+
+            try:
+                response = response["response"]
+                response.raise_for_status()
+                result = response.json()
+                reads_error = [x for x in result if "error" in x]
+                reads_not_saved = [x for x in result if "sys_id" not in x or not x["sys_id"]]
+                reads_ok = [x for x in result if "error" not in x and x["sys_id"]]
+                
+                print(f"\t=> OK ({len(reads_ok)}) | Error ({len(reads_error)}) | Unkown ({len(reads_not_saved)})")
+
+            except:
+                print(f"\t=> Error in batch {response.json()}")
+
+
+            end_time = time.time()
+            duration = end_time - start_time
+            print(f"\t=> took {duration:.2f} seconds")
+
+        print(f"\nPost reads to Snow...")
+        start = time.time()
+        self.process_batches(
+            total_traffic_data,
+            process_batch,
+        )
+        end = time.time()
+        duration = end - start
+        print(f"-> took {duration:.2f} seconds")
+

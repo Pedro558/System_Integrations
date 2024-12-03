@@ -36,20 +36,9 @@ class SyncProductLinksSnow:
 
         self.config = {
             EnumReadType.TOTAL_INTERFACE_TRAFFIC: {
-                EnumSyncType.HIST: {
-                    "get_data": self.db.get_history_total_traffic,
-                    "process_data": self.targetSystem.process_history_total_traffic,
-                    "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read,
-                    "post_links_target_system": self.targetSystem.post_product_links,
-                    "post_data_target_system": self.targetSystem.post_total_traffic_reads,
-                },
-                EnumSyncType.TRENDS: {
-                    "get_data": self.db.get_trend_total_traffic,
-                    "process_data": self.targetSystem.process_trend_total_traffic,
-                    "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read_trend,
-                    "post_links_target_system": self.targetSystem.post_product_links,
-                    "post_data_target_system": self.targetSystem.post_total_traffic_reads_trends,
-                }
+                "get_data": self.db.get_total_traffic,
+                "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read,
+                "post_data_target_system": self.targetSystem.post_total_traffic_reads,
             }
         }
 
@@ -63,16 +52,12 @@ class SyncProductLinksSnow:
         dataType = dataType if dataType else self.dataType
 
         if not readType: raise ValueError("no value for readType")
-        if not dataType: raise ValueError("no value for dataType")
+        # if not dataType: raise ValueError("no value for dataType")
 
         configReadType = self.config[readType]
-        if not configReadType: raise NotImplementedError(f"No implementation for reads f{readType}")
-
-        configDataType = configReadType[dataType]
-        if not configDataType: raise NotImplementedError(f"No implementation for data type f{dataType}")
+        if not configReadType: raise NotImplementedError(f"No implementation for reads {readType}")
         
-        if not func: return configDataType
-        func = configDataType[func]
+        func = configReadType[func]
         return func
 
     def run(self):
@@ -96,18 +81,13 @@ class SyncProductLinksSnow:
         items = self.db.get_items_product_links()
         items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants, links)
 
-        items = self.search_config("post_links_target_system")(items)
+        items = self.targetSystem.post_product_links(items)
         breakpoint()
+        # mostRecentTime = 1733172884 # for tests
+        data = self.search_config("get_data")(self.dataType, items, mostRecentTime)
+        # data = self.search_config("process_data")(data)
 
-        mostRecentTime = 1733172884 # for tests
-        data = self.search_config("get_data")(items, mostRecentTime)
-        breakpoint()
-        data = self.search_config("process_data")(data)
-        breakpoint()
-
-        
-
-        self.search_config("post_data_target_system")(data)
+        self.search_config("post_data_target_system")(data, self.dataType)
 
 
 

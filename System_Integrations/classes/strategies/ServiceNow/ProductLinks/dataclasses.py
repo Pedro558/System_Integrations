@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 
 @dataclass
 class SnowLink:
-    sys_id:int = field(default_factory=int)
+    sys_id:str = field(default_factory=str)
     acct:str = field(default_factory=str)
     cid:str = field(default_factory=str)
     linkType:str = field(default_factory=str)

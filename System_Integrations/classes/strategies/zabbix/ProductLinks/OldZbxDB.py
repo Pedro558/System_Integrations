@@ -1,5 +1,7 @@
+import bisect
 from collections import defaultdict
-from System_Integrations.classes.requests.zabbix.dataclasses import Item, Read, EnumReadType
+import time
+from System_Integrations.classes.requests.zabbix.dataclasses import EnumSyncType, Item, Read, EnumReadType
 from .IZbxDB import IZbxDB 
 
 class OldZbxDB(IZbxDB):
@@ -27,24 +29,36 @@ class OldZbxDB(IZbxDB):
         return self.items 
 
 
-    def get_history_total_traffic(self, 
+    def get_total_traffic(self, 
+            type:EnumSyncType = EnumSyncType.HIST,
             items:list[Item]=[], 
             mostRecentReadTime = None, 
             *args):
         
         # GETS BITS SENT e BITS RECEIVED (items that were queried in get_items_product_links)
-        reads = self.get_history_of_items(items, mostRecentReadTime)
         
+        print("Creating groups...")
+        start = time.time()
+        reads = self.get_reads_of_items(type, items, mostRecentReadTime)
+        end = time.time()
+        duration = end - start
+        print(f"\t=> took {duration:.2f} seconds")
+
         # CALCULATES THE TOTAL TRAFFIC BY PAIRING BITS SENT AND BITS RECEIVED
         read_types_to_sum = [EnumReadType.BITS_SENT, EnumReadType.BITS_RECEIVED]
         pair_dict = {}
 
         # Step 1: Group by (hostid, interface)
+        print("Creating groups...")
+        start = time.time()
         grouped_data = defaultdict(list)
         for read in reads:
-            print("grouping data", len(grouped_data))
             key = (read.item.host.id, read.item.interfaceName)
             grouped_data[key].append(read)
+
+        end = time.time()
+        duration = end - start
+        print(f"\t=> took {duration:.2f} seconds")
 
         # Step 2: Pair by closest time
         pairs = []
@@ -52,17 +66,18 @@ class OldZbxDB(IZbxDB):
         max_time_diff = 120 # Allowable time difference in seconds
         for key, measurements in grouped_data.items():
             # Separate by type
-            sent = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_SENT], key=lambda x: x.time)
-            received = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_RECEIVED], key=lambda x: x.time)
-            
+            sent = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_SENT.value], key=lambda x: x.time)
+            received = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_RECEIVED.value], key=lambda x: x.time)
+
             # Extract times for binary search
             received_times = [m.time for m in received]
             used_indices = set()
 
             iterations = 0
 
+            print("Matching pairs... ")
+            start = time.time()
             for s in sent[:]:
-                print("Matching pairs ", len(pairs))
                 # Find the closest time in "Bits Received" using binary search
                 pos = bisect.bisect_left(received_times, s.time)
                 closest_match = None
@@ -99,25 +114,25 @@ class OldZbxDB(IZbxDB):
 
                 iterations += 1
 
+            end = time.time()
+            duration = end - start
+            print(f"\t=> took {duration:.2f} seconds")
+
+                
+
         # Step 3: Sum Pairs
         total_traffic_reads = []
         for match in pairs:
             value = match[0].value + match[1].value
             timeValue = match[0].time
-            match_itemids = [match[0].item.id, match[1].item.id]
             match_items = [match[0], match[1]]
 
             total_traffic_reads.append(Read(
-                item = match_items[0],
+                item = match_items[0].item,
                 time = timeValue,
                 value = value,
-                match_item = match_items
-
+                sourceReads= match_items,
+                isTrend = type == EnumSyncType.TRENDS
             ))
 
         return total_traffic_reads
-
-        
-
-    def get_trend_total_traffic(self, *args):
-        pass

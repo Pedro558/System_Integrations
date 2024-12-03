@@ -98,6 +98,7 @@ def patch_servicenow_record(envUrl, table_name, record_sys_id, data, token, para
             return {
                 #"item": ticket['item'],
                 "response": response.__dict__,
+                "response_http": response,
                 "error": False
             }
         else:
