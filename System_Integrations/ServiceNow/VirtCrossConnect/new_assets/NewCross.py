@@ -30,9 +30,11 @@ default_company_asset = "ELEA DIGITAL INFRAESTRUTURA E REDES DE T" # "VITF01"
 
 is_test = False
 cross_to_test = {
-    "RJO1": ["ID-RJO1-00001", "ID-RJO1-00002"]
+    # "RJO1": ["ID-RJO1-00001", "ID-RJO1-00002"]
     # "RJO1": ["ID-RJO1-00490"]
     # "BSB1": [ "ID-BSB1-00006" ]
+    # "BSB2": [ "ID-BSB2-00507" ]
+    "POA1": ["ID-POA1-00441"]
 }
 
 source_translation = {
@@ -63,6 +65,7 @@ def parse_cross_to_snow(cross):
         "u_id_cross": cross["ID Cross"].replace("-CTA-", "-CTA1-"), 
         "location": cross["Site"], 
         "company": cross["Cliente Final"], 
+        "u_final_customer": cross["Cliente Final"], 
         "u_activation_date": cross["Data da ativação"], 
         "u_delivery_request": cross["Request"], 
         "u_innerduct_only_tlc": cross["Innerduct (only TLC)"], 
@@ -245,7 +248,7 @@ def generator_wires_from_interfaces(cross, interfaces):
             "u_status": cross["u_status"],
             "u_review_stage": u_review_stage,
             "u_review": u_review,
-            "u_index": index*10,
+            "u_index": index+1,
             "name": "#ERROR" if u_review_stage == "Problem Identified" else None
             # "created_from_cross": cross["u_id_cross"],
             # "created_from_cross_source": source 
@@ -289,6 +292,9 @@ def post_to_snow(newStructure, logger=None):
     snow_cross = parse_values(snow_cross)
     # dh_fields = []
     # snow_data_halls = get_servicenow_table_data(url_snow, "u_cmdb_ci_data_hall", {"sysparm_display_value": True}, token)
+
+    clients_fields = ["sys_id, name, number, account_parent"]
+    snow_accounts = get_servicenow_table_data(url_snow, "customer_account", {"sysparm_display_value": True, "sysparm_fields":", ".join(clients_fields)}, token)
 
     rack_fields = ["u_data_hall", "company", "name", "sys_id"]
     snow_racks = get_servicenow_table_data(url_snow, "cmdb_ci_rack", {"sysparm_display_value": True, "sysparm_fields":", ".join(rack_fields)}, token)
@@ -491,6 +497,28 @@ def post_to_snow(newStructure, logger=None):
                                             and a["u_asset.u_rack"] == b[f"u_rack{suffix}.name"] 
                                             and a["u_asset.u_rack.u_data_hall"] == b["u_data_hall"+suffix])
 
+        def get_customer_sys_id(accounts, info, field_name):
+            account_name = get_value(info, lambda x: x[field_name], None)
+            if not account_name: return {"msg": "não informado", "error": True}
+
+            account = next((x for x in accounts if x["name"] == account_name and not x["account_parent"]), None)
+            if not account: 
+                # se não existe empresa sem parent account, então aceite a empresa se só exister ela com esse nome
+                account = [x for x in accounts if x["name"] == account_name]
+
+                if len(account) > 1: return {"msg": "mais de uma possível opção no sistema", "error": True}
+                account = account[0] if len(account) == 1 else None
+
+            if not account:
+                # breakpoint()
+                print(f"Account {account_name} not found in ServiceNow")
+                return {"msg": "não encontrado", "error": True}
+            
+            return {"sys_id": account["sys_id"], "error": False} 
+
+        # ===
+        # Cross
+        # ===
         if not corr_cross: 
             cross["u_rack_a.name"] = cross["u_rack_a"]
             cross["u_rack_a"] = next((x["sys_id"] for x in snow_racks if is_same_rack(x, cross, "_a")), cross["u_rack_a"])
@@ -507,6 +535,33 @@ def post_to_snow(newStructure, logger=None):
             cross["u_interface_a"] = next((x["sys_id"] for x in snow_interfaces if is_same_interface(x, cross, "_a")), None)
             cross["u_interface_b.name"] = cross["u_interface_b"]
             cross["u_interface_b"] = next((x["sys_id"] for x in snow_interfaces if is_same_interface(x, cross, "_b")), None)
+
+            customer_fields = [
+                ("Cliente Final", "u_final_customer", True), # display name | var name | show error
+                ("", "company", False), # will be the same value as u_final_customer
+                ("Cliente Ponta A", "u_customer_a", True),
+                ("Cliente Ponta B", "u_customer_b", True),
+            ]
+
+            for config in customer_fields:
+                original_value = cross[config[1]]
+                result = get_customer_sys_id(snow_accounts, cross, config[1])
+                sys_id = result["sys_id"] if "sys_id" in result else None
+                
+                cross[config[1]] = sys_id
+
+                if "error" in result and result["error"] and config[2]:
+                    problemIdentified = True
+                    if not cross["u_review"]: cross["u_review"] = ""
+                    elif not cross["u_review"].endswith("\n"): cross["u_review"] += "\n"
+
+                    cross["u_review"] += f"---------\n{config[0]} {result['msg']}: {original_value}\n"
+                    continue
+
+            # cross["u_final_customer"] = get_customer_sys_id(snow_accounts, cross, "u_final_customer")
+            # cross["company"] = get_customer_sys_id(snow_accounts, cross, "company")
+            # cross["u_customer_a"] = get_customer_sys_id(snow_accounts, cross, "u_customer_a")
+            # cross["u_customer_b"] = get_customer_sys_id(snow_accounts, cross, "u_customer_b")
 
             log = f"Cross gerado por script"
             # if assets_created:
@@ -533,7 +588,9 @@ def post_to_snow(newStructure, logger=None):
 
                 # errors = [x['msg'] for x in crossReviewComment]
                 # cross["u_review"] = "\n".join(errors)
-                cross["u_review"] = msg
+                if not cross["u_review"]: cross["u_review"] = ""
+
+                cross["u_review"] += msg
 
             # breakpoint()
             logger(f"\tCreating cross {cross['u_id_cross']}")
@@ -681,7 +738,7 @@ def create_new_structure(path, fileName, oldCross):
     if df.empty: 
         print(f"File {fileName} not found")
         return
-    
+
     def _get_interface_info(asset):
         interface = get_value(asset, lambda x: x["Interface"], default_virtual_interface_name)
         mod = ""
