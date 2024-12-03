@@ -1,4 +1,5 @@
-from System_Integrations.classes.requests.zabbix.dataclasses import Item, Read
+from collections import defaultdict
+from System_Integrations.classes.requests.zabbix.dataclasses import Item, Read, EnumReadType
 from .IZbxDB import IZbxDB 
 
 class OldZbxDB(IZbxDB):
@@ -25,51 +26,98 @@ class OldZbxDB(IZbxDB):
         self.items = self.cursor.fetchall()
         return self.items 
 
+
     def get_history_total_traffic(self, 
             items:list[Item]=[], 
             mostRecentReadTime = None, 
             *args):
-
-        aItemsIds = []
-        items = items if items else self.items
-        if items:
-            aItemIds = [x.id for x in items]
         
-        where = []
-        args = []
-        query_history = f"""
-            SELECT hUnit.itemid, hUnit.clock, hUnit.value, host.host hostName 
-            FROM history_uint hUnit
-                JOIN items item ON hUnit.itemid = item.itemid
-                JOIN hosts host ON item.hostid = host.hostid
-        """
+        # GETS BITS SENT e BITS RECEIVED (items that were queried in get_items_product_links)
+        reads = self.get_history_of_items(items, mostRecentReadTime)
+        
+        # CALCULATES THE TOTAL TRAFFIC BY PAIRING BITS SENT AND BITS RECEIVED
+        read_types_to_sum = [EnumReadType.BITS_SENT, EnumReadType.BITS_RECEIVED]
+        pair_dict = {}
 
-        if items: 
-            where.append(( 
-                f"hUnit.itemid IN ({','.join(['%s'] * len(aItemIds))})", # filter
-                (*aItemIds, ) # args
-            ))
-        if mostRecentReadTime:
-            where.append((
-                f"clock <= %s",
-                (mostRecentReadTime)
-            ))
+        # Step 1: Group by (hostid, interface)
+        grouped_data = defaultdict(list)
+        for read in reads:
+            print("grouping data", len(grouped_data))
+            key = (read.item.host.id, read.item.interfaceName)
+            grouped_data[key].append(read)
 
-        if where:
-            filters = []
-            for filter in where:
-                filters.append(filter[0])
-                args.append(filter[1])
-
-            where = ""
-            where += "WHERE " + (" AND ".join(filters))
-            query_history += where
+        # Step 2: Pair by closest time
+        pairs = []
+        unmatched_sent = []
+        max_time_diff = 120 # Allowable time difference in seconds
+        for key, measurements in grouped_data.items():
+            # Separate by type
+            sent = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_SENT], key=lambda x: x.time)
+            received = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_RECEIVED], key=lambda x: x.time)
             
+            # Extract times for binary search
+            received_times = [m.time for m in received]
+            used_indices = set()
 
-        breakpoint()
-        self.cursor.execute(query_history, (*args, ))
-        history_data = self.cursor.fetchall()
-        return history_data
+            iterations = 0
+
+            for s in sent[:]:
+                print("Matching pairs ", len(pairs))
+                # Find the closest time in "Bits Received" using binary search
+                pos = bisect.bisect_left(received_times, s.time)
+                closest_match = None
+                closest_idx = None
+                direction = 0  # 0 = not started, -1 = left, +1 = right
+                
+                while True:
+                    if pos < len(received) and (direction >= 0):  # Check right neighbor
+                        if pos not in used_indices:
+                            closest_match = received[pos]
+                            closest_idx = pos
+                            break
+                        pos += 1
+                        direction = 1  # Move right
+                    
+                    if pos > 0 and (direction <= 0):  # Check left neighbor
+                        if pos - 1 not in used_indices:
+                            closest_match = received[pos - 1]
+                            closest_idx = pos - 1
+                            break
+                        pos -= 1
+                        direction = -1  # Move left
+                    
+                    # If neither direction finds a match
+                    if direction > 0 and pos >= len(received) or direction < 0 and pos <= 0:
+                        break
+                
+                # Validate match
+                if closest_match and abs(s.time - closest_match.time) <= max_time_diff:
+                    pairs.append((s, closest_match))
+                    used_indices.add(closest_idx)  # Mark index as used
+                else:
+                    unmatched_sent.append(s)
+
+                iterations += 1
+
+        # Step 3: Sum Pairs
+        total_traffic_reads = []
+        for match in pairs:
+            value = match[0].value + match[1].value
+            timeValue = match[0].time
+            match_itemids = [match[0].item.id, match[1].item.id]
+            match_items = [match[0], match[1]]
+
+            total_traffic_reads.append(Read(
+                item = match_items[0],
+                time = timeValue,
+                value = value,
+                match_item = match_items
+
+            ))
+
+        return total_traffic_reads
+
+        
 
     def get_trend_total_traffic(self, *args):
         pass

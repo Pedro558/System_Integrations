@@ -40,12 +40,14 @@ class SyncProductLinksSnow:
                     "get_data": self.db.get_history_total_traffic,
                     "process_data": self.targetSystem.process_history_total_traffic,
                     "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read,
+                    "post_links_target_system": self.targetSystem.post_product_links,
                     "post_data_target_system": self.targetSystem.post_total_traffic_reads,
                 },
                 EnumSyncType.TRENDS: {
                     "get_data": self.db.get_trend_total_traffic,
                     "process_data": self.targetSystem.process_trend_total_traffic,
                     "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read_trend,
+                    "post_links_target_system": self.targetSystem.post_product_links,
                     "post_data_target_system": self.targetSystem.post_total_traffic_reads_trends,
                 }
             }
@@ -87,15 +89,23 @@ class SyncProductLinksSnow:
         netbox_tenants = get_tenants(netbox_url, netbox_headers) 
 
         accounts = self.targetSystem.get_accounts()
+        links = self.targetSystem.get_product_links()
         mostRecent:Read = self.search_config("get_most_recent_read_target_system")()
         mostRecentTime = get_value(mostRecent, lambda x: x.time, None)
 
         items = self.db.get_items_product_links()
-        items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants)
+        items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants, links)
+
+        items = self.search_config("post_links_target_system")(items)
         breakpoint()
 
+        mostRecentTime = 1733172884 # for tests
         data = self.search_config("get_data")(items, mostRecentTime)
+        breakpoint()
         data = self.search_config("process_data")(data)
+        breakpoint()
+
+        
 
         self.search_config("post_data_target_system")(data)
 

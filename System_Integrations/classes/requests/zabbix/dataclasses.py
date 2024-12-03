@@ -1,3 +1,4 @@
+from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.dataclasses import SnowLink
@@ -39,10 +40,19 @@ class Read:
     Zabbix history or trend information
     """
 
-    # item:Item = Item()
-    timeUnix:int | None = None
-    timeDatetime:str | None = None 
-    timeStr:str | None = None 
-    valu:int = None
-    read_type:EnumReadType = None
-    is_trend:bool = False
+    item:Item = field(default_factory=Item)
+    time:int | None = field(default_factory=int)
+    timeDatetime:datetime | None = None #
+    timeStr:str | None = field(default_factory=str) #datetime.fromtimestamp(timeValue).strftime("%d-%m-%Y %H:%M:%S")
+    value:int = field(default_factory=int)
+    isTrend:bool = False
+
+    @property
+    def time(self) -> int|None:
+        return self._interface
+    
+    @time.setter
+    def time(self, value:int|None):
+        if value:
+            self.timeDatetime = datetime.fromtimestamp(value)
+            self.timeStr = self.timeDatetime.strftime("%d-%m-%Y %H:%M:%S")
