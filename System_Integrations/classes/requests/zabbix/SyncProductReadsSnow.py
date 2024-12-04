@@ -83,7 +83,7 @@ class SyncProductLinksSnow:
 
         items = self.targetSystem.post_product_links(items)
         breakpoint()
-        # mostRecentTime = 1733172884 # for tests
+        mostRecentTime = 1730430000 #1733172884 # for tests
         data = self.search_config("get_data")(self.dataType, items, mostRecentTime)
         # data = self.search_config("process_data")(data)
 

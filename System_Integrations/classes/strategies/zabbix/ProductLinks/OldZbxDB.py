@@ -37,7 +37,7 @@ class OldZbxDB(IZbxDB):
         
         # GETS BITS SENT e BITS RECEIVED (items that were queried in get_items_product_links)
         
-        print("Creating groups...")
+        print("Creating quering db...")
         start = time.time()
         reads = self.get_reads_of_items(type, items, mostRecentReadTime)
         end = time.time()
@@ -64,6 +64,7 @@ class OldZbxDB(IZbxDB):
         pairs = []
         unmatched_sent = []
         max_time_diff = 120 # Allowable time difference in seconds
+        print("Matching pairs... ")
         for key, measurements in grouped_data.items():
             # Separate by type
             sent = sorted([m for m in measurements if m.item.readType == EnumReadType.BITS_SENT.value], key=lambda x: x.time)
@@ -75,7 +76,6 @@ class OldZbxDB(IZbxDB):
 
             iterations = 0
 
-            print("Matching pairs... ")
             start = time.time()
             for s in sent[:]:
                 # Find the closest time in "Bits Received" using binary search
@@ -114,9 +114,9 @@ class OldZbxDB(IZbxDB):
 
                 iterations += 1
 
-            end = time.time()
-            duration = end - start
-            print(f"\t=> took {duration:.2f} seconds")
+        end = time.time()
+        duration = end - start
+        print(f"\t=> took {duration:.2f} seconds")
 
                 
 
