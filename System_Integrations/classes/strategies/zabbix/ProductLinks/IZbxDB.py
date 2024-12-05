@@ -2,7 +2,7 @@ import os
 from abc import ABC, abstractmethod
 
 import pymysql
-from System_Integrations.classes.requests.zabbix.dataclasses import EnumReadType, EnumSyncType, Item, Read
+from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumReadType, EnumSyncType, Item, Read
 from dotenv import load_dotenv
 
 load_dotenv(override=True)
@@ -41,6 +41,7 @@ class IZbxDB(ABC):
             type:EnumSyncType = EnumSyncType.HIST,
             items:list[Item] = [], 
             mostRecentReadTime = None, 
+            avgTime:AvgTimeOptions = AvgTimeOptions.FIVE_MIN,
             *args):
             
         aItemsIds = []
@@ -50,26 +51,33 @@ class IZbxDB(ABC):
         
         where = []
         query = ""
-        if type == EnumSyncType.HIST:
+        
+        tableConfig = {
+            EnumSyncType.HIST: ("history_uint", "value"), # table name, value field
+            EnumSyncType.TRENDS: ("trends_uint", "value_avg"),
+        }
+
+        if True:
             query = f"""
-                SELECT unit.itemid, unit.clock, unit.value, host.host hostName 
-                FROM history_uint unit
-                    JOIN items item ON unit.itemid = item.itemid
-                    JOIN hosts host ON item.hostid = host.hostid
-            """
-        elif type == EnumSyncType.TRENDS:    
-            query = f"""
-                SELECT unit.itemid, unit.clock, unit.value_avg, host.host hostName 
-                FROM trends_uint unit
-                    JOIN items item ON unit.itemid = item.itemid
-                    JOIN hosts host ON item.hostid = host.hostid
+                SELECT
+                    itemid,
+                    FLOOR(clock / {avgTime.value[1]}) * {avgTime.value[1]} AS time_group,
+                    AVG({tableConfig.get(type)[1]}) AS value
+                FROM
+                    {tableConfig.get(type)[0]}
+                <WHERE>
+                GROUP BY
+                    itemid,
+                    time_group
+                ORDER BY
+                    time_group;
             """
 
         if not query: raise Exception(f"No SQL query implemented for type {type}")
 
         if items: 
             where.append(( 
-                f"unit.itemid IN ({','.join(['%s'] * len(aItemsIds))})", # filter
+                f"itemid IN ({','.join(['%s'] * len(aItemsIds))})", # filter
                 (*aItemsIds, ) # args
             ))
         if mostRecentReadTime:
@@ -87,8 +95,11 @@ class IZbxDB(ABC):
 
             where = ""
             where += "WHERE " + (" AND ".join(filters))
-            query += where
+            query = query.replace("<WHERE>", where)
+        else:
+            query = query.replace("<WHERE>", "")
             
+        breakpoint()
         self.cursor.execute(query, (*args, ))
         data = self.cursor.fetchall()
 
@@ -101,7 +112,7 @@ class IZbxDB(ABC):
             aReads.append(Read(
                 item = itemCorr,
                 time = read[1],
-                value = read[2],
+                value = int(read[2]),
             ))
 
         return aReads

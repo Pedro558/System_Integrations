@@ -38,7 +38,7 @@ class ISnowProductLinks(ABC):
     def get_most_recent_read_trend(self):
         pass
 
-    def process_items_product_links(self, items:list[Item], snow_accounts, netbox_tenants, snow_links):
+    def process_items_product_links(self, items:list[Item], snow_accounts, netbox_tenants, netbox_circuits, snow_links):
         acct_config_name = [x for x in netbox_tenants if x["custom_fields"]["config_name"]] # tenants that have config name setted
         acct_config_name = [( # Transforms it into a tuple of (<ACCT>, <List of the config options>)
                                 x["custom_fields"]["number"], 
@@ -50,24 +50,38 @@ class ISnowProductLinks(ABC):
             config_name_found = ""
 
             read_type = ""
-            match = re.search(r"(Bits received|Bits sent)", item[1])
-            if match: read_type = match.group(1)
+            match = re.search(r"(Bits received|Bits sent|Total Interface Traffic)", item[1])
+            if match: 
+                read_type = match.group(1)
+                config = {
+                    "Bits received": EnumReadType.BITS_RECEIVED,
+                    "Bits sent": EnumReadType.BITS_SENT,
+                    "Total Interface Traffic": EnumReadType.TOTAL_TRAFFIC,
+                }
+                read_type = config[read_type]
             
-            interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
-            if not interface: continue
-            if re.search(r"^(Vlan.*|^.*\.\d+$)$", interface): continue # starts with Vlan or ends with <string>.<number>
-            
+            interface = None
             cid = ""
             if "ACCT" in item[1]:
                 cid = get_value(item, lambda x: x[1].split(" - ")[0].split("(")[-1], "")
                 acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
 
+                if cid:
+                    circuit = next((x for x in netbox_circuits if x["cid"] == cid), None)
+                    if circuit: interface = circuit["custom_fields"]["origin_interface"]
+                    else: print("NOT IN NETBOX: "+item[1])
+
             else:
                 config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 if config_name_found:
                     acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
+
+                interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
+                if re.search(r"^(Vlan.*|^.*\.\d+$)$", interface): continue # starts with Vlan or ends with <string>.<number>
                     
+            if not interface: continue
+
             account = next((x for x in snow_accounts if x["number"] == acct), None)
             if not account:
                 print("not found", config_name_found, item[1])
@@ -207,9 +221,11 @@ class ISnowProductLinks(ABC):
     def post_total_traffic_reads(self, reads:list[Read], type:EnumSyncType = EnumSyncType.HIST):
         total_traffic_data = []
 
+        breakpoint()
         for read in reads:
             total_traffic_data.append({
                 "u_value": read.value,
+                "u_value_gb": read.valueGB,
                 "u_time": read.timeStr, 
                 "u_link": read.item.snowLink.sys_id
             })

@@ -1,9 +1,9 @@
 import os
-from System_Integrations.classes.requests.zabbix.dataclasses import EnumReadType, EnumSyncType, Read
+from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumReadType, EnumSyncType, Read
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinks import SnowProductLinks
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
 from System_Integrations.classes.strategies.zabbix.ProductLinks.IZbxDB import IZbxDB
-from System_Integrations.utils.netbox_api import get_tenants
+from System_Integrations.utils.netbox_api import get_circuits, get_tenants
 from System_Integrations.utils.parser import get_value
 
 from dotenv import load_dotenv
@@ -25,17 +25,19 @@ class SyncProductLinksSnow:
     def __init__(self, 
             db: IZbxDB | None, 
             targetSystem: SnowProductLinks | None,
-            readType: EnumReadType = EnumReadType.TOTAL_INTERFACE_TRAFFIC,
+            readType: EnumReadType = EnumReadType.TOTAL_TRAFFIC,
             dataType: EnumSyncType = EnumSyncType.HIST,
+            avgTime: AvgTimeOptions = AvgTimeOptions.FIVE_MIN,
         ):
                 
         self.db = db if db else self.db
         self.targetSystem = targetSystem if targetSystem else self.targetSystem
         self.readType = readType
         self.dataType = dataType
+        self.avgTime = avgTime
 
         self.config = {
-            EnumReadType.TOTAL_INTERFACE_TRAFFIC: {
+            EnumReadType.TOTAL_TRAFFIC: {
                 "get_data": self.db.get_total_traffic,
                 "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read,
                 "post_data_target_system": self.targetSystem.post_total_traffic_reads,
@@ -72,6 +74,7 @@ class SyncProductLinksSnow:
             "Authorization": f"Token {netbox_api_key}"
         }
         netbox_tenants = get_tenants(netbox_url, netbox_headers) 
+        netbox_circuits = get_circuits(netbox_url, netbox_headers) 
 
         accounts = self.targetSystem.get_accounts()
         links = self.targetSystem.get_product_links()
@@ -79,12 +82,18 @@ class SyncProductLinksSnow:
         mostRecentTime = get_value(mostRecent, lambda x: x.time, None)
 
         items = self.db.get_items_product_links()
-        items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants, links)
+        items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants, netbox_circuits, links)
 
         items = self.targetSystem.post_product_links(items)
+        # mostRecentTime = 1730430000 #1733172884 # for tests
+        mostRecentTime = 1733172884 # for tests
+        data = self.search_config("get_data")(
+            type = self.dataType, 
+            avgTime = self.avgTime,
+            items = items, 
+            mostRecentReadTime = mostRecentTime
+        )
         breakpoint()
-        mostRecentTime = 1730430000 #1733172884 # for tests
-        data = self.search_config("get_data")(self.dataType, items, mostRecentTime)
         # data = self.search_config("process_data")(data)
 
         self.search_config("post_data_target_system")(data, self.dataType)
