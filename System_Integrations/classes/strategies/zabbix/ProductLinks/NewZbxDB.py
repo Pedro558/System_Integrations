@@ -23,6 +23,7 @@ class NewZbxDB(IZbxDB):
                     item.name LIKE '%ACCT%'
                     or item.name LIKE '%Elea OnRamp%'
                     or item.name LIKE '%Elea Connect%'
+                    or item.name LIKE '%Elea Internet Connect%'
                     or item.name Like '%Elea Metro Connect%' 
                 ) and (
                     item_tag.tag LIKE 'Application'

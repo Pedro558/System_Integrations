@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from random import randint
 import time
 from System_Integrations.classes.requests.zabbix.dataclasses import EnumSyncType, Host, Item, Read, EnumReadType
+from datetime import datetime
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.dataclasses import SnowLink
 from System_Integrations.utils.parser import get_value
 from System_Integrations.utils.servicenow_api import client_monitoring_multi_post, get_servicenow_auth_token, get_servicenow_table_data, patch_servicenow_record, post_to_servicenow_table
@@ -32,11 +33,32 @@ class ISnowProductLinks(ABC):
         accounts = get_servicenow_table_data(self.snow_url, "u_temp_customer_links", {"sysparm_display_value": True, "sysparm_fields":", ".join(fields)}, self.token)
         return accounts
 
-    def get_most_recent_read(self):
-        pass
+    def get_most_recent_read_time(self, type:EnumSyncType = EnumSyncType.HIST):
+        fields = ["sys_id", "u_time"]
 
-    def get_most_recent_read_trend(self):
-        pass
+        table = "u_read_links_total_traffic" if type == EnumSyncType.HIST else "u_read_links_total_traffic_trends"
+        response = get_servicenow_table_data(
+            self.snow_url,
+            table,
+            {
+                "sysparm_display_value": True, "sysparm_fields":", ".join(fields),
+                "sysparm_limit":1,
+                "sysparm_query":"ORDERBYDESCu_time"
+            },
+            self.token
+        )
+
+        mostRecent = get_value(response, lambda x: response[0]["u_time"], None)
+        if mostRecent:
+            # Define the format of the date string
+            date_format = "%d/%m/%Y %H:%M:%S"
+            # Parse the string into a datetime object
+            dt = datetime.strptime(mostRecent, date_format)
+            # Convert the datetime object to a Unix timestamp
+            mostRecent = int(dt.timestamp())
+
+        return mostRecent
+
 
     def process_items_product_links(self, items:list[Item], snow_accounts, netbox_tenants, netbox_circuits, snow_links):
         acct_config_name = [x for x in netbox_tenants if x["custom_fields"]["config_name"]] # tenants that have config name setted
@@ -76,9 +98,24 @@ class ISnowProductLinks(ABC):
                 config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 if config_name_found:
                     acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
+                
+                # interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
+                interface = get_value(item, lambda x: x[1].split('(')[0], None)
+                if re.search(r"^(Vlan.*|^49.*\.\d+$)$", interface): continue # starts with Vlan or ends with <string>.<number>
 
-                interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
-                if re.search(r"^(Vlan.*|^.*\.\d+$)$", interface): continue # starts with Vlan or ends with <string>.<number>
+                if interface:
+                    circuit = next((x for x in netbox_circuits if 
+                                    (
+                                        x["custom_fields"]["origin_interface"] == interface 
+                                        and x["custom_fields"]["origin_device"] == item[5]
+                                    ) or (
+                                        x["custom_fields"]["dest_interface"] == interface 
+                                        and x["custom_fields"]["dest_device"] == item[5]
+                                    )
+                                    ), None)
+                    
+                    if circuit:
+                        cid = circuit["cid"]
                     
             if not interface: continue
 
@@ -221,11 +258,9 @@ class ISnowProductLinks(ABC):
     def post_total_traffic_reads(self, reads:list[Read], type:EnumSyncType = EnumSyncType.HIST):
         total_traffic_data = []
 
-        breakpoint()
         for read in reads:
             total_traffic_data.append({
                 "u_value": read.value,
-                "u_value_gb": read.valueGB,
                 "u_time": read.timeStr, 
                 "u_link": read.item.snowLink.sys_id
             })

@@ -1,4 +1,6 @@
+from datetime import datetime
 import os
+import time
 from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumReadType, EnumSyncType, Read
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinks import SnowProductLinks
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
@@ -39,7 +41,7 @@ class SyncProductLinksSnow:
         self.config = {
             EnumReadType.TOTAL_TRAFFIC: {
                 "get_data": self.db.get_total_traffic,
-                "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read,
+                "get_most_recent_read_target_system": self.targetSystem.get_most_recent_read_time,
                 "post_data_target_system": self.targetSystem.post_total_traffic_reads,
             }
         }
@@ -78,23 +80,33 @@ class SyncProductLinksSnow:
 
         accounts = self.targetSystem.get_accounts()
         links = self.targetSystem.get_product_links()
-        mostRecent:Read = self.search_config("get_most_recent_read_target_system")()
-        mostRecentTime = get_value(mostRecent, lambda x: x.time, None)
+        mostRecentTime = self.search_config("get_most_recent_read_target_system")(self.dataType)
+        if not mostRecentTime:
+            if self.dataType == EnumSyncType.HIST:
+                mostRecentTime = int(time.time())- 24 * 60 * 60 # 24 hours ago
+            else:
+                now = datetime.now()
+                # Calculate one month ago manually
+                if now.month == 1:  # If it's January, go to December of the previous year
+                    one_month_ago = now.replace(year=now.year - 1, month=12)
+                else:
+                    # Otherwise, just subtract one month
+                    one_month_ago = now.replace(month=now.month - 1)
+
+                mostRecentTime = int(one_month_ago.timestamp())
 
         items = self.db.get_items_product_links()
         items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants, netbox_circuits, links)
+        breakpoint()
+
 
         items = self.targetSystem.post_product_links(items)
-        # mostRecentTime = 1730430000 #1733172884 # for tests
-        mostRecentTime = 1733172884 # for tests
         data = self.search_config("get_data")(
             type = self.dataType, 
             avgTime = self.avgTime,
             items = items, 
             mostRecentReadTime = mostRecentTime
         )
-        breakpoint()
-        # data = self.search_config("process_data")(data)
 
         self.search_config("post_data_target_system")(data, self.dataType)
 

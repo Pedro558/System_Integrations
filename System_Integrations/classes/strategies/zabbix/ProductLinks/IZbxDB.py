@@ -99,7 +99,6 @@ class IZbxDB(ABC):
         else:
             query = query.replace("<WHERE>", "")
             
-        breakpoint()
         self.cursor.execute(query, (*args, ))
         data = self.cursor.fetchall()
 

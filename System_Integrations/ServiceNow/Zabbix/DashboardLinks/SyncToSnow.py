@@ -6,14 +6,14 @@ from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductL
 from System_Integrations.classes.strategies.zabbix.ProductLinks.NewZbxDB import NewZbxDB
 from System_Integrations.classes.strategies.zabbix.ProductLinks.OldZbxDB import OldZbxDB
 
-db = OldZbxDB()
-# db = NewZbxDB()
+# db = OldZbxDB()
+db = NewZbxDB()
 targetSystem = SnowProductLinks()
 
 request = SyncProductLinksSnow(
-    db, 
-    targetSystem, 
-    dataType = EnumSyncType.HIST,
-    avgTime = AvgTimeOptions.FIVE_MIN,
+    db,
+    targetSystem,
+    dataType = EnumSyncType.TRENDS,
+    avgTime = AvgTimeOptions.ONE_HOUR,
 )
 request.run()

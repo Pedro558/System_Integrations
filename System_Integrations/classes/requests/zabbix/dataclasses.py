@@ -54,10 +54,10 @@ class Read:
     timeDatetime:Optional[datetime] = None
     timeStr:Optional[str] = field(default_factory=str) #datetime.fromtimestamp(timeValue).strftime("%d-%m-%Y %H:%M:%S")
     value:int = field(default_factory=int)
-    valueTB:int = field(default_factory=int)
-    valueGB:int = field(default_factory=int)
-    valueMB:int = field(default_factory=int)
-    valueKB:int = field(default_factory=int)
+    valueTB:float = field(default_factory=float)
+    valueGB:float = field(default_factory=float)
+    valueMB:float = field(default_factory=float)
+    valueKB:float = field(default_factory=float)
     isTrend:bool = False
     calculated:bool = False
     sourceReads:list["Read"] = field(default_factory=list)
@@ -67,22 +67,24 @@ class Read:
         if self.time is not None:
             self.timeDatetime = datetime.fromtimestamp(self.time)
             self.timeStr = self.timeDatetime.strftime("%m-%d-%Y %H:%M:%S")
-
+        
         if self.value:
-            self.valueTB = int(self.value / (1e12 * 8)) 
-            self.valueGB = int(self.value / (1e9 * 8))
-            self.valueMB = int(self.value / (1e6 * 8))
-            self.valueKB = int(self.value / (1e3 * 8))
+            self.valueTB = float(self.value / (1e12 * 8)) 
+            self.valueGB = float(self.value / (1e9 * 8))
+            self.valueMB = float(self.value / (1e6 * 8))
+            self.valueKB = float(self.value / (1e3 * 8))
 
     # @property
-    # def time(self) -> int|None:
-    #     return self._time
+    # def value(self) -> int|None:
+    #     return self._value
 
     # # not working, the values are correctly setted, but from outside the class the values do not change
     # # maybe something todo with @dataclass    
-    # @time.setter
-    # def time(self, value:int|None):
+    # @value.setter
+    # def value(self, value:int|None):
     #     if value:
-    #         self._time = value
-    #         self.timeDatetime = datetime.fromtimestamp(value)
-    #         self.timeStr = self.timeDatetime.strftime("%d-%m-%Y %H:%M:%S")
+    #         self._value = value
+    #         self.valueTB = int(self._value / (1e12 * 8)) 
+    #         self.valueGB = int(self._value / (1e9 * 8))
+    #         self.valueMB = int(self._value / (1e6 * 8))
+    #         self.valueKB = int(self._value / (1e3 * 8))
