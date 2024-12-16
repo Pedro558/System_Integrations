@@ -2,13 +2,23 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Optional
+
+from matplotlib.figure import Figure
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.dataclasses import SnowLink
+from System_Integrations.classes.strategies.Storage.dataclasses import File
 
 class AvgTimeOptions(Enum):
     ONE_MIN = ("ONE_MIN", 60)
     FIVE_MIN = ("FIVE_MIN", 60*5)
     ONE_HOUR = ("ONE_HOUR", 60*60)
     ONE_DAY = ("ONE_DAY", 60*60*24)
+
+class EnumRangeOptions(Enum):
+    """Options for data ranges"""
+    LAST_DAY = "LAST_DAY"
+    LAST_WEEK = "LAST_WEEK"
+    LAST_MONTH = "LAST_MONTH"
+
 
 class EnumSyncType(Enum):
     HIST = "history"
@@ -18,6 +28,7 @@ class EnumReadType(Enum):
     BITS_SENT = "Bits sent"
     BITS_RECEIVED = "Bits received"
     TOTAL_TRAFFIC = "Total Traffic"
+
 
 # More about dataclasses here: https://docs.python.org/3/library/dataclasses.html
 @dataclass
@@ -39,6 +50,10 @@ class Item:
     readType:EnumReadType = field(default_factory=str)
     host:Host = field(default_factory=Host)
     snowLink:SnowLink = field(default_factory=SnowLink)
+
+    # graphImg:Figure | None = field(default_factory=lambda: None)
+    # graphBase64:str | None = field(default_factory=str)
+    file:File | None = field(default_factory=File)
 
     need_cid:bool = False # helps looking for links that need to be patternized
 

@@ -60,6 +60,4 @@ class NewZbxDB(IZbxDB):
         duration = end - start
         print(f"\t=> took {duration:.2f} seconds")
 
-        breakpoint()
-
         return reads 

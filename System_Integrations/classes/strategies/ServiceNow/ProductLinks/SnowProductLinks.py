@@ -1,7 +1,6 @@
 
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
 
-
 class SnowProductLinks(ISnowProductLinks):
 
     def auth(self, *args):

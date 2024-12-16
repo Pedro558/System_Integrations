@@ -3,7 +3,7 @@ import re
 from abc import ABC, abstractmethod
 from random import randint
 import time
-from System_Integrations.classes.requests.zabbix.dataclasses import EnumSyncType, Host, Item, Read, EnumReadType
+from System_Integrations.classes.requests.zabbix.dataclasses import EnumRangeOptions, EnumSyncType, Host, Item, Read, EnumReadType
 from datetime import datetime
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.dataclasses import SnowLink
 from System_Integrations.utils.parser import get_value
@@ -14,6 +14,9 @@ from System_Integrations.utils.parser import group_by
 load_dotenv(override=True)
 
 class ISnowProductLinks(ABC):
+
+    def __init__(self, *args, **kwargs):
+        pass
     
     def auth(self):
         # TODO get secrets from safe
@@ -33,10 +36,10 @@ class ISnowProductLinks(ABC):
         accounts = get_servicenow_table_data(self.snow_url, "u_temp_customer_links", {"sysparm_display_value": True, "sysparm_fields":", ".join(fields)}, self.token)
         return accounts
 
-    def get_most_recent_read_time(self, type:EnumSyncType = EnumSyncType.HIST):
+    def get_most_recent_read_time(self, dataType:EnumSyncType = EnumSyncType.HIST):
         fields = ["sys_id", "u_time"]
 
-        table = "u_read_links_total_traffic" if type == EnumSyncType.HIST else "u_read_links_total_traffic_trends"
+        table = "u_read_links_total_traffic" if dataType == EnumSyncType.HIST else "u_read_links_total_traffic_trends"
         response = get_servicenow_table_data(
             self.snow_url,
             table,
@@ -202,7 +205,7 @@ class ISnowProductLinks(ABC):
             })
 
         return data
-
+        
     def post_product_links(self, items:list[Item]):
         grouped_items = group_by(items, ["snowLink.cid"])
         aLinks = []
@@ -255,7 +258,8 @@ class ISnowProductLinks(ABC):
             iteration += 1
             process_batch(chunk, {"iteration": iteration, "start": i, "end": i+chunk_size, "count_list": len(data)})
 
-    def post_total_traffic_reads(self, reads:list[Read], type:EnumSyncType = EnumSyncType.HIST):
+    # Some function may want to post it based on Reads or based on Items
+    def post_total_traffic_reads(self, reads:list[Read] = None, items:list[Item] = None, dataType:EnumSyncType = EnumSyncType.HIST, rangeType:EnumRangeOptions = EnumRangeOptions.LAST_DAY):
         total_traffic_data = []
 
         for read in reads:
@@ -275,7 +279,7 @@ class ISnowProductLinks(ABC):
             print(f"Batch {iteration} ({start}/{count_list})")
 
 
-            params = {"readType": "total_traffic", "dataType": type.value}
+            params = {"readType": "total_traffic", "dataType": dataType.value}
             response = client_monitoring_multi_post(self.snow_url, batch, self.token, params=params)
 
             try:

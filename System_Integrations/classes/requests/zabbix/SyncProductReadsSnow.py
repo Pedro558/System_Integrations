@@ -1,7 +1,7 @@
 from datetime import datetime
 import os
 import time
-from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumReadType, EnumSyncType, Read
+from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumRangeOptions, EnumReadType, EnumSyncType, Read
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinks import SnowProductLinks
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
 from System_Integrations.classes.strategies.zabbix.ProductLinks.IZbxDB import IZbxDB
@@ -29,6 +29,7 @@ class SyncProductLinksSnow:
             targetSystem: SnowProductLinks | None,
             readType: EnumReadType = EnumReadType.TOTAL_TRAFFIC,
             dataType: EnumSyncType = EnumSyncType.HIST,
+            rangeType: EnumRangeOptions = EnumRangeOptions.LAST_DAY,
             avgTime: AvgTimeOptions = AvgTimeOptions.FIVE_MIN,
         ):
                 
@@ -37,6 +38,7 @@ class SyncProductLinksSnow:
         self.readType = readType
         self.dataType = dataType
         self.avgTime = avgTime
+        self.rangeType = rangeType
 
         self.config = {
             EnumReadType.TOTAL_TRAFFIC: {
@@ -49,11 +51,13 @@ class SyncProductLinksSnow:
     def search_config(self, 
             func:str | None,
             readType:EnumReadType | None = None, 
-            dataType:EnumSyncType | None = None
+            dataType:EnumSyncType | None = None,
+            rangeType:EnumRangeOptions | None = None
         ):
 
         readType = readType if readType else self.readType
         dataType = dataType if dataType else self.dataType
+        rangeType = rangeType if rangeType else self.rangeType
 
         if not readType: raise ValueError("no value for readType")
         # if not dataType: raise ValueError("no value for dataType")
@@ -82,11 +86,12 @@ class SyncProductLinksSnow:
         links = self.targetSystem.get_product_links()
         mostRecentTime = self.search_config("get_most_recent_read_target_system")(self.dataType)
         if not mostRecentTime:
-            if self.dataType == EnumSyncType.HIST:
-                mostRecentTime = int(time.time())- 24 * 60 * 60 # 24 hours ago
-            else:
+            if self.rangeType == EnumRangeOptions.LAST_DAY:
+                mostRecentTime = int(time.time()) - (60 * 60 * 24) # 1 day ago
+            elif self.rangeType == EnumRangeOptions.LAST_WEEK:
+                mostRecentTime = int(time.time()) - (60 * 60 * 24 * 7) # 7 days ago
+            elif self.rangeType == EnumRangeOptions.LAST_MONTH:
                 now = datetime.now()
-                # Calculate one month ago manually
                 if now.month == 1:  # If it's January, go to December of the previous year
                     one_month_ago = now.replace(year=now.year - 1, month=12)
                 else:
@@ -97,18 +102,18 @@ class SyncProductLinksSnow:
 
         items = self.db.get_items_product_links()
         items = self.targetSystem.process_items_product_links(items, accounts, netbox_tenants, netbox_circuits, links)
-        breakpoint()
-
 
         items = self.targetSystem.post_product_links(items)
         data = self.search_config("get_data")(
-            type = self.dataType, 
+            type = self.dataType,
             avgTime = self.avgTime,
             items = items, 
             mostRecentReadTime = mostRecentTime
         )
 
-        self.search_config("post_data_target_system")(data, self.dataType)
+        data = self.targetSystem.process_total_traffic(data, items)
+
+        self.search_config("post_data_target_system")(reads=data, items=items, dataType=self.dataType, rangeType=self.rangeType)
 
 
 
