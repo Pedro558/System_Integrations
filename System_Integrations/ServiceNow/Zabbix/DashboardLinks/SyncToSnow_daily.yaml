@@ -1,0 +1,41 @@
+- id: id
+  name: Daily - image
+  group: Service Now/Link Monitoring
+  executionEnabled: true
+  loglevel: INFO
+  nodeFilterEditable: false
+  options: 
+  - hidden: true 
+    name: DATA_TYPE 
+    value: "history"
+  - hidden: true 
+    name: AVG_TIME 
+    value: "FIVE_MIN"
+  - hidden: true 
+    name: RANGE_TYPE 
+    value: "LAST_DAY"
+  - hidden: true 
+    name: ENV 
+    value: "dev"
+  - hidden: true 
+    name: appid 
+    secure: true 
+    storagePath: keys/project/Virtualization/AZURE_APP_ID
+    valueExposed: true 
+  - hidden: true 
+    name: appsecret 
+    secure: true 
+    storagePath: keys/project/Virtualization/AZURE_APP_SECRET
+    valueExposed: true
+  scheduleEnabled: true 
+  schedule:
+    crontab: '0 0 0 ? * * *'
+  plugins:
+    ExecutionLifecycle: null
+  sequence:
+    commands:
+    - scriptfile: C:\rundeck\projects\Virtualization\ScmImport\virtualization\proxmox\SyncNetbox\SyncNetbox.ps1
+      keepgoing: false
+      strategy: node-first
+      fileExtension: ps1
+      scriptInterpreter: powershell.exe -File
