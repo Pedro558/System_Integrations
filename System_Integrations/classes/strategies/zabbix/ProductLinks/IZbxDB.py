@@ -16,17 +16,20 @@ class IZbxDB(ABC):
         'port': None,
     }
 
-    def __init__(self, *args):
+    def __init__(self, ipaddress=None, database=None, user=None, secretName=None, *args):
         self.conn = None
         self.cursor = None
+        self.ipaddress = ipaddress
+        self.database = database
+        self.user = user
+        self.secretName = secretName
 
     def auth(self, *args):
-        # TODO get secrets from safe
         self.db_params = {
-            'host': os.getenv("zabbix_db_ip"),
-            'database': os.getenv("zabbix_db_name"),
-            'user': os.getenv("zabbix_db_user"),
-            'password': os.getenv("zabbix_db_pwd"),
+            'host': self.ipaddress, # or os.getenv("zabbix_db_ip"),
+            'database': self.database, # or  os.getenv("zabbix_db_name"),
+            'user': self.user, # or os.getenv("zabbix_db_user"),
+            'password': os.getenv("zabbix_db_pwd"), # TODO get_credential
             'port': 3306
         }
 
