@@ -13,6 +13,12 @@ class AvgTimeOptions(Enum):
     ONE_HOUR = ("ONE_HOUR", 60*60)
     ONE_DAY = ("ONE_DAY", 60*60*24)
 
+    @classmethod
+    def get(cls, value):
+        return next((option for option in cls if option.value[0] == value), None)
+
+
+
 class EnumRangeOptions(Enum):
     """Options for data ranges"""
     LAST_DAY = "LAST_DAY"
