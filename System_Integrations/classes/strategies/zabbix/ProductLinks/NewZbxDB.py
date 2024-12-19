@@ -1,3 +1,4 @@
+from commons.classes.utils import get_kwargs
 from .IZbxDB import IZbxDB 
 
 import bisect
@@ -8,12 +9,11 @@ from .IZbxDB import IZbxDB
 
 class NewZbxDB(IZbxDB):
 
-    def __init__(self, *args):
-        super().__init__(*args)
+    def __init__(self, *args, **kwargs):
+        params = {**get_kwargs(), **kwargs}
+        super().__init__(**params)
 
     def get_items_product_links(self, *args):
-        # TODO query item.name: Total Traffic 
-        # TODO query based on tags: ACCT, Rename Pending
         query_items = f"""
             SELECT item.itemid, item.name, item.interfaceid, item.uuid, item.hostid, host.host hostName 
             FROM items item
@@ -26,12 +26,16 @@ class NewZbxDB(IZbxDB):
                     or item.name LIKE '%Elea Internet Connect%'
                     or item.name Like '%Elea Metro Connect%' 
                 ) and (
-                    item_tag.tag LIKE 'Application'
-                    and item_tag.value LIKE 'Total Interface Traffic'
+                    item.name LIKE '%Bits sent%'
+                    or 
+                    item.name LIKE '%Bits received%'
                 )
         """
-                    # and item_tag.value IN ('Total Interface Traffic', 'Rename Pending')
-                    # and item_tag.value LIKE 'Rename Pending'
+                    # item_tag.tag LIKE 'Application' and (
+                    #    item_tag.value LIKE 'Bits sent'
+                    #    or
+                    #    item_tag.value LIKE 'Bits received'
+                    # )
 
         self.cursor.execute(query_items)
         self.items = self.cursor.fetchall()
