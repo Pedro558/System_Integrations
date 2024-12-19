@@ -21,8 +21,6 @@ class SyncProductLinksSnow:
 
     """
 
-    db: IZbxDB = IZbxDB()
-    targetSystem: ISnowProductLinks = SnowProductLinks()
 
     def __init__(self, 
             db: IZbxDB | None, 
@@ -33,8 +31,8 @@ class SyncProductLinksSnow:
             avgTime: AvgTimeOptions = AvgTimeOptions.FIVE_MIN,
         ):
                 
-        self.db = db if db else self.db
-        self.targetSystem = targetSystem if targetSystem else self.targetSystem
+        self.db = db if db else IZbxDB()
+        self.targetSystem = targetSystem if targetSystem else ISnowProductLinks()
         self.readType = readType
         self.dataType = dataType
         self.avgTime = avgTime
