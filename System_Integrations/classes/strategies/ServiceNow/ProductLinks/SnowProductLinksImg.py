@@ -7,11 +7,11 @@ from datetime import datetime
 from io import BytesIO
 
 import requests
-from System_Integrations.classes.requests.zabbix.dataclasses import EnumRangeOptions, EnumReadType, Item, Read
+from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumRangeOptions, EnumReadType, Item, Read
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
 from System_Integrations.classes.strategies.Storage.IFileStorage import IFileStorage 
 from System_Integrations.classes.strategies.Storage.dataclasses import File
-from System_Integrations.utils.parser import group_by
+from System_Integrations.utils.parser import group_by, parse_commit_rate_to
 from typing import Literal, Optional
 
 from System_Integrations.utils.servicenow_api import client_monitoring_multi_post_img, post_to_servicenow_table
@@ -37,13 +37,20 @@ class SnowProductLinksImg(ISnowProductLinks):
     def get_most_recent_read_time(self, *args):
         return None # must return None, because to build the graph we need all the last corresponding period (24h, 7d, 30d)
 
-    def process_total_traffic(self, reads:list[Read], items:list[Item]=None, type:EnumRangeOptions = EnumRangeOptions.LAST_DAY):
+    def process_total_traffic(self, 
+                              reads:list[Read], 
+                              items:list[Item]=None, 
+                              rangeType:EnumRangeOptions = EnumRangeOptions.LAST_DAY, 
+                              avgTime:AvgTimeOptions = None,
+                              startDate:int = None,
+                            ):
 
         start_time = time.time()
         print("Creating graphs...")
         
         grouped_items = group_by(items, ["snowLink.cid"])
         links = grouped_items.keys()
+
         for index, key in enumerate(links):
             try:
                 
@@ -51,12 +58,13 @@ class SnowProductLinksImg(ISnowProductLinks):
                 item_sent = next((x for x in item if x.readType == EnumReadType.BITS_SENT), None)
                 item_received = next((x for x in item if x.readType == EnumReadType.BITS_RECEIVED), None)
 
-                if not item_sent or not item_received: continue
-                if item_sent.file.data or item_received.file.data: continue 
+                if not item_sent or not item_received: breakpoint()
+                if item_sent.file.data or item_received.file.data: breakpoint() 
 
                 item_reads_sent = [(x.timeDatetime, x.valueMB) for x in reads if x.item.id == item_sent.id]
                 item_reads_received = [(x.timeDatetime, x.valueMB) for x in reads if x.item.id == item_received.id]
-                
+
+
                 # Create DataFrames for both
                 df_sent = pd.DataFrame(item_reads_sent, columns=["Time", "Upload Traffic"])
                 df_received = pd.DataFrame(item_reads_received, columns=["Time", "Download Traffic"])
@@ -70,7 +78,10 @@ class SnowProductLinksImg(ISnowProductLinks):
                 df_received['Download Traffic'] *= 8  # Convert MB to Mbps
 
                 # Define traffic limit in Mbps
-                traffic_limit = 500  # Example limit in Mbps
+                traffic_limit = 0
+                if item_sent.snowLink.commit_rate:
+                    traffic_limit = parse_commit_rate_to(item_sent.snowLink.commit_rate*1000, "MB")
+                    
 
                 # Create a figure and axis
                 fig, ax = plt.subplots(figsize=(14, 7))
@@ -84,7 +95,8 @@ class SnowProductLinksImg(ISnowProductLinks):
                 ax.fill_between(df_sent['Time'], df_sent['Upload Traffic'], color='#E74C3C', alpha=0.2)
 
                 # Add a horizontal line for the traffic limit
-                ax.axhline(traffic_limit, color='orange', linewidth=1.5, linestyle='--')
+                if traffic_limit:
+                    ax.axhline(traffic_limit, color='orange', linewidth=1.5, linestyle='--')
 
                 # Add a text label for the limit that adapts to the y-axis scale
                 def format_traffic(value):
@@ -95,15 +107,6 @@ class SnowProductLinksImg(ISnowProductLinks):
 
                 # Display the limit value in Mbps or Gbps
                 formatted_limit = format_traffic(traffic_limit)
-                # ax.text(
-                #     ax.get_xlim()[0],  # Place the label near the right edge of the graph
-                #     traffic_limit,
-                #     # f"Limit: {formatted_limit}",
-                #     color='orange',
-                #     fontsize=10,
-                #     verticalalignment='bottom',
-                #     horizontalalignment='right'
-                # )
 
                 # Set scale and format the y-axis
                 def format_yaxis(value, _):
@@ -120,6 +123,10 @@ class SnowProductLinksImg(ISnowProductLinks):
                 ax.tick_params(axis='y', labelsize=12, colors='#5D6D7E')
                 ax.grid(visible=True, which='major', linestyle='--', linewidth=0.5, alpha=0.7)
 
+                start_date = datetime.fromtimestamp(startDate)
+                end_date = datetime.now()
+                ax.set_xlim([start_date, end_date])
+
                 # Add a legend
                 # ax.legend(loc='upper right', fontsize=12, frameon=False)
                 ax.legend(
@@ -135,19 +142,42 @@ class SnowProductLinksImg(ISnowProductLinks):
                 )
 
                 # Add title below the graph
-                fig.text(0.5, 0.01, 'Link Traffic: Download vs Upload', fontsize=18, weight='bold', color='#34495E', ha='center')
+
+                title = "Download vs Upload"
+                if avgTime:
+                    title += {
+                        AvgTimeOptions.FIVE_MIN: " ( Average 5 minutes ) ",
+                        AvgTimeOptions.ONE_HOUR: " ( Average 1 hour ) ",
+                        AvgTimeOptions.ONE_DAY: " ( Average 1 day ) ",
+                    }.get(avgTime)
+
+                fig.text(0.5, 0.01, title, fontsize=18, weight='bold', color='#34495E', ha='center')
 
                 # Adjust layout for a clean look
                 plt.tight_layout(rect=[0, 0.03, 1, 1])  # Reserve space for the title at the bottom
 
-                breakpoint()
-
-                # Save the figure for later
                 buf = BytesIO()
                 fig.savefig(buf, format="png", bbox_inches="tight")
 
-                print(f"\t{index+1}/{len(items)} done...")
+                # with open("/Temp/test.png", "wb") as f:
+                #     f.write(buf.getvalue())
+
+                # breakpoint()
+
+                item_sent.file = File(
+                        name=f"{item_sent.snowLink.sys_id}_{rangeType.value}.png",
+                        data=buf.getvalue()
+                    )
+                item_received.file = item_sent.file
+
+                # Save the figure for later
+
+                buf.close()
+                plt.close(fig)
+
+                print(f"\t{index+1}/{len(links)} done...")
             except Exception as e:
+                breakpoint()
                 print(e)
 
 
@@ -202,7 +232,13 @@ class SnowProductLinksImg(ISnowProductLinks):
             
 
     def post_total_traffic_reads(self, items:list[Item]=[], rangeType:EnumRangeOptions=EnumRangeOptions.LAST_DAY, *args, **kwargs):
-        files = [x.file for x in items]
+        grouped_items = group_by(items, ["snowLink.sys_id"])
+
+        files = [grouped_items[key][0].file for key in grouped_items.keys()]
+        
+        files_nf = [x for x in items if not x.file.name]
+        if files_nf: breakpoint()
+        
         self.fileStorage.upload(files) # due to object reference, the files inside the items, will be updated automatically
 
         reads_to_post = []

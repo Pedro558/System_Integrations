@@ -46,6 +46,8 @@ class IZbxDB(ABC):
             mostRecentReadTime = None, 
             avgTime:AvgTimeOptions = AvgTimeOptions.FIVE_MIN,
             *args):
+
+        if not items: raise Exception("No items to query reads.")
             
         aItemsIds = []
         items = items if items else self.items

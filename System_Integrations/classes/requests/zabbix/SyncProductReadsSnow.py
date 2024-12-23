@@ -109,9 +109,10 @@ class SyncProductLinksSnow:
             mostRecentReadTime = mostRecentTime
         )
 
-        data = self.targetSystem.process_total_traffic(data, items)
 
-        self.search_config("post_data_target_system")(reads=data, items=items, dataType=self.dataType, rangeType=self.rangeType)
+        data = self.targetSystem.process_total_traffic(data, items, rangeType=self.rangeType, avgTime=self.avgTime, startDate=mostRecentTime)
+
+        self.search_config("post_data_target_system")(reads=data, items=items, dataType=self.dataType, rangeType=self.rangeType, avgtime=self.avgTime)
 
 
 

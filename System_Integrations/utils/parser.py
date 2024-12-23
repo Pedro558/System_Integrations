@@ -1,3 +1,4 @@
+from re import I
 from types import FunctionType
 import functools
 
@@ -31,3 +32,30 @@ def group_by(arr, props):
         grouped_data.setdefault(key, []).append(item)
 
     return grouped_data
+
+def parse_commit_rate_to(commit_rate, unit="MB"):
+    commit_rate = commit_rate if commit_rate else 0
+
+    size_units = {'B':1, 'KB': 1e3, 'MB': 1e6, 'GB': 1e9, 'TB': 1e12, 'PB': 1e15}
+
+    return commit_rate / size_units.get(unit.upper().replace('s',''), 1)
+
+def get_visual_commit_rate(commit_rate, bps:bool = False):
+    commit_rate = commit_rate if commit_rate else 0
+
+    value = 0
+    unit = ""
+    unit_bps = ""
+    if commit_rate >= 1e9:
+        value = parse_commit_rate_to(commit_rate, "GB")
+        unit = "GB"
+        unit_bps = "Gbps"
+    else:
+        value = parse_commit_rate_to(commit_rate, "MB")
+        unit = "MB"
+        unit_bps = "Mbps"
+
+    if bps: 
+        value = value * 8
+
+    return str(value).replace(".0", "") + (unit if not bps else unit_bps)

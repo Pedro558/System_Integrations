@@ -14,28 +14,74 @@ class NewZbxDB(IZbxDB):
         super().__init__(**params)
 
     def get_items_product_links(self, *args):
+        # query_items = f"""
+        #     SELECT item.itemid, item.name, item.interfaceid, item.uuid, item.hostid, host.host hostName 
+        #     FROM items item
+        #         JOIN hosts host ON item.hostid = host.hostid    
+        #         LEFT JOIN item_tag ON item.itemid = item_tag.itemid
+        #     WHERE (
+        #             item.name LIKE '%ACCT%'
+        #             or item.name LIKE '%Elea OnRamp%'
+        #             or item.name LIKE '%Elea Connect%'
+        #             or item.name LIKE '%Elea Internet Connect%'
+        #             or item.name Like '%Elea Metro Connect%' 
+        #         ) and (
+        #             item.name LIKE '%Bits sent%'
+        #             or 
+        #             item.name LIKE '%Bits received%'
+        #         ) 
+        #         and item.name NOT LIKE '95 percentil%'
+        # """
+        
+        # this is to avoid duplicates item in devices that collect the information from different tags (Bits sent and Bits received vs ACCT (TAGS))
         query_items = f"""
-            SELECT item.itemid, item.name, item.interfaceid, item.uuid, item.hostid, host.host hostName 
-            FROM items item
-                JOIN hosts host ON item.hostid = host.hostid    
-                LEFT JOIN item_tag ON item.itemid = item_tag.itemid
-            WHERE (
+            WITH RankedItems AS (
+                SELECT 
+                    item.itemid,
+                    item.name,
+                    item.interfaceid,
+                    item.uuid,
+                    item.hostid,
+                    host.host AS hostName,
+                    item_tag.tag AS tagName,
+                    ROW_NUMBER() OVER (
+                        PARTITION BY item.hostid, item.interfaceid, item.name
+                        ORDER BY 
+                            CASE 
+                                WHEN item_tag.tag LIKE '%ACCT%' THEN 1
+                                ELSE 2
+                            END
+                    ) AS rank
+                FROM 
+                    items item
+                    JOIN hosts host ON item.hostid = host.hostid    
+                    LEFT JOIN item_tag ON item.itemid = item_tag.itemid
+                WHERE (
                     item.name LIKE '%ACCT%'
-                    or item.name LIKE '%Elea OnRamp%'
-                    or item.name LIKE '%Elea Connect%'
-                    or item.name LIKE '%Elea Internet Connect%'
-                    or item.name Like '%Elea Metro Connect%' 
-                ) and (
+                    OR item.name LIKE '%Elea OnRamp%'
+                    OR item.name LIKE '%Elea Connect%'
+                    OR item.name LIKE '%Elea Internet Connect%'
+                    OR item.name LIKE '%Elea Metro Connect%'
+                ) 
+                AND (
                     item.name LIKE '%Bits sent%'
-                    or 
-                    item.name LIKE '%Bits received%'
-                )
+                    OR item.name LIKE '%Bits received%'
+                ) 
+                AND item.name NOT LIKE '95 percentil%'
+            )
+            SELECT 
+                itemid, 
+                name, 
+                interfaceid, 
+                uuid, 
+                hostid, 
+                hostName, 
+                tagName
+            FROM 
+                RankedItems
+            WHERE 
+                rank = 1;
         """
-                    # item_tag.tag LIKE 'Application' and (
-                    #    item_tag.value LIKE 'Bits sent'
-                    #    or
-                    #    item_tag.value LIKE 'Bits received'
-                    # )
 
         self.cursor.execute(query_items)
         self.items = self.cursor.fetchall()

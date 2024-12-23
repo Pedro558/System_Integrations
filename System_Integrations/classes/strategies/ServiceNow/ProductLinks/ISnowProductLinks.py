@@ -3,7 +3,9 @@ import re
 from abc import ABC, abstractmethod
 from random import randint
 import time
-from System_Integrations.classes.requests.zabbix.dataclasses import EnumRangeOptions, EnumSyncType, Host, Item, Read, EnumReadType
+from typing import Literal
+from System_Integrations.auth.api_secrets import get_api_token
+from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumRangeOptions, EnumSyncType, Host, Item, Read, EnumReadType
 from datetime import datetime
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.dataclasses import SnowLink
 from System_Integrations.utils.parser import get_value
@@ -15,15 +17,24 @@ load_dotenv(override=True)
 
 class ISnowProductLinks(ABC):
 
-    def __init__(self, *args, **kwargs):
-        pass
+    def __init__(self, 
+                env:Literal['dev','prd'] = "dev", 
+                clientId = None,
+                clientSecret = None,
+                refreshToken = None,
+                *args, **kwargs):
+        self.env = env if env else "dev"
+        self.clientId = clientId
+        self.clientSecret = clientSecret
+        self.refreshToken = refreshToken
     
     def auth(self):
-        # TODO get secrets from safe
-        self.snow_url = os.getenv("snow_url")
-        self.snow_client_id = os.getenv("snow_client_id")
-        self.snow_client_secret = os.getenv("snow_client_secret")
-        self.snow_refresh_token = os.getenv("snow_refresh_token")
+        self.snow_url = "https://servicenow.eleadatacenters.com/" if self.env == "prd" else "https://eleadev.service-now.com/"
+
+        self.snow_client_id = self.clientId or get_api_token(f'servicenow-{self.env}-client-id-oauth')
+        self.snow_client_secret = self.clientSecret or get_api_token(f'servicenow-{self.env}-client-secret-oauth')
+        self.snow_refresh_token = self.refreshToken or get_api_token(f'servicenow-{self.env}-refresh-token-oauth')
+
         self.token = get_servicenow_auth_token(self.snow_url, self.snow_client_id, self.snow_client_secret, self.snow_refresh_token)
 
     def get_accounts(self):
@@ -69,6 +80,17 @@ class ISnowProductLinks(ABC):
                                 x["custom_fields"]["number"], 
                                 list(map(str.lstrip, x["custom_fields"]["config_name"].upper().split(",")))
                             ) for x in acct_config_name]
+
+        device_netb_circ = [ # makes the device info match the device of interface (the device in netbox points to ACX or QFX depending on the commit rate, but the interface is always the delivery interface)
+            { **x, "custom_fields": {
+                    **x["custom_fields"],
+                    "origin_device": x["custom_fields"]["origin_device"].replace("ACX", "QFX").replace("PRP", "PSP") if "ge" in ( x["custom_fields"]["origin_interface"] or "") else x["custom_fields"]["origin_device"],
+                    "dest_device": x["custom_fields"]["dest_device"] .replace("ACX", "QFX").replace("PRP", "PSP") if "ge" in ( x["custom_fields"]["dest_interface"] or "" ) else x["custom_fields"]["dest_device"],
+                }
+            }
+            for x in netbox_circuits
+        ] 
+
         aItems:list[Item] = []
         for item in items:
             acct = ""
@@ -86,32 +108,36 @@ class ISnowProductLinks(ABC):
                 read_type = config[read_type]
             
             interface = None
+            # interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
+            interface = get_value(item, lambda x: x[1].split('(')[0], "")
+            interface = interface.replace("Interface", "").strip()
+            if re.search(r".*(Vlan.*|.*\.\d+).*", interface): continue # starts with Vlan or ends with <string>.<number>
+
+            commit_rate = 0
+            circuit = None
             cid = ""
+            config_cid = "" 
+            cloud = None
+            origin = item[5].split("-")[2] if item[5] else None 
+            dest = None 
+
+
             if "ACCT" in item[1]:
                 cid = get_value(item, lambda x: x[1].split(" - ")[0].split("(")[-1], "")
                 acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
 
-                if cid:
-                    circuit = next((x for x in netbox_circuits if x["cid"] == cid), None)
-                    if circuit: interface = circuit["custom_fields"]["origin_interface"]
-                    else: print("NOT IN NETBOX: "+item[1])
-
             else:
                 config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 if config_name_found:
                     acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
-                
-                # interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
-                interface = get_value(item, lambda x: x[1].split('(')[0], None)
-                if re.search(r"^(Vlan.*|^49.*\.\d+$)$", interface): continue # starts with Vlan or ends with <string>.<number>
-
                 if interface:
-                    circuit = next((x for x in netbox_circuits if 
+                    circuit = next((x for x in device_netb_circ if 
                                     (
                                         x["custom_fields"]["origin_interface"] == interface 
                                         and x["custom_fields"]["origin_device"] == item[5]
-                                    ) or (
+                                    ) 
+                                    or (
                                         x["custom_fields"]["dest_interface"] == interface 
                                         and x["custom_fields"]["dest_device"] == item[5]
                                     )
@@ -119,8 +145,29 @@ class ISnowProductLinks(ABC):
                     
                     if circuit:
                         cid = circuit["cid"]
-                    
+            
+            if cid and not circuit:
+                circuit = next((x for x in device_netb_circ if x["cid"] == cid), None)
+
+            if cid and not interface:
+                if circuit: interface = circuit["custom_fields"]["origin_interface"]
+                else: print("NOT IN NETBOX: "+item[1])
+
             if not interface: continue
+            
+            if circuit:
+                config_cid = circuit["custom_fields"]["config_cid"]
+                commit_rate = circuit["commit_rate"]
+                cloud = circuit["custom_fields"]["cloud"]
+                if circuit["custom_fields"]["origin_device"]: 
+                    origin = circuit["custom_fields"]["origin_device"].split("-")[2]
+                if circuit["custom_fields"]["dest_device"]: 
+                    dest = circuit["custom_fields"]["dest_device"].split("-")[2]
+
+                if ( circuit["custom_fields"]["origin_device"] != item[5] 
+                    # and circuit["custom_fields"]["origin_interface"] != interface 
+                    ):
+                    continue # avoids having dups of circuits with origin - dest (Like metro connects and on ramps)
 
             account = next((x for x in snow_accounts if x["number"] == acct), None)
             if not account:
@@ -128,6 +175,7 @@ class ISnowProductLinks(ABC):
 
             linkType = None
             if "Elea Connect" in item[1]: linkType = "Elea Connect"
+            elif "Elea Internet Connect" in item[1]: linkType = "Elea Connect"
             elif "Elea Metro Connect" in item[1]: linkType = "Elea Metro Connect"
             elif "Elea OnRamp" in item[1]: linkType = "Elea On Ramp"
             else:
@@ -140,18 +188,27 @@ class ISnowProductLinks(ABC):
             # TEMP: generates a temp cid, while definitive solution is still on the works
             if not cid:
                 need_cid = True
-                length = 8
-                rdm = randint(10**(length-1), (10**length)-1)
-                temp_cid = f"{config_name_found}"
-                if linkType: temp_cid += f" - {linkType}"
-                temp_cid += f" - {rdm}"
-                cid = temp_cid
+
+                # this is for link that do not have a cid in the new pattern, to avoid bits sent and bits received of the same link to have a different identifier
+                corr_item = None
+                if interface:
+                    corr_item = next((x for x in aItems if x.host.name == item[5] and x.interfaceName == interface), None)
+
+                if corr_item:
+                    cid = corr_item.snowLink.cid
+                else:
+                    length = 8
+                    rdm = randint(10**(length-1), (10**length)-1)
+                    temp_cid = f"{config_name_found}"
+                    if linkType: temp_cid += f" - {linkType}"
+                    temp_cid += f" - {rdm}"
+                    cid = temp_cid
 
             snowLink = None
             corrLink = next((x for x in snow_links if x["u_link_name"] == cid), None)
             # if item[5] == "PSP-ELEAD-RJO1-QFX-01" and interface == "ge-0/0/15": breakpoint()
             # if item[5] == "PSP-ELEAD-RJO1-QFX-01": breakpoint()
-            if not corrLink:
+            if not corrLink and interface:
                 corrLink = next((x for x in snow_links if 
                                 # x["u_customer"] == account["name"] and
                                 x["u_device"] == item[5] and
@@ -164,7 +221,8 @@ class ISnowProductLinks(ABC):
                     acct = corrLink["u_customer"]["display_value"] if corrLink["u_customer"] else None,
                     account_sys_id = corrLink["u_customer.sys_id"] if "u_customer.sys_id" in corrLink else None,
                     client_display_name = config_name_found,
-                    cid = corrLink["u_link_name"],
+                    cid = cid,
+                    commit_rate=commit_rate,
                     linkType = corrLink["u_link_type"],
                     sys_id = corrLink["sys_id"] if corrLink["sys_id"] != "0" else "",
                 )
@@ -174,8 +232,20 @@ class ISnowProductLinks(ABC):
                     account_sys_id = get_value(account, lambda x: x["sys_id"], None),
                     client_display_name = config_name_found,
                     cid = cid,
+                    commit_rate=commit_rate,
                     linkType = linkType
                 )
+
+            snowLink.create_display_name(
+                config_cid=config_cid,
+                cloud=cloud,
+                origin=origin,
+                dest=dest,
+            )
+
+            # # treatment for links that do not have the pattern of cid set (Rename pending)
+            # if item.need_cid:
+            #     item
 
             aItems.append(Item(
                 id = item[0],
@@ -187,13 +257,25 @@ class ISnowProductLinks(ABC):
                 ),
                 snowLink = snowLink,
                 readType = read_type,
+                need_cid=need_cid,
             ))
         
+
+
         # test_item = [x for x in aItems if not x.need_cid][0] # TESTES
         # aItems = [x for x in aItems if x.host.id == test_item.host.id and x.interfaceName == test_item.interfaceName]
+
+        # breakpoint()
+
         return aItems
 
-    def process_total_traffic(self, reads:list[Read]):
+    def process_total_traffic(self, 
+                              reads:list[Read],
+                              items:list[Item]=None, 
+                              rangeType:EnumRangeOptions = EnumRangeOptions.LAST_DAY, 
+                              avgTime:AvgTimeOptions = None,
+                              startDate:int = None,
+                              ):
         data = []
         for read in reads:
             if not read.item.snowLink.sys_id: continue
@@ -210,14 +292,14 @@ class ISnowProductLinks(ABC):
         grouped_items = group_by(items, ["snowLink.cid"])
         aLinks = []
         for key in grouped_items.keys():
-            item = grouped_items[key]
+            item:list[Item] = grouped_items[key]
             aLinks.append({
                 "sys_id": item[0].snowLink.sys_id if item[0].snowLink.sys_id else None,
                 "u_customer": item[0].snowLink.account_sys_id,
                 "u_device": item[0].host.name,
                 "u_interface": item[0].interfaceName,
                 "u_link_cid": item[0].snowLink.cid,
-                "u_link_name": item[0].snowLink.cid,
+                "u_link_name": item[0].snowLink.display_name,
                 "u_link_type": item[0].snowLink.linkType,
                 "original_items": item if item else []
             })
@@ -259,7 +341,13 @@ class ISnowProductLinks(ABC):
             process_batch(chunk, {"iteration": iteration, "start": i, "end": i+chunk_size, "count_list": len(data)})
 
     # Some function may want to post it based on Reads or based on Items
-    def post_total_traffic_reads(self, reads:list[Read] = None, items:list[Item] = None, dataType:EnumSyncType = EnumSyncType.HIST, rangeType:EnumRangeOptions = EnumRangeOptions.LAST_DAY):
+    def post_total_traffic_reads(self, 
+                                 reads:list[Read] = None, 
+                                 items:list[Item] = None, 
+                                 dataType:EnumSyncType = EnumSyncType.HIST, 
+                                 rangeType:EnumRangeOptions = EnumRangeOptions.LAST_DAY,
+                                 avgTime:AvgTimeOptions = AvgTimeOptions.FIVE_MIN,
+                                ):
         total_traffic_data = []
 
         for read in reads:
