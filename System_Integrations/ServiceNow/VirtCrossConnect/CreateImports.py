@@ -178,6 +178,21 @@ cross_legado = {
     "POA1": [
         "ID-POA1-00015",
         "ID-POA1-00287",
+    ],
+    "RJO1": [
+        "ID-RJO1-00009",
+        "ID-RJO1-00013",
+        "ID-RJO1-00100",
+        "ID-RJO1-00101",
+        "ID-RJO1-00104",
+        "ID-RJO1-00119",
+        "ID-RJO1-00120",
+        "ID-RJO1-00121",
+        "ID-RJO1-00122",
+        "ID-RJO1-00123",
+        "ID-RJO1-00124",
+        "ID-RJO1-00138",
+        "ID-RJO1-00281",
     ]
 }
 
@@ -231,6 +246,11 @@ cross_bypass = {
         ("ID-SPO1-00522", "Cliente (A) Dimension Data Brasil Tecnologia da Info não encontrado"),
         ("ID-SPO1-00524", "Cliente (A) Dimension Data Brasil Tecnologia da Info não encontrado"),
         ("ID-SPO1-01191", "Rack (A) AF18-A dentro de data hall SPO1-2-DH09, não encontrado"),
+        ("ID-SPO1-01071", "Rack (A) AF18-A dentro de data hall SPO1-2-DH09, não encontrado"),
+        ("ID-SPO1-01267", "Rack (A) AK59 B dentro de data hall SPO1-T-TC01, não encontrado"),
+        ("ID-SPO1-01068", "Rack (B) AF18-A dentro de data hall SPO1-2-DH09, não encontrado"),
+        ("ID-SPO1-01268", "Rack (A) AK59 B dentro de data hall SPO1-T-TC01, não encontrado"),
+        ("ID-SPO1-01190", "Rack (A) AF18-A dentro de data hall SPO1-2-DH09, não encontrado"),
     ],
     "POA1": [
         ("ID-POA1-00246", "data hall (B)  não encontrado"),
@@ -245,7 +265,79 @@ cross_bypass = {
         ("ID-POA1-00013", "Rack (A) AK12 dentro de data hall POA1-1-DH01, não encontrado"),
         ("ID-POA1-00196", "Rack (A) AK12 dentro de data hall POA1-1-DH01, não encontrado"),
         ("ID-POA1-00011", "Rack (A) AOR25 dentro de data hall POA1-1-DH01, não encontrado"),
-        ("ID-POA1-00111", "Rack (A) BJ15 dentro de data hall POA1-1-DH01, não encontrado")
+        ("ID-POA1-00111", "Rack (A) BJ15 dentro de data hall POA1-1-DH01, não encontrado"),
+        ("ID-POA1-00501", "Cliente final FIERGS não encontrado"),
+        ("ID-POA1-00498", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado \n Rack (B) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00480", "Rack (A) AZ22 dentro de data hall POA1-1-DH01, não encontrado"),
+        ("ID-POA1-00323", ""),
+        ("ID-POA1-00497", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado \n Rack (B) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00476", "Rack (A) AL36.B dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00485", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado \n Rack (B) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00406", ""),
+        ("ID-POA1-00493", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado \n Rack (B) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00494", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado \n Rack (B) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00460", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado"),
+        ("ID-POA1-00477", "Rack (A) AL36.B dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00486", "Cliente (A) IX BR (ESPELHAMENTO) não encontrado \n Rack (A) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+        ("ID-POA1-00499", "Rack (A) AL36.B dentro de data hall POA1-3-TC01, não encontrado \n Rack (B) BN16.A dentro de data hall POA1-3-DH02, não encontrado"),
+        ("ID-POA1-00459", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado"),
+        ("ID-POA1-00475", "data hall (B) TL01 não encontrado"),
+        ("ID-POA1-00405", ""),
+        ("ID-POA1-00496", "Cliente (B) IX BR (ESPELHAMENTO) não encontrado \n Rack (B) AL43.C dentro de data hall POA1-3-TC01, não encontrado"),
+    ],
+    "RJO1": [
+        ("ID-RJO1-00017", ""),
+        ("ID-RJO1-00019", ""),
+        ("ID-RJO1-00016", ""),
+        ("ID-RJO1-00015", ""),
+        ("ID-RJO1-00018", ""),
+        ("ID-RJO1-00136", "Rack (B) AK03 dentro de data hall RJO1-1-TC02, não encontrado"),
+        ("ID-RJO1-00138", "Cliente (A) N/C não encontrado"),
+        ("ID-RJO1-00222", "Rack (A) AN19 dentro de data hall RJO1-1-TC01, não encontrado \n Rack (B) AS07-A dentro de data hall RJO1-2-DH01, não encontrado"),
+        ("ID-RJO1-00491", "Cliente (B) NEW TELECOM não encontrado"),
+        ("ID-RJO1-00146", ""),
+        ("ID-RJO1-00162", "Rack (A) TCO1 dentro de data hall RJO1-1-TR01, não encontrado"),
+        ("ID-RJO1-00482", "Rack (A) AK13-B dentro de data hall RJO1-2-DH01, não encontrado"),
+        ("ID-RJO1-00077", "Cliente (A) WLENET não encontrado"),
+        ("ID-RJO1-00062", "Cliente (B) WLENET não encontrado \n Cliente final WLENET não encontrado"),
+        ("ID-RJO1-00055", "Cliente (A) WLENET não encontrado"),
+    ],
+    "CTA1": [
+        ("ID-CTA-00306", "Rack (B) BE31 B dentro de data hall CTA1-1-DH01, não encontrado"),
+        ("ID-CTA-00225", "Cliente (A) UNI.CLOUD não encontrado \n Cliente final UNI.CLOUD não encontrado"),
+        ("ID-CTA-00091", "Cliente (A) UNI.CLOUD não encontrado \n Cliente final UNI.CLOUD não encontrado"),
+        ("ID-CTA-00092", "Cliente (A) UNI.CLOUD não encontrado \n Cliente final UNI.CLOUD não encontrado"),
+        ("ID-CTA-00226", "Cliente (A) UNI.CLOUD não encontrado \n Cliente final UNI.CLOUD não encontrado"),
+        ("ID-CTA-00283", "Cliente (A) UNI.CLOUD não encontrado \n Cliente final UNI.CLOUD não encontrado"),
+        ("ID-CTA-00286", "Cliente (A) UNI.CLOUD não encontrado \n Cliente final UNI.CLOUD não encontrado"),
+    ],
+    "BSB1": [
+        ("ID-BSB1-00356", "Rack (B) T6_SL1 dentro de data hall BSB1-SL-DH03, não encontrado"),
+        ("ID-BSB1-00039", "Rack (B) SALA OPERAÇÃO dentro de data hall BSB1-SS-DH01, não encontrado"),
+        ("ID-BSB1-00363", "Cliente (B) BR.DIGITAL não encontrado \n Rack (A) T0-01 dentro de data hall BSB1-SS-DH01, não encontrado"),
+        ("ID-BSB1-00266", ""),
+        ("ID-BSB1-00354", "Rack (B) T6_SL1 dentro de data hall BSB1-SL-DH03, não encontrado"),
+        ("ID-BSB1-00355", "Rack (B) T4_SL1 dentro de data hall BSB1-SL-DH03, não encontrado"),
+        ("ID-BSB1-00353", "Rack (B) T4_SL1 dentro de data hall BSB1-SL-DH03, não encontrado"),
+    ],
+    "BSB2": [
+        ("ID-BSB2-00515", "Rack (B) F21RAO-S dentro de data hall BSB2-1-DH01, não encontrado"),
+        ("ID-BSB2-00547", "Rack (A) F14RAW dentro de data hall BSB2-1-DH02, não encontrado"),
+        ("ID-BSB2-00546", "Rack (A) F14RAQ dentro de data hall BSB2-1-DH02, não encontrado"),
+        ("ID-BSB2-00538", "Rack (B) F2R2-S dentro de data hall BSB2-T-TC02, não encontrado"),
+        ("ID-BSB2-00095", "Rack (B) F2R2-B dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00539", "Rack (A) F2R2-S dentro de data hall BSB2-T-TC02, não encontrado"),
+        ("ID-BSB2-00544", "Rack (B) F2R5 dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00542", "Rack (B) F2R5 dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00540", "Rack (A) F2R2-S dentro de data hall BSB2-T-TC02, não encontrado"),
+        ("ID-BSB2-00511", "Rack (B) F2R5 dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00533", "Rack (B) F2R2-B dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00534", "Cliente (B) JET TELECOM-RD não encontrado"),
+        ("ID-BSB2-00060", "Rack (B) F2RAQ dentro de data hall BSB2-1-DH01, não encontrado"),
+        ("ID-BSB2-00062", "Rack (B) F2RAQ dentro de data hall BSB2-1-DH01, não encontrado"),
+        ("ID-BSB2-00543", "Rack (B) F2R5 dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00541", "Rack (B) F2R5 dentro de data hall BSB2-T-TC03, não encontrado"),
+        ("ID-BSB2-00510", "Rack (B) F2R5 dentro de data hall BSB2-T-TC03, não encontrado"),
     ]
 }
 
@@ -299,13 +391,16 @@ if __name__ == '__main__':
             list_bypass = cross_bypass.get(site)
             if list_bypass:
                 for x in list_bypass:
+                    # try:
                     cross = df["ID Cross"] == x[0]
                     obs = df.loc[cross, "Observações Gerais"].iloc[0]
                     obs = str(obs)
                     obs = "" if obs == "nan" else ""
                     df.loc[cross, "Observações Gerais"] = obs + "\n" + x[1]
                     df.loc[cross, "bypass"] = "SIM"
-
+                    # except Exception as e:
+                    #     breakpoint()
+        
             # use lookup to replace:,
             # => customer (Cliente Ponta A / Cliente Ponta B)")
 
@@ -417,9 +512,7 @@ if __name__ == '__main__':
                     match={"Site": "Site", "Data Hall": "Data Hall Ponta B", "De": "Rack Ponta B"},
                     apply={"Para": "Rack Ponta B"}
                 )
-            # if site == "POA1": breakpoint()
-            
-            # if site == "BSB2": breakpoint()
+                
             
             # df['Rack Ponta A'] = df['Rack Ponta A'].map(lookup_rack_dict).fillna(df['Rack Ponta A'])
             # df['Rack Ponta B'] = df['Rack Ponta B'].map(lookup_rack_dict).fillna(df['Rack Ponta B'])
@@ -459,5 +552,6 @@ if __name__ == '__main__':
             print(f"Error analyzing cross of site {site}")
             print(traceback.format_exc())
             print(e)
+
             
 
