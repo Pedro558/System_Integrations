@@ -274,6 +274,7 @@ def post_to_snow(newStructure, logger=None):
     }
     params = {"sysparm_input_display_value":"true"}
 
+
     get_display_value = lambda item: get_value(item, lambda x: x["display_value"], item)
     def parse_values(arr):
         return [
@@ -405,6 +406,7 @@ def post_to_snow(newStructure, logger=None):
             if not error:
                 # breakpoint()
                 logger(f"\t\tCreating {asset['name']}")
+                # breakpoint()
                 response = post_to_servicenow_table(url_snow, "cmdb_ci_netgear", asset, token, params) 
                 if response["error"]:
                     asset["post_status"] = "error"
@@ -464,6 +466,7 @@ def post_to_snow(newStructure, logger=None):
 
             # breakpoint()
             logger(f"\t\tCreating interface {interface['interface_name']}")
+            # breakpoint()
             response = post_to_servicenow_table(url_snow, "dscy_switchport", interface, token, params) 
             if response["error"]:
                 interface["post_status"] = "error"
@@ -594,6 +597,7 @@ def post_to_snow(newStructure, logger=None):
 
             # breakpoint()
             logger(f"\tCreating cross {cross['u_id_cross']}")
+            # breakpoint()
             response = post_to_servicenow_table(url_snow, "u_cmdb_ci_bs_cross_connect", cross, token, params)  
             if response["error"]:
                 cross["post_status"] = "error"
@@ -703,6 +707,7 @@ def post_to_snow(newStructure, logger=None):
             # breakpoint()
                 
             logger(f"\t\tCreating {source_a} to {source_b}") 
+            # breakpoint()
             response = post_to_servicenow_table(url_snow, "dscy_net_wire", wire, token, params)
             if response["error"]:
                 wire["post_status"] = "error"
@@ -818,8 +823,10 @@ def create_new_structure(path, fileName, oldCross):
         dict_old_cross = next((x for x in dict_old_crosses if x["ID Cross"] == idCross), None)
 
         data_ativacao = get_value(dict_old_cross, lambda x: x["Activation Date"], None)
+
         if pd.isnull(data_ativacao): data_ativacao = None
         else: data_ativacao = data_ativacao.isoformat()
+
 
         request = get_value(dict_old_cross, lambda x: x["Request"], None)
         if pd.isna(request): request = None
