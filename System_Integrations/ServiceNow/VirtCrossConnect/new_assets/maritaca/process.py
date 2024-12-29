@@ -90,7 +90,7 @@ def get_token_count(data):
     return maritalk.count_tokens(json.dumps(data)) + instructions_count
 
 def divide_load(data, threashhold=30000):
-    number_of_chunks = 1
+    number_of_chunks = 3
     chunks = []
     while True:
         chunks = []
@@ -196,11 +196,19 @@ def parse_file(pf, path, site):
     if pf == 'json':
         df = pd.read_json(f"{path}/{site}_assets_maritaca.json")
         df.to_excel(f"{path}/{site}_assets_maritaca.xlsx", index=True)
+        df = pd.read_json(f"{path}/{site}_assets_maritaca_original.json")
+        df.to_excel(f"{path}/{site}_assets_maritaca.xlsx_original", index=True)
     elif pf == 'xlsx':
         df = pd.read_excel(f"{path}/{site}_assets_maritaca.xlsx")
         df = df.to_dict(orient="records")
         with open(f"{path}/{site}_assets_maritaca.json", 'w', encoding='utf-8') as f:
             json.dump(df, f, ensure_ascii=False, indent=4)
+
+        df = pd.read_excel(f"{path}/{site}_assets_maritaca_original.xlsx")
+        df = df.to_dict(orient="records")
+        with open(f"{path}/{site}_assets_maritaca_original.json", 'w', encoding='utf-8') as f:
+            json.dump(df, f, ensure_ascii=False, indent=4)
+
 
 
 def merge(df1, df2, how="right", on=["key"], apply_before_cleanup=lambda x:x):
@@ -231,6 +239,7 @@ parser = argparse.ArgumentParser(description="process some flags.")
 parser.add_argument('-s', '--site', type=str, help='site to perform the processing (uses the <site>_assets.json file)')
 parser.add_argument('-y', action='store_true', default=False, help='process data no matter token count')
 parser.add_argument('-pf', '--parsefile', type=str, help='"json" or "xlsx" the one informed will overwrite the other one')
+parser.add_argument('-mf', action='store_true', default=False, help='merges the current maritaca file with the assets one')
 
 if __name__ == '__main__':
 
@@ -238,6 +247,7 @@ if __name__ == '__main__':
     site = args.site
     args_y = args.y
     pf = args.parsefile
+    mf = args.mf
 
     path = f"{pathImports}{site}"
     # pathfile = f"{path}/{site}_assets.json"
@@ -303,21 +313,26 @@ if __name__ == '__main__':
     if list_assets_to_treat:
         # TEST
         # breakpoint()
-        list_assets_to_treat = list_assets_to_treat[0:100]
+        list_assets_to_treat = list_assets_to_treat[0:250]
 
         token_count = get_token_count(list_assets_to_treat)
         default_message = f"At least {token_count} tokens will be consumed to process this data."
-        if not args_y:
-            print(f"---> {default_message} Proceed? [Y/N]")
-            awnser = "N"
-            while (awnser := input("> ").upper()) not in ["Y", "N"]:
-                print("Use [Y/N]")
+        if not mf:
+            if not args_y:
+                print(f"---> {default_message} Proceed? [Y/N]")
+                awnser = "N"
+                while (awnser := input("> ").upper()) not in ["Y", "N"]:
+                    print("Use [Y/N]")
 
-            if awnser != "Y": exit()
+                if awnser != "Y": exit()
+            else:
+                print("---> "+default_message)
+
+            list_assets_to_treat_adjusted = execute_ai(list_assets_to_treat)
+
         else:
-            print("---> "+default_message)
+            list_assets_to_treat_adjusted = []
 
-        list_assets_to_treat_adjusted = execute_ai(list_assets_to_treat)
 
     # df_final = df_new_ajusted.combine_first(already_ajusted)
     df_new_ajusted = pd.json_normalize(list_assets_to_treat_adjusted)
@@ -330,15 +345,16 @@ if __name__ == '__main__':
         already_ajusted["key"] = already_ajusted["index"]
         df_final = merge_outer_right(already_ajusted, df_final, on=["key"])
         df_final["index"] = df_final["index"].astype(int)
+
+        if original_already_ajusted.empty: original_already_ajusted = df_final
+
+        original_already_ajusted["key"] = original_already_ajusted["index"]
+        already_ajusted["key"] = already_ajusted["index"]
+        original_already_ajusted = merge_outer_right(already_ajusted, original_already_ajusted, on=["key"])
+        original_already_ajusted["index"] = original_already_ajusted["index"].astype(int)
+
+        original_already_ajusted = original_already_ajusted.drop(columns=["key"])
         df_final = df_final.drop(columns=["key"])
-
-        # if original_already_ajusted.empty: original_already_ajusted = df_final
-
-        # original_already_ajusted["key"] = original_already_ajusted["index"]
-        # already_ajusted["key"] = already_ajusted["index"]
-        # original_already_ajusted = merge_outer_right(already_ajusted, original_already_ajusted, on=["key"])
-        # original_already_ajusted["index"] = original_already_ajusted["index"].astype(int)
-        # original_already_ajusted = original_already_ajusted.drop(columns=["key"])
 
     def determine_asset_name(df):
         # In some cases, maritaca was changing the Patch Panel name wrongfully
@@ -361,9 +377,12 @@ if __name__ == '__main__':
     with open(f"{path}/{site}_assets_maritaca.json", 'w', encoding='utf-8') as f:
         json.dump(df.to_dict(orient="records"), f, ensure_ascii=False, indent=4)
 
+    with open(f"{path}/{site}_assets_maritaca_original.json", 'w', encoding='utf-8') as f:
+        json.dump(original_already_ajusted.to_dict(orient="records"), f, ensure_ascii=False, indent=4)
+
     # df = pd.json_normalize(list_assets_adjusted)
     df.to_excel(f"{path}/{site}_assets_maritaca.xlsx", index=False)
-    # original_already_ajusted.to_excel(f"{path}/{site}_assets_maritaca_original.xlsx", index=False)
+    original_already_ajusted.to_excel(f"{path}/{site}_assets_maritaca_original.xlsx", index=False)
     
 
     # ===
@@ -379,10 +398,12 @@ if __name__ == '__main__':
         if column in ["index"]: continue
         merged_df[column] = merged_df[f'{column}_df2'].combine_first(merged_df[f'{column}_df1'])
 
-    merged_df = merged_df.drop(columns=[f'{column}_df1' for column in columns_to_clean_up] + [f'{column}_df2' for column in columns_to_clean_up])
+    merged_df = merged_df.drop(columns=[f'{column}_df2' for column in columns_to_clean_up] + [f'{column}_df1' for column in columns_to_clean_up])
+    merged_df.loc()
 
     with open(f"{path}/{site}_assets.json", 'w', encoding='utf-8') as f:
         json.dump(merged_df.to_dict(orient="records"), f, ensure_ascii=False, indent=4)
 
     # df = pd.json_normalize(list_assets_adjusted)
+    # breakpoint()
     merged_df.to_excel(f"{path}/{site}_assets.xlsx", index=False)
