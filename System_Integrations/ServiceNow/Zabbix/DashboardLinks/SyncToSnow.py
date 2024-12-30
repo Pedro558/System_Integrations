@@ -1,5 +1,6 @@
+import os
 
-
+from System_Integrations.classes.factory.zabbix.SyncToSnowFactory import SyncToSnowFactory
 from System_Integrations.classes.requests.zabbix.SyncProductReadsSnow import SyncProductLinksSnow
 from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumRangeOptions, EnumSyncType
 from System_Integrations.classes.strategies.Azure.BlobStorage import BlobStorage
@@ -9,17 +10,35 @@ from System_Integrations.classes.strategies.zabbix.ProductLinks.NewZbxDB import 
 from System_Integrations.classes.strategies.zabbix.ProductLinks.OldZbxDB import OldZbxDB
 
 # db = OldZbxDB()
-db = NewZbxDB()
-# targetSystem = SnowProductLinks()
-targetSystem = SnowProductLinksImg(
-    fileStorage = BlobStorage()
-)
+# db = NewZbxDB()
+# targetSystem = SnowProductLinksImg(
+#     fileStorage = BlobStorage()
+# )
+
+
+dataType = os.getenv("RD_OPTION_DATA_TYPE")
+# dataType = EnumSyncType.TRENDS.value
+dataType = EnumSyncType(dataType)
+
+avgTime = os.getenv("RD_OPTION_AVG_TIME")
+# avgTime = AvgTimeOptions.ONE_HOUR.value[0]
+avgTime = AvgTimeOptions.get(avgTime)
+
+rangeType = os.getenv("RD_OPTION_RANGE_TYPE")
+# rangeType = EnumRangeOptions.LAST_MONTH.value
+rangeType = EnumRangeOptions(rangeType)
+
+env = os.getenv("RD_OPTION_ENV")
+
+factory = SyncToSnowFactory()
+db = factory.create_db(source="new") 
+targetSystem = factory.create_snow_processor(info_as="image", env=env)
 
 request = SyncProductLinksSnow(
     db,
     targetSystem,
-    dataType = EnumSyncType.TRENDS,
-    avgTime = AvgTimeOptions.ONE_DAY,
-    rangeType = EnumRangeOptions.LAST_MONTH,
+    dataType = dataType,
+    avgTime = avgTime,
+    rangeType = rangeType,
 )
 request.run()

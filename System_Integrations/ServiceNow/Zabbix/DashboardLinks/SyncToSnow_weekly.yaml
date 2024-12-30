@@ -20,22 +20,52 @@
   - hidden: true 
     name: appid 
     secure: true 
-    storagePath: keys/project/Virtualization/AZURE_APP_ID
+    storagePath: keys/project/System_Integrations/azure_app_id
     valueExposed: true 
   - hidden: true 
     name: appsecret 
     secure: true 
-    storagePath: keys/project/Virtualization/AZURE_APP_SECRET
-    valueExposed: true
+    storagePath: keys/project/System_Integrations/azure_app_secret
+    valueExposed: true 
+  # TODO RDK TEMPORARY, REMOVE THIS
+  - hidden: true 
+    name: NZBX_SPO1_2_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/NZBX_SPO1_2_TEST
+    valueExposed: true   
+  - hidden: true 
+    name: SNOW_CLIENT_ID_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/SNOW_CLIENT_ID_TEST
+    valueExposed: true   
+  - hidden: true 
+    name: SNOW_CLIENT_SECRET_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/SNOW_CLIENT_SECRET_TEST
+    valueExposed: true   
+  - hidden: true 
+    name: SNOW_CLIENT_REFRESH_TOKEN_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/SNOW_CLIENT_REFRESH_TOKEN_TEST
+    valueExposed: true  
+  - hidden: true 
+    name: AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
+    valueExposed: true  
   scheduleEnabled: true 
-  schedule:
-    crontab: '0 0 0 ? * * *'
+  retry:
+    delay: '10'
+    retry: '3'
+  # schedule:
+  #   crontab: '0 */1 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\Virtualization\ScmImport\virtualization\proxmox\SyncNetbox\SyncNetbox.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\OpenGestaoXTicket\OpenGestaoXTicket.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1
       scriptInterpreter: powershell.exe -File
+  timeout: 60s

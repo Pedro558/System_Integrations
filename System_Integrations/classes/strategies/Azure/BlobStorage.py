@@ -28,7 +28,8 @@ class BlobStorage(IFileStorage):
 
 
     def auth(self):
-        self.token = os.getenv("storageAccountKey")
+        # TODO RDK TEMPORARY, REMOVE THIS
+        self.token = os.getenv("RD_OPTION_AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST") # os.getenv("storageAccountKey")
         self.containerClient = ContainerClient(
             account_url=self.accountUrl,
             credential=self.token,

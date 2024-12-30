@@ -1,3 +1,4 @@
+import os
 from commons.classes.utils import get_kwargs
 from .IZbxDB import IZbxDB 
 
@@ -12,6 +13,14 @@ class NewZbxDB(IZbxDB):
     def __init__(self, *args, **kwargs):
         params = {**get_kwargs(), **kwargs}
         super().__init__(**params)
+
+    # def auth(self, *args):
+    #     super().auth(args)
+    #     self.db_params = {
+    #         **self.db_params,
+    #         'password': os.getenv("RD_OPTION_OZBX_RJO1_1_TEST"), 
+    #         'port': 3306
+    #     }
 
     def get_items_product_links(self, *args):
         # query_items = f"""

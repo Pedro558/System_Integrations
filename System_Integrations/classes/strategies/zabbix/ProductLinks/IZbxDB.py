@@ -29,7 +29,7 @@ class IZbxDB(ABC):
             'host': self.ipaddress, # or os.getenv("zabbix_db_ip"),
             'database': self.database, # or  os.getenv("zabbix_db_name"),
             'user': self.user, # or os.getenv("zabbix_db_user"),
-            'password': os.getenv("zabbix_db_pwd"), # TODO get_credential
+            'password': os.getenv(self.secretName),
             'port': 3306
         }
 

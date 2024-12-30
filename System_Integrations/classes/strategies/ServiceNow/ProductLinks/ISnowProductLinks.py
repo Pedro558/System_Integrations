@@ -29,7 +29,8 @@ class ISnowProductLinks(ABC):
         self.refreshToken = refreshToken
     
     def auth(self):
-        self.snow_url = "https://servicenow.eleadatacenters.com/" if self.env == "prd" else "https://eleadev.service-now.com/"
+        # self.snow_url = "https://servicenow.eleadatacenters.com/" if self.env == "prd" else "https://eleadev.service-now.com/"
+        self.snow_url = "" if self.env == "prd" else "https://eleadev.service-now.com/"
 
         self.snow_client_id = self.clientId or get_api_token(f'servicenow-{self.env}-client-id-oauth')
         self.snow_client_secret = self.clientSecret or get_api_token(f'servicenow-{self.env}-client-secret-oauth')

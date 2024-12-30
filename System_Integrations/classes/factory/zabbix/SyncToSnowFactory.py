@@ -18,11 +18,16 @@ class SyncToSnowFactory:
     zbxDbs = [
         NewZbxDB(
             ipaddress="10.11.70.92", database="zabbix",
-            user="zabbix", secretName=""
+            user="zabbix", secretName="RD_OPTION_NZBX_SPO1_2_TEST" # TODO RDK TEMPORARY, REMOVE THIS 
         ),
+        # TODO Put in information for the other SPO1 DB
+        # NewZbxDB(
+        #     ipaddress="10.11.70.92", database="zabbix",
+        #     user="zabbix", secretName="RD_OPTION_NZBX_SPO1_2_TEST" # TODO RDK TEMPORARY, REMOVE THIS
+        # ),
         OldZbxDB(
             ipaddress="10.127.69.90", database="zabbix",
-            user="zabbix", secretName=""
+            user="zabbix", secretName="RD_OPTION_OZBX_RJO1_1_TEST" # TODO RDK TEMPORARY, REMOVE THIS
         ),
     ]
 
@@ -59,9 +64,10 @@ class SyncToSnowFactory:
             targetSystem = SnowProductLinksImg(
                 env=env,
                 # For local testing
-                clientId = os.getenv("snow_client_id"),
-                clientSecret = os.getenv("snow_client_secret"),
-                refreshToken = os.getenv("snow_refresh_token"),
+                # TODO RDK TEMPORARY, REMOVE THIS
+                clientId = os.getenv("RD_OPTION_SNOW_CLIENT_ID_TEST"),
+                clientSecret = os.getenv("RD_OPTION_SNOW_CLIENT_SECRET_TEST"),
+                refreshToken = os.getenv("RD_OPTION_SNOW_REFRESH_TOKEN_TEST"),
 
                 fileStorage = BlobStorage()
             )
