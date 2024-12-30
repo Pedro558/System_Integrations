@@ -1,0 +1,28 @@
+- id: id
+  name: TESTE_IMPORT 
+  group: TESTE
+  executionEnabled: true
+  loglevel: INFO
+  nodeFilterEditable: false
+  options: 
+  - hidden: true 
+    name: appid 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_id
+    valueExposed: true 
+  - hidden: true 
+    name: appsecret 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_secret
+    valueExposed: true 
+  scheduleEnabled: true 
+  plugins:
+    ExecutionLifecycle: null
+  sequence:
+    commands:
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\Zabbix\DashboardLinks\SyncToSnow.ps1
+      keepgoing: false
+      strategy: node-first
+      fileExtension: ps1
+      scriptInterpreter: powershell.exe -File
+  timeout: 60s
