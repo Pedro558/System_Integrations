@@ -1,0 +1,71 @@
+- id: id
+  name: Weekly - image
+  group: Service Now/Link Monitoring
+  executionEnabled: true
+  loglevel: INFO
+  nodeFilterEditable: false
+  options: 
+  - hidden: true 
+    name: DATA_TYPE 
+    value: "trend"
+  - hidden: true 
+    name: AVG_TIME 
+    value: "ONE_HOUR"
+  - hidden: true 
+    name: RANGE_TYPE 
+    value: "LAST_WEEK"
+  - hidden: true 
+    name: ENV 
+    value: "dev"
+  - hidden: true 
+    name: appid 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_id
+    valueExposed: true 
+  - hidden: true 
+    name: appsecret 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_secret
+    valueExposed: true 
+  # TODO RDK TEMPORARY, REMOVE THIS
+  - hidden: true 
+    name: NZBX_SPO1_2_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/NZBX_SPO1_2_TEST
+    valueExposed: true   
+  - hidden: true 
+    name: SNOW_CLIENT_ID_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/SNOW_CLIENT_ID_TEST
+    valueExposed: true   
+  - hidden: true 
+    name: SNOW_CLIENT_SECRET_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/SNOW_CLIENT_SECRET_TEST
+    valueExposed: true   
+  - hidden: true 
+    name: SNOW_CLIENT_REFRESH_TOKEN_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/SNOW_CLIENT_REFRESH_TOKEN_TEST
+    valueExposed: true  
+  - hidden: true 
+    name: AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
+    secure: true 
+    storagePath: keys/project/System_Integrations/AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
+    valueExposed: true  
+  scheduleEnabled: true 
+  retry:
+    delay: '10'
+    retry: '3'
+  # schedule:
+  #   crontab: '0 */1 * ? * * *'
+  plugins:
+    ExecutionLifecycle: null
+  sequence:
+    commands:
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\OpenGestaoXTicket\OpenGestaoXTicket.ps1
+      keepgoing: false
+      strategy: node-first
+      fileExtension: ps1
+      scriptInterpreter: powershell.exe -File
+  timeout: 60s

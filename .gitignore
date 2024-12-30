@@ -1,3 +1,6 @@
 *.xlsx
 *.pyc
-System_Integrations/ServiceNow/VirtCrossConnect/new_assets/*
+System_Integrations/ServiceNow/VirtCrossConnect/new_assets/import_data/*
+System_Integrations/ServiceNow/VirtCrossConnect/new_assets/import_data/maritaca/*.json
+System_Integrations/ServiceNow/VirtCrossConnect/new_assets/maritaca/maritaca_exemplo_gabarito.json
+System_Integrations/ServiceNow/VirtCrossConnect/new_assets/maritaca/maritaca_exemplo.json
