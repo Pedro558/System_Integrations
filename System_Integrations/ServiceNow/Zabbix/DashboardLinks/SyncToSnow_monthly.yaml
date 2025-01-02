@@ -28,8 +28,8 @@
     storagePath: keys/project/System_Integrations/azure_app_secret
     valueExposed: true 
   scheduleEnabled: true 
-  # schedule:
-  #   crontab: '0 0 0 ? * * *'
+  schedule:
+    crontab: '0 */5 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:
