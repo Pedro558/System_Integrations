@@ -1,6 +1,6 @@
 - id: id
-  name: Monthly - image
-  group: Service Now/Link Monitoring
+  name: DEV - Monthly - image
+  group: ServiceNow Integration/Zabbix - Link Monitoring
   executionEnabled: true
   loglevel: INFO
   nodeFilterEditable: false
@@ -34,7 +34,7 @@
     ExecutionLifecycle: null
   sequence:
     commands:
-    - scriptfile: C:\rundeck\projects\Virtualization\ScmImport\virtualization\proxmox\SyncNetbox\SyncNetbox.ps1
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\Zabbix\DashboardLinks\SyncToSnow.ps1
       keepgoing: false
       strategy: node-first
       fileExtension: ps1
