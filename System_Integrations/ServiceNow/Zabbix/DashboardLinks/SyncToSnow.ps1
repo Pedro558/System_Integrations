@@ -7,4 +7,4 @@ $activateScript = Join-Path -Path $venvPath -ChildPath "Scripts\Activate.ps1"
 $scriptPath = "C:\rundeck\projects\System_Integrations\ScmImport"
 $scriptModule = "System_Integrations.ServiceNow.Zabbix.DashboardLinks.SyncToSnow"
 Set-Location -Path $scriptPath
-python -m $scriptModule
+python -u -m $scriptModule
