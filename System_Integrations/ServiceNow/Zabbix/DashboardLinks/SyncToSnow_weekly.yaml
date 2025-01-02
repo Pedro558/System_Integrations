@@ -32,7 +32,7 @@
     delay: '10'
     retry: '3'
   schedule:
-    crontab: '0 */5 * ? * * *'
+    crontab: '0 */7 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:
