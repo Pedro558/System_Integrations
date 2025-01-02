@@ -45,6 +45,8 @@ class SyncToSnowFactory:
 
 
     def create_db(self, source:Literal["old", "new", "dynamic"] = "dynamic"):
+        source = source if source else self.source
+
         db = None
 
         db_options:list[IZbxDB] = []
