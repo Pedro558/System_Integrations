@@ -65,6 +65,12 @@ class SnowProductLinksImg(ISnowProductLinks):
                 item_reads_sent = [(x.timeDatetime, x.valueMB) for x in reads if x.item.id == item_sent.id]
                 item_reads_received = [(x.timeDatetime, x.valueMB) for x in reads if x.item.id == item_received.id]
 
+                if not item_reads_sent:
+                    print(f"NO DATA FOR {item_sent.name}... SKIPPING")
+                if not item_reads_received:
+                    print(f"NO DATA FOR {item_received.name}... SKIPPING")
+                if not item_reads_sent or not item_reads_received:
+                    continue
 
                 # Create DataFrames for both
                 # inverted to show the client view, instead of the device view
