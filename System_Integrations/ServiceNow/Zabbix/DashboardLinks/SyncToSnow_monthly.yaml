@@ -29,7 +29,7 @@
     valueExposed: true 
   scheduleEnabled: true 
   schedule:
-    crontab: '0 */5 * ? * * *'
+    crontab: '0 */7 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:
