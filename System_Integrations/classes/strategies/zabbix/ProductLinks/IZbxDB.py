@@ -9,13 +9,13 @@ from dotenv import load_dotenv
 load_dotenv(override=True)
 
 class IZbxDB(ABC):
-    db_params = {
-        'host': None,
-        'database': None,
-        'user': None,
-        'password': None,
-        'port': None,
-    }
+    # db_params = {
+    #     'host': None,
+    #     'database': None,
+    #     'user': None,
+    #     'password': None,
+    #     'port': None,
+    # }
 
     def __init__(self, ipaddress=None, database=None, user=None, secretName=None, *args):
         self.conn = None
