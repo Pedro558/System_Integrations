@@ -20,13 +20,13 @@
   - hidden: true 
     name: appid 
     secure: true 
-    storagePath: keys/project/Virtualization/AZURE_APP_ID
+    storagePath: keys/project/System_Integrations/azure_app_id
     valueExposed: true 
   - hidden: true 
     name: appsecret 
     secure: true 
-    storagePath: keys/project/Virtualization/AZURE_APP_SECRET
-    valueExposed: true
+    storagePath: keys/project/System_Integrations/azure_app_secret
+    valueExposed: true 
   scheduleEnabled: true 
   # schedule:
   #   crontab: '0 0 0 ? * * *'
