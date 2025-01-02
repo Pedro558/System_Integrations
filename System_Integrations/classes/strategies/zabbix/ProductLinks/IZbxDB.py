@@ -2,6 +2,7 @@ import os
 from abc import ABC, abstractmethod
 
 import pymysql
+from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumReadType, EnumSyncType, Item, Read
 from dotenv import load_dotenv
 
@@ -29,7 +30,8 @@ class IZbxDB(ABC):
             'host': self.ipaddress, # or os.getenv("zabbix_db_ip"),
             'database': self.database, # or  os.getenv("zabbix_db_name"),
             'user': self.user, # or os.getenv("zabbix_db_user"),
-            'password': os.getenv(self.secretName),
+            'password': get_api_token(self.secretName),
+            # 'password': os.getenv(self.secretName), # FOR TESTS
             'port': 3306
         }
 

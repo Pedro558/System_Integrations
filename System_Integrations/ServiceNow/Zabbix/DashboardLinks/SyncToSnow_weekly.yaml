@@ -1,6 +1,6 @@
 - id: id
-  name: Weekly - image
-  group: Service Now/Link Monitoring
+  name: DEV - Weekly - image
+  group: ServiceNow Integration/Zabbix - Link Monitoring
   executionEnabled: true
   loglevel: INFO
   nodeFilterEditable: false
@@ -28,31 +28,31 @@
     storagePath: keys/project/System_Integrations/azure_app_secret
     valueExposed: true 
   # TODO RDK TEMPORARY, REMOVE THIS
-  - hidden: true 
-    name: NZBX_SPO1_2_TEST
-    secure: true 
-    storagePath: keys/project/System_Integrations/NZBX_SPO1_2_TEST
-    valueExposed: true   
-  - hidden: true 
-    name: SNOW_CLIENT_ID_TEST
-    secure: true 
-    storagePath: keys/project/System_Integrations/SNOW_CLIENT_ID_TEST
-    valueExposed: true   
-  - hidden: true 
-    name: SNOW_CLIENT_SECRET_TEST
-    secure: true 
-    storagePath: keys/project/System_Integrations/SNOW_CLIENT_SECRET_TEST
-    valueExposed: true   
-  - hidden: true 
-    name: SNOW_CLIENT_REFRESH_TOKEN_TEST
-    secure: true 
-    storagePath: keys/project/System_Integrations/SNOW_CLIENT_REFRESH_TOKEN_TEST
-    valueExposed: true  
-  - hidden: true 
-    name: AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
-    secure: true 
-    storagePath: keys/project/System_Integrations/AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
-    valueExposed: true  
+  # - hidden: true 
+  #   name: NZBX_SPO1_2_TEST
+  #   secure: true 
+  #   storagePath: keys/project/System_Integrations/NZBX_SPO1_2_TEST
+  #   valueExposed: true   
+  # - hidden: true 
+  #   name: SNOW_CLIENT_ID_TEST
+  #   secure: true 
+  #   storagePath: keys/project/System_Integrations/SNOW_CLIENT_ID_TEST
+  #   valueExposed: true   
+  # - hidden: true 
+  #   name: SNOW_CLIENT_SECRET_TEST
+  #   secure: true 
+  #   storagePath: keys/project/System_Integrations/SNOW_CLIENT_SECRET_TEST
+  #   valueExposed: true   
+  # - hidden: true 
+  #   name: SNOW_CLIENT_REFRESH_TOKEN_TEST
+  #   secure: true 
+  #   storagePath: keys/project/System_Integrations/SNOW_CLIENT_REFRESH_TOKEN_TEST
+  #   valueExposed: true  
+  # - hidden: true 
+  #   name: AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
+  #   secure: true 
+  #   storagePath: keys/project/System_Integrations/AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST
+  #   valueExposed: true  
   scheduleEnabled: true 
   retry:
     delay: '10'

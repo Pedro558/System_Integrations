@@ -13,7 +13,7 @@ class SnowLink:
     commit_rate:int = field(default_factory=int)
     display_name:str = field(default_factory=str)
 
-    def create_display_name(self, config_cid:str, cloud:str | None = None, origin:str | None = None, dest:str | None = None):
+    def create_display_name(self, cid:str, cloud:str | None = None, origin:str | None = None, dest:str | None = None):
         name = ""
         name = f"{self.client_display_name} - {self.linkType}"
         if origin: name += f" - {origin}"
@@ -32,7 +32,7 @@ class SnowLink:
             )
             name += f" - {banda}"
 
-        if config_cid: name = f"{config_cid} ({name})"
+        if cid: name = f"{cid} ({name})"
         
 
         self.display_name = name

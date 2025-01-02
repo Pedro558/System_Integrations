@@ -58,24 +58,26 @@ class SnowProductLinksImg(ISnowProductLinks):
                 item_sent = next((x for x in item if x.readType == EnumReadType.BITS_SENT), None)
                 item_received = next((x for x in item if x.readType == EnumReadType.BITS_RECEIVED), None)
 
-                if not item_sent or not item_received: breakpoint()
-                if item_sent.file.data or item_received.file.data: breakpoint() 
+                # if not item_sent or not item_received: breakpoint()
+                # if item_sent.file.data or item_received.file.data: breakpoint() 
+
 
                 item_reads_sent = [(x.timeDatetime, x.valueMB) for x in reads if x.item.id == item_sent.id]
                 item_reads_received = [(x.timeDatetime, x.valueMB) for x in reads if x.item.id == item_received.id]
 
 
                 # Create DataFrames for both
-                df_sent = pd.DataFrame(item_reads_sent, columns=["Time", "Upload Traffic"])
-                df_received = pd.DataFrame(item_reads_received, columns=["Time", "Download Traffic"])
+                # inverted to show the client view, instead of the device view
+                df_sent = pd.DataFrame(item_reads_sent, columns=["Time", "Inbound"])
+                df_received = pd.DataFrame(item_reads_received, columns=["Time", "Outbound"])
 
                 # Ensure the Time column is in datetime format
                 df_sent['Time'] = pd.to_datetime(df_sent['Time'])
                 df_received['Time'] = pd.to_datetime(df_received['Time'])
 
                 # Convert traffic values to Mbps
-                df_sent['Upload Traffic'] *= 8  # Convert MB to Mbps
-                df_received['Download Traffic'] *= 8  # Convert MB to Mbps
+                df_sent['Inbound'] *= 8  # Convert MB to Mbps
+                df_received['Outbound'] *= 8  # Convert MB to Mbps
 
                 # Define traffic limit in Mbps
                 traffic_limit = 0
@@ -87,12 +89,12 @@ class SnowProductLinksImg(ISnowProductLinks):
                 fig, ax = plt.subplots(figsize=(14, 7))
 
                 # Plot download (bits received)
-                ax.plot(df_received['Time'], df_received['Download Traffic'], color='#2E86C1', linewidth=2, label='Download Traffic')
-                ax.fill_between(df_received['Time'], df_received['Download Traffic'], color='#2E86C1', alpha=0.2)
+                ax.plot(df_received['Time'], df_received['Outbound'], color='#2E86C1', linewidth=2, label='Outbound')
+                ax.fill_between(df_received['Time'], df_received['Outbound'], color='#2E86C1', alpha=0.2)
 
                 # Plot upload (bits sent)
-                ax.plot(df_sent['Time'], df_sent['Upload Traffic'], color='#E74C3C', linewidth=2, label='Upload Traffic')
-                ax.fill_between(df_sent['Time'], df_sent['Upload Traffic'], color='#E74C3C', alpha=0.2)
+                ax.plot(df_sent['Time'], df_sent['Inbound'], color='#E74C3C', linewidth=2, label='Inbound')
+                ax.fill_between(df_sent['Time'], df_sent['Inbound'], color='#E74C3C', alpha=0.2)
 
                 # Add a horizontal line for the traffic limit
                 if traffic_limit:
@@ -133,7 +135,7 @@ class SnowProductLinksImg(ISnowProductLinks):
                     loc='upper right', 
                     fontsize=12, 
                     frameon=False,
-                    labels=['Download Traffic', 'Upload Traffic', f'Limit: {formatted_limit}'], 
+                    labels=['Inbound', 'Outbound', f'Limit: {formatted_limit}'], 
                     handles=[
                         plt.Line2D([], [], color='#2E86C1', linewidth=2),
                         plt.Line2D([], [], color='#E74C3C', linewidth=2),
@@ -143,12 +145,12 @@ class SnowProductLinksImg(ISnowProductLinks):
 
                 # Add title below the graph
 
-                title = "Download vs Upload"
+                title = "Traffic"
                 if avgTime:
                     title += {
-                        AvgTimeOptions.FIVE_MIN: " ( Average 5 minutes ) ",
-                        AvgTimeOptions.ONE_HOUR: " ( Average 1 hour ) ",
-                        AvgTimeOptions.ONE_DAY: " ( Average 1 day ) ",
+                        AvgTimeOptions.FIVE_MIN: " (Average 5 minutes) ",
+                        AvgTimeOptions.ONE_HOUR: " (Average 1 hour) ",
+                        AvgTimeOptions.ONE_DAY: " (Average 1 day) ",
                     }.get(avgTime)
 
                 fig.text(0.5, 0.01, title, fontsize=18, weight='bold', color='#34495E', ha='center')
@@ -177,7 +179,7 @@ class SnowProductLinksImg(ISnowProductLinks):
 
                 print(f"\t{index+1}/{len(links)} done...")
             except Exception as e:
-                breakpoint()
+                # breakpoint()
                 print(e)
 
 
@@ -236,9 +238,9 @@ class SnowProductLinksImg(ISnowProductLinks):
 
         files = [grouped_items[key][0].file for key in grouped_items.keys()]
         
-        files_nf = [x for x in items if not x.file.name]
-        if files_nf: breakpoint()
-        
+        # files_nf = [x for x in items if not x.file.name]
+        # if files_nf: breakpoint()
+
         self.fileStorage.upload(files) # due to object reference, the files inside the items, will be updated automatically
 
         reads_to_post = []

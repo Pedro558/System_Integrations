@@ -17,15 +17,15 @@ from System_Integrations.classes.strategies.zabbix.ProductLinks.OldZbxDB import 
 
 
 dataType = os.getenv("RD_OPTION_DATA_TYPE")
-# dataType = EnumSyncType.TRENDS.value
+# dataType = EnumSyncType.HIST.value
 dataType = EnumSyncType(dataType)
 
 avgTime = os.getenv("RD_OPTION_AVG_TIME")
-# avgTime = AvgTimeOptions.ONE_HOUR.value[0]
+# avgTime = AvgTimeOptions.FIVE_MIN.value[0]
 avgTime = AvgTimeOptions.get(avgTime)
 
 rangeType = os.getenv("RD_OPTION_RANGE_TYPE")
-# rangeType = EnumRangeOptions.LAST_MONTH.value
+# rangeType = EnumRangeOptions.LAST_DAY.value
 rangeType = EnumRangeOptions(rangeType)
 
 env = os.getenv("RD_OPTION_ENV")

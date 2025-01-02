@@ -1,3 +1,5 @@
+from calendar import c
+from collections import defaultdict
 import os
 import re
 from abc import ABC, abstractmethod
@@ -81,12 +83,29 @@ class ISnowProductLinks(ABC):
                                 x["custom_fields"]["number"], 
                                 list(map(str.lstrip, x["custom_fields"]["config_name"].upper().split(",")))
                             ) for x in acct_config_name]
+        
+        ignorable = [
+            "OR-POA1-SP04-1-2-001", # given wrong CID when creating, actual links are in et-0/0/22.2998 and et-0/0/22.2999
+        ]
+
+        def get_device(name, interface):
+            if not interface: return name
+
+            if "et" in interface:
+                name = name.replace("QFX", "ACX").replace("PSP", "PRP")
+            else:
+                name = name.replace("ACX", "QFX").replace("PRP", "PSP")
+
+            return name
+
 
         device_netb_circ = [ # makes the device info match the device of interface (the device in netbox points to ACX or QFX depending on the commit rate, but the interface is always the delivery interface)
             { **x, "custom_fields": {
                     **x["custom_fields"],
-                    "origin_device": x["custom_fields"]["origin_device"].replace("ACX", "QFX").replace("PRP", "PSP") if "ge" in ( x["custom_fields"]["origin_interface"] or "") else x["custom_fields"]["origin_device"],
-                    "dest_device": x["custom_fields"]["dest_device"] .replace("ACX", "QFX").replace("PRP", "PSP") if "ge" in ( x["custom_fields"]["dest_interface"] or "" ) else x["custom_fields"]["dest_device"],
+                    "origin_device": get_device(x["custom_fields"]["origin_device"], x["custom_fields"]["origin_interface"]),
+                    "dest_device": get_device(x["custom_fields"]["dest_device"], x["custom_fields"]["dest_interface"]),
+                    # "origin_device": x["custom_fields"]["origin_device"].replace("QFX", "ACX").replace("PSP", "PRP") if "et" in ( x["custom_fields"]["origin_interface"] or "") else x["custom_fields"]["origin_device"],
+                    # "dest_device": x["custom_fields"]["dest_device"] .replace("QFX", "ACX").replace("PSP", "PRP") if "et" in ( x["custom_fields"]["dest_interface"] or "" ) else x["custom_fields"]["dest_device"],
                 }
             }
             for x in netbox_circuits
@@ -109,10 +128,21 @@ class ISnowProductLinks(ABC):
                 read_type = config[read_type]
             
             interface = None
+            vlan = "" 
+            interfaceComplete = "" 
             # interface = get_value(item, lambda x: x[1].split(' ')[1].split('(')[0], None)
             interface = get_value(item, lambda x: x[1].split('(')[0], "")
             interface = interface.replace("Interface", "").strip()
-            if re.search(r".*(Vlan.*|.*\.\d+).*", interface): continue # starts with Vlan or ends with <string>.<number>
+            # if re.search(r".*(Vlan.*|.*\.\d+).*", interface): continue # starts with Vlan or ends with <string>.<number>
+            if re.search(r".*Vlan.*", interface): continue # starts with Vlan
+            if re.search(r".*49.*\.\d+.*", interface): continue
+            if re.search(r".*\.\d+.*", interface):
+                parts = interface.split(".") 
+                interface = parts[0]
+                vlan = parts[1]
+
+
+            interfaceComplete = f"{interface}.{vlan}" if vlan else interface
 
             commit_rate = 0
             circuit = None
@@ -127,26 +157,35 @@ class ISnowProductLinks(ABC):
                 cid = get_value(item, lambda x: x[1].split(" - ")[0].split("(")[-1], "")
                 acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
-
             else:
                 config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 if config_name_found:
-                    acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
+                    match = next((x for x in acct_config_name if config_name_found.upper() in x[1]), None)
+                    if match: 
+                        acct = match[0]
+                        config_name_found = match[1][0] # use the first config name of the acct
+                    # acct = next((x[0] for x in acct_config_name if config_name_found.upper() in x[1]), None)
+
                 if interface:
                     circuit = next((x for x in device_netb_circ if 
                                     (
                                         x["custom_fields"]["origin_interface"] == interface 
                                         and x["custom_fields"]["origin_device"] == item[5]
+                                        and (x["custom_fields"]["vlan"] == vlan if vlan else True)
                                     ) 
                                     or (
                                         x["custom_fields"]["dest_interface"] == interface 
                                         and x["custom_fields"]["dest_device"] == item[5]
+                                        # and (x["custom_fields"]["vlan"] == vlan if vlan else True)
                                     )
                                     ), None)
                     
                     if circuit:
                         cid = circuit["cid"]
-            
+
+
+            if cid and cid in ignorable: continue
+
             if cid and not circuit:
                 circuit = next((x for x in device_netb_circ if x["cid"] == cid), None)
 
@@ -154,9 +193,15 @@ class ISnowProductLinks(ABC):
                 if circuit: interface = circuit["custom_fields"]["origin_interface"]
                 else: print("NOT IN NETBOX: "+item[1])
 
+            # if config_name_found and config_name_found.lower() == "procergs": 
+            #     # if interface == "et-0/0/22":  breakpoint()
+            #     if not cid: breakpoint()
+
             if not interface: continue
+            # if not circuit: continue
             
             if circuit:
+                netbox_cid = circuit["cid"]
                 config_cid = circuit["custom_fields"]["config_cid"]
                 commit_rate = circuit["commit_rate"]
                 cloud = circuit["custom_fields"]["cloud"]
@@ -165,10 +210,12 @@ class ISnowProductLinks(ABC):
                 if circuit["custom_fields"]["dest_device"]: 
                     dest = circuit["custom_fields"]["dest_device"].split("-")[2]
 
+                # if interface == "et-0/0/2": breakpoint()
                 if ( circuit["custom_fields"]["origin_device"] != item[5] 
                     # and circuit["custom_fields"]["origin_interface"] != interface 
                     ):
                     continue # avoids having dups of circuits with origin - dest (Like metro connects and on ramps)
+
 
             account = next((x for x in snow_accounts if x["number"] == acct), None)
             if not account:
@@ -205,6 +252,7 @@ class ISnowProductLinks(ABC):
                     temp_cid += f" - {rdm}"
                     cid = temp_cid
 
+
             snowLink = None
             corrLink = next((x for x in snow_links if x["u_link_name"] == cid), None)
             # if item[5] == "PSP-ELEAD-RJO1-QFX-01" and interface == "ge-0/0/15": breakpoint()
@@ -213,11 +261,10 @@ class ISnowProductLinks(ABC):
                 corrLink = next((x for x in snow_links if 
                                 # x["u_customer"] == account["name"] and
                                 x["u_device"] == item[5] and
-                                x["u_interface"] == interface
+                                x["u_interface"] == interfaceComplete
                             ), None)
 
             if corrLink:
-                # "u_customer", "u_device", "u_interface", "u_link_cid", "u_link_name", "u_link_type"
                 snowLink = SnowLink(
                     acct = corrLink["u_customer"]["display_value"] if corrLink["u_customer"] else None,
                     account_sys_id = corrLink["u_customer.sys_id"] if "u_customer.sys_id" in corrLink else None,
@@ -238,7 +285,7 @@ class ISnowProductLinks(ABC):
                 )
 
             snowLink.create_display_name(
-                config_cid=config_cid,
+                cid=netbox_cid,
                 cloud=cloud,
                 origin=origin,
                 dest=dest,
@@ -252,6 +299,8 @@ class ISnowProductLinks(ABC):
                 id = item[0],
                 name = item[1],
                 interfaceName = interface,
+                interfaceComplete = interfaceComplete,
+                vlan = vlan,
                 host = Host(
                     id = item[4],
                     name = item[5],
@@ -262,11 +311,30 @@ class ISnowProductLinks(ABC):
             ))
         
 
+        # remove "duplicates" (same CID but due to logical interfaces, they are created as different items)
+        # ex:
+        # et-0/0/22       up    up   OR-POA1-SP04-1-2-001 - ACCT0010837 - 2GB - POA1POA1 - PROCERGS
+        # et-0/0/22.2988  up    up   Elea OnRamp - Procergs - 5Gbps - pri - POA1-SP4
+        # et-0/0/22.2999  up    up   Elea OnRamp - Procergs - 2Gbps - SEC - POA1-SP4
+        interface_groups = defaultdict(list)
+        for item in aItems:
+            key = (item.host.name, item.interfaceName)
+            interface_groups[key].append(item)
+        
+        filtered_items = []
+        for (host, base_inteface), group in interface_groups.items():
+            if any('.' in item.interfaceComplete for item in group):
+                # if (host, base_inteface) == ("PRP-ELEAD-POA1-ACX-01", "et-0/0/21"): breakpoint()
+                # Keep only logical interfaces if they exist
+                filtered_items.extend(item for item in group if '.' in item.interfaceComplete)
+            else:
+                # If no logical interfaces, keep the physical interface
+                filtered_items.extend(group)
+
+        aItems = filtered_items
 
         # test_item = [x for x in aItems if not x.need_cid][0] # TESTES
         # aItems = [x for x in aItems if x.host.id == test_item.host.id and x.interfaceName == test_item.interfaceName]
-
-        # breakpoint()
 
         return aItems
 
@@ -298,7 +366,7 @@ class ISnowProductLinks(ABC):
                 "sys_id": item[0].snowLink.sys_id if item[0].snowLink.sys_id else None,
                 "u_customer": item[0].snowLink.account_sys_id,
                 "u_device": item[0].host.name,
-                "u_interface": item[0].interfaceName,
+                "u_interface": item[0].interfaceComplete,
                 "u_link_cid": item[0].snowLink.cid,
                 "u_link_name": item[0].snowLink.display_name,
                 "u_link_type": item[0].snowLink.linkType,
@@ -317,6 +385,7 @@ class ISnowProductLinks(ABC):
                 del link_to_post["sys_id"]
                 response = post_to_servicenow_table(self.snow_url, "u_temp_customer_links", link_to_post, self.token)
 
+            # if "response_http" not in response: breakpoint()
             response = response["response_http"]
             link["sys_id"] = None
             try:
@@ -326,7 +395,6 @@ class ISnowProductLinks(ABC):
                     item.snowLink.sys_id = link["sys_id"]
 
             except Exception as error:
-                breakpoint()
                 print(error)
 
         return items

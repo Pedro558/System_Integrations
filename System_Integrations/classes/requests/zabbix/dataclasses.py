@@ -52,6 +52,8 @@ class Item:
     name:str = field(default_factory=str)
     interfaceId:int = field(default_factory=int)
     interfaceName:str = field(default_factory=str)
+    vlan:str = field(default_factory=str)
+    interfaceComplete:str = field(default_factory=str)
     uuid:str = field(default_factory=str)
     readType:EnumReadType = field(default_factory=str)
     host:Host = field(default_factory=Host)

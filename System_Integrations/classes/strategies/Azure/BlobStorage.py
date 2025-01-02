@@ -4,6 +4,7 @@ import time
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
+from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.classes.strategies.Storage.IFileStorage import IFileStorage
 from System_Integrations.classes.strategies.Storage.dataclasses import File
 from commons.classes.utils import get_kwargs
@@ -28,8 +29,9 @@ class BlobStorage(IFileStorage):
 
 
     def auth(self):
-        # TODO RDK TEMPORARY, REMOVE THIS
-        self.token = os.getenv("RD_OPTION_AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST") # os.getenv("storageAccountKey")
+        # FOR TESTS
+        # self.token = os.getenv("RD_OPTION_AZURE_BLOB_STORAGE_ACCOUNT_KEY_TEST") # os.getenv("storageAccountKey")
+        self.token = get_api_token("STORAGE-ACCOUNT-KEY")
         self.containerClient = ContainerClient(
             account_url=self.accountUrl,
             credential=self.token,
@@ -41,8 +43,9 @@ class BlobStorage(IFileStorage):
         start_time = time.time()
         print("Uploading files to Azure...")
         for index, file in enumerate(files):
-            # with open(file.path, 'rb') as data:
-            if not file.name: breakpoint()
+            if not file.name:
+                print("NO FILE NAME, SKIPING...")
+                continue
 
             self.containerClient.upload_blob(
                 name=file.name,
@@ -57,7 +60,7 @@ class BlobStorage(IFileStorage):
                 account_key=self.token,
                 permission=BlobSasPermissions(read=True),  # Grant read permissions
                 start=datetime.now() - timedelta(minutes=5),
-                expiry=datetime.now() + timedelta(hours=24),  # Token valid for 1 hour
+                expiry=datetime.now() + timedelta(days=3),  # Token valid for 1 week
             )
 
             file.url = f"{self.accountUrl}{self.containerName}/{file.name}?{sas_token}"

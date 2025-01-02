@@ -108,6 +108,7 @@ def patch_servicenow_record(envUrl, table_name, record_sys_id, data, token, para
         return {
             #"item": ticket,
             "response": response.__dict__,
+            "response_http": response,
             "error": True,
             "errorMsg": error # TODO AQUI verificar como extrair mensagem
         }
