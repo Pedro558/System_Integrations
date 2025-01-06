@@ -31,8 +31,8 @@
   retry:
     delay: '10'
     retry: '3'
-  schedule:
-    crontab: '0 0 */1 ? * * *' 
+  # schedule:
+  #   crontab: '0 0 */1 ? * * *' 
   plugins:
     ExecutionLifecycle: null
   sequence:
