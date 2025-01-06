@@ -1,5 +1,5 @@
 - id: id
-  name: DEV - Monthly - image
+  name: PRD - 01_Daily - image
   group: ServiceNow Integration/Zabbix - Link Monitoring
   executionEnabled: true
   loglevel: INFO
@@ -7,16 +7,16 @@
   options: 
   - hidden: true 
     name: DATA_TYPE 
-    value: "trend"
+    value: "history"
   - hidden: true 
     name: AVG_TIME 
-    value: "ONE_HOUR"
+    value: "FIVE_MIN"
   - hidden: true 
     name: RANGE_TYPE 
-    value: "LAST_MONTH"
+    value: "LAST_DAY"
   - hidden: true 
     name: ENV 
-    value: "dev"
+    value: "prd"
   - hidden: true 
     name: appid 
     secure: true 
@@ -29,7 +29,7 @@
     valueExposed: true 
   scheduleEnabled: true 
   schedule:
-    crontab: '0 0 */1 ? * * *' 
+    crontab: '0 */5 * ? * * *'
   plugins:
     ExecutionLifecycle: null
   sequence:

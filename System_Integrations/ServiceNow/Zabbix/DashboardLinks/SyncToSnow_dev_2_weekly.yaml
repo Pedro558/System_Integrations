@@ -1,5 +1,5 @@
 - id: id
-  name: DEV - Weekly - image
+  name: DEV - 02_Weekly - image
   group: ServiceNow Integration/Zabbix - Link Monitoring
   executionEnabled: true
   loglevel: INFO
