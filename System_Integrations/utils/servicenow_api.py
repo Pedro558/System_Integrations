@@ -167,7 +167,7 @@ def client_monitoring_multi_post(envUrl, data, token, params={}):
         }
 
 def client_monitoring_multi_post_img(envUrl, data, token, params={}):
-    url = envUrl + '/api/eldi/client_links_monitoring/multi_insert_image_table'
+    url = envUrl + 'api/eldi/client_links_monitoring/multi_insert_image_table'
     headers = {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer '+token,
