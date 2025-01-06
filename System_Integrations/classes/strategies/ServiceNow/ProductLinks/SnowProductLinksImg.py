@@ -173,7 +173,7 @@ class SnowProductLinksImg(ISnowProductLinks):
                 # breakpoint()
 
                 item_sent.file = File(
-                        name=f"{item_sent.snowLink.sys_id}_{rangeType.value}.png",
+                        name=f"{self.env}_{item_sent.snowLink.sys_id}_{rangeType.value}.png",
                         data=buf.getvalue()
                     )
                 item_received.file = item_sent.file
