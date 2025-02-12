@@ -60,7 +60,7 @@ stages:
     vmName: ${{ variables.vmName }}
     runJobDiscovery: true
     jobSourceFolders: 
-      - '${{ variables.pathToFiles }}\scripts'
+      - '${{ variables.pathToFiles }}\ServiceNow'
     runAclUpdate: true
     aclSourceFolders:
       - '${{ variables.project }}' 
