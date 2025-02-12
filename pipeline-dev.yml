@@ -9,7 +9,7 @@ resources:
 
 variables:
     - name: project
-      value: System_Integration
+      value: System_Integrations
 
     - name: pathToFiles
       value: ${{variables.Project}}\ScmImport\System_Integrations
