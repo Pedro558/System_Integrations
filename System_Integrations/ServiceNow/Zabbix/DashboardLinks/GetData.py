@@ -15,7 +15,7 @@ load_dotenv(override=True)
 # NETBOX
 # ===
 netbox_url = "https://10.127.69.93/api"
-netbox_api_key = get_api_token("netbox")
+netbox_api_key = get_api_token("netbox-prd-api")
 netbox_headers = {
     "Authorization": f"Token {netbox_api_key}"
 }
