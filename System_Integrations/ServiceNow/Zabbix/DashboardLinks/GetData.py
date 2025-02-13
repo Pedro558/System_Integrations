@@ -2,6 +2,7 @@ import pymysql, os, re, json, time
 from random import randint
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
+from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.utils.netbox_api import get_tenants
 from System_Integrations.utils.servicenow_api import get_servicenow_auth_token, get_servicenow_table_data, post_to_servicenow_table, client_monitoring_multi_post
 from System_Integrations.utils.parser import get_value
@@ -13,8 +14,8 @@ load_dotenv(override=True)
 # ===
 # NETBOX
 # ===
-netbox_url = os.getenv("netbox_test_url")
-netbox_api_key = os.getenv("netbox_test_api_key")
+netbox_url = "https://10.127.69.93/api"
+netbox_api_key = get_api_token("netbox")
 netbox_headers = {
     "Authorization": f"Token {netbox_api_key}"
 }

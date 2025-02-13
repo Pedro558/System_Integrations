@@ -1,6 +1,7 @@
 from datetime import datetime
 import os
 import time
+from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumRangeOptions, EnumReadType, EnumSyncType, Read
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinks import SnowProductLinks
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.ISnowProductLinks import ISnowProductLinks
@@ -72,8 +73,8 @@ class SyncProductLinksSnow:
         self.targetSystem.auth()
 
         # Netbox auth
-        netbox_url = os.getenv("netbox_test_url")
-        netbox_api_key = os.getenv("netbox_test_api_key")
+        netbox_url = "https://10.127.69.93/api"
+        netbox_api_key = get_api_token("netbox")
         netbox_headers = {
             "Authorization": f"Token {netbox_api_key}"
         }
