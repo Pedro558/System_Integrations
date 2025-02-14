@@ -172,7 +172,7 @@ class BaseUpdateStrategy(BaseTicketProcessingStrategy, ISnowTicketProcessingStra
 
     def post(self):
         if not self.gx_updates_to_post:
-            breakpoint()
+            # breakpoint()
             print("No updates were found")
             return
         
