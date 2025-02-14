@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.classes.requests.zabbix.SyncProductReadsSnow import SyncProductLinksSnow
 from System_Integrations.classes.requests.zabbix.dataclasses import AvgTimeOptions, EnumSyncType
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinks import SnowProductLinks
@@ -17,8 +18,8 @@ db.connect()
 targetSystem.auth()
 
 # Netbox auth
-netbox_url = os.getenv("netbox_test_url")
-netbox_api_key = os.getenv("netbox_test_api_key")
+netbox_url = "https://10.127.69.93/api"
+netbox_api_key = get_api_token("netboxprd-api")
 netbox_headers = {
     "Authorization": f"Token {netbox_api_key}"
 }

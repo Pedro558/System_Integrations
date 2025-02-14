@@ -8,6 +8,7 @@ from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductL
 from System_Integrations.classes.strategies.ServiceNow.ProductLinks.SnowProductLinksImg import SnowProductLinksImg
 from System_Integrations.classes.strategies.zabbix.ProductLinks.NewZbxDB import NewZbxDB
 from System_Integrations.classes.strategies.zabbix.ProductLinks.OldZbxDB import OldZbxDB
+from commons.utils.env import only_run_in
 
 # db = OldZbxDB()
 # db = NewZbxDB()
@@ -15,30 +16,35 @@ from System_Integrations.classes.strategies.zabbix.ProductLinks.OldZbxDB import 
 #     fileStorage = BlobStorage()
 # )
 
+def execute():
+    dataType = os.getenv("RD_OPTION_DATA_TYPE")
+    # dataType = EnumSyncType.HIST.value
+    dataType = EnumSyncType(dataType)
 
-dataType = os.getenv("RD_OPTION_DATA_TYPE")
-# dataType = EnumSyncType.HIST.value
-dataType = EnumSyncType(dataType)
+    avgTime = os.getenv("RD_OPTION_AVG_TIME")
+    # avgTime = AvgTimeOptions.FIVE_MIN.value[0]
+    avgTime = AvgTimeOptions.get(avgTime)
 
-avgTime = os.getenv("RD_OPTION_AVG_TIME")
-# avgTime = AvgTimeOptions.FIVE_MIN.value[0]
-avgTime = AvgTimeOptions.get(avgTime)
+    rangeType = os.getenv("RD_OPTION_RANGE_TYPE")
+    # rangeType = EnumRangeOptions.LAST_DAY.value
+    rangeType = EnumRangeOptions(rangeType)
 
-rangeType = os.getenv("RD_OPTION_RANGE_TYPE")
-# rangeType = EnumRangeOptions.LAST_DAY.value
-rangeType = EnumRangeOptions(rangeType)
+    env = os.getenv("RD_OPTION_ENV")
 
-env = os.getenv("RD_OPTION_ENV")
+    factory = SyncToSnowFactory()
+    db = factory.create_db(source="new") 
+    targetSystem = factory.create_snow_processor(info_as="image", env=env)
 
-factory = SyncToSnowFactory()
-db = factory.create_db(source="new") 
-targetSystem = factory.create_snow_processor(info_as="image", env=env)
+    request = SyncProductLinksSnow(
+        db,
+        targetSystem,
+        dataType = dataType,
+        avgTime = avgTime,
+        rangeType = rangeType,
+    )
+    request.run()
 
-request = SyncProductLinksSnow(
-    db,
-    targetSystem,
-    dataType = dataType,
-    avgTime = avgTime,
-    rangeType = rangeType,
-)
-request.run()
+
+if __name__ == "__main__":
+    only_run_in(["Homolog", "Prod"])
+    execute()

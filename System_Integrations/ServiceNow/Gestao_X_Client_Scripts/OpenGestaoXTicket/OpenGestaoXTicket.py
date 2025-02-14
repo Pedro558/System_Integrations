@@ -2,37 +2,44 @@ import os
 from System_Integrations.ServiceNow.Strategies.ServiceNow.INCProcessingStrategy import INCProcessingStrategy
 from System_Integrations.ServiceNow.Strategies.ServiceNow.RITMProcessingStrategy import RITMProcessingStrategy
 from System_Integrations.ServiceNow.Strategies.ServiceNow.ServiceNowTicketProcessingContext import ServiceNowTicketProcessingContext
+from commons.utils.env import only_run_in
 
 #URL produção
 url_gestao_x = "https://csc.everestdigital.com.br/API/"
 url_servicenow_prd = "https://servicenow.eleadigital.com/"
 
-type = os.getenv("RD_OPTION_TYPE")
 
-strat = None
-if type == "ritm":
-    strat = RITMProcessingStrategy(
-        url_snow=url_servicenow_prd,
-        url_gestao_x=url_gestao_x,
-    )    
-elif type == "inc":
-    strat = INCProcessingStrategy(
-        url_snow=url_servicenow_prd,
-        url_gestao_x=url_gestao_x,
-    )
+def execute():
+    type = os.getenv("RD_OPTION_TYPE")
 
-ticket_context = ServiceNowTicketProcessingContext(strat)
-ticket_context.get_auth()
-ticket_context.fetch_list()
-ticket_context.processing()
+    strat = None
+    if type == "ritm":
+        strat = RITMProcessingStrategy(
+            url_snow=url_servicenow_prd,
+            url_gestao_x=url_gestao_x,
+        )    
+    elif type == "inc":
+        strat = INCProcessingStrategy(
+            url_snow=url_servicenow_prd,
+            url_gestao_x=url_gestao_x,
+        )
 
-ticket_context.post()
-ticket_context.show_results()
+    ticket_context = ServiceNowTicketProcessingContext(strat)
+    ticket_context.get_auth()
+    ticket_context.fetch_list()
+    ticket_context.processing()
 
-ticket_context.post_evidence()
-ticket_context.show_evidence_results()
+    ticket_context.post()
+    ticket_context.show_results()
+
+    ticket_context.post_evidence()
+    ticket_context.show_evidence_results()
 
 
+
+if __name__ == "__main__":
+    only_run_in(["Prod"])
+    execute()
 
 #PARA TESTES EM DEV
 # inc_strat = INCProcessingStrategy(

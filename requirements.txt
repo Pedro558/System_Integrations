@@ -49,7 +49,6 @@ platformdirs==4.3.6
 portalocker==2.8.2
 prompt_toolkit==3.0.48
 psutil==6.1.0
-psycopg2==2.9.10
 pure_eval==0.2.3
 pycparser==2.21
 Pygments==2.18.0
@@ -59,7 +58,6 @@ pyparsing==3.2.0
 python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pytz==2024.1
-pywin32==306
 PyYAML==6.0.2
 pyzmq==26.2.0
 regex==2024.7.24

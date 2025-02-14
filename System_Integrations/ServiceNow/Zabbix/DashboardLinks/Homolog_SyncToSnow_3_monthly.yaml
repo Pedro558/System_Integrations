@@ -1,5 +1,5 @@
 - id: id
-  name: DEV - 03_Monthly - image
+  name: Homolog - 03_Monthly - image
   group: ServiceNow Integration/Zabbix - Link Monitoring
   executionEnabled: true
   loglevel: INFO

@@ -1,5 +1,5 @@
 - id: id
-  name: DEV - 02_Weekly - image
+  name: Homolog - 01_Daily - image
   group: ServiceNow Integration/Zabbix - Link Monitoring
   executionEnabled: true
   loglevel: INFO
@@ -7,13 +7,13 @@
   options: 
   - hidden: true 
     name: DATA_TYPE 
-    value: "trend"
+    value: "history"
   - hidden: true 
     name: AVG_TIME 
-    value: "ONE_HOUR"
+    value: "FIVE_MIN"
   - hidden: true 
     name: RANGE_TYPE 
-    value: "LAST_WEEK"
+    value: "LAST_DAY"
   - hidden: true 
     name: ENV 
     value: "dev"
@@ -28,11 +28,8 @@
     storagePath: keys/project/System_Integrations/azure_app_secret
     valueExposed: true 
   scheduleEnabled: true 
-  retry:
-    delay: '10'
-    retry: '3'
   schedule:
-    crontab: '0 30 0 * * ? *' 
+    crontab: '0 20 0 * * ? *'
   plugins:
     ExecutionLifecycle: null
   sequence:
@@ -42,4 +39,3 @@
       strategy: node-first
       fileExtension: ps1
       scriptInterpreter: powershell.exe -File
-  # timeout: 60s

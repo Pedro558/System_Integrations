@@ -1,0 +1,66 @@
+resources:
+  repositories:
+    - repository: templatesRepo
+      type: git
+      name: pipeline-templates
+    - repository: commonsRepo
+      type: git
+      name: commons
+
+variables:
+    - name: project
+      value: System_Integrations
+
+    - name: pathToFiles
+      value: ${{variables.Project}}\ScmImport\System_Integrations
+
+    - name: env
+      value: Dev # Dev, Homolog, Prod...
+
+    - name: vmName
+      value: DWVBSB1-RDK-01
+
+    - name: branchName
+      value: dev
+
+
+trigger:
+  - dev
+
+pool:
+  name: Default
+  clean: true
+
+stages:
+- template: Python/default_ci.yml@templatesRepo
+  parameters:
+    stageName: Build
+    project: ${{ variables.project }}
+    pythonVersion: '3.11'
+    installDependencies: false
+    runTests: false
+
+- template: Python/default_cd.yml@templatesRepo
+  parameters:
+    stageName: Deploy
+    dependsOn: Build
+    project: ${{ variables.project }}
+    env: ${{ variables.env }}
+    vmName: ${{ variables.vmName }}
+    targetFolder: 'ScmImport'
+    installDependencies: true
+
+- template: Rundeck/default_rdk.yml@templatesRepo
+  parameters:
+    stageName: RundeckUpdate
+    dependsOn: Deploy
+    project: ${{ variables.project }}
+    env: ${{ variables.env }}
+    vmName: ${{ variables.vmName }}
+    runJobDiscovery: true
+    jobSourceFolders: 
+      - '${{ variables.pathToFiles }}\ServiceNow'
+    runAclUpdate: true
+    aclSourceFolders:
+      - '${{ variables.project }}'
+    aclTargetFolder: 'etc'
