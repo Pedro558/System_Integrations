@@ -6,3 +6,4 @@ System_Integrations/ServiceNow/VirtCrossConnect/new_assets/maritaca/maritaca_exe
 System_Integrations/ServiceNow/VirtCrossConnect/new_assets/maritaca/maritaca_exemplo.json
 replacements.txt
 venv/*
+.env
