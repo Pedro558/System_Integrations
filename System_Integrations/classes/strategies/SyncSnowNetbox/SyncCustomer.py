@@ -1,9 +1,9 @@
 from collections import defaultdict
 import re
 
-from httpx import get
 
 from commons.pandas.utils import remove_acento
+from commons.utils.dicts import clear_props
 from commons.utils.snow import get_link
 from .BaseSync import BaseSync
 from typing import List
@@ -76,9 +76,8 @@ class SyncCustomer(BaseSync):
             nickname = nickname or ""
             nickname = nickname.split(",")[0]
 
-        if not nickname: nickname = name
-
-        if not nickname and item_a["account_parent"]:
+        if not nickname and item_a.get("account_parent", None):
+            nickname = name
             city = item_a.get("city", "")
             state = item_a.get("state", "")
             country = item_a.get("country", "")
@@ -89,8 +88,8 @@ class SyncCustomer(BaseSync):
                 nickname = f"{nickname} {state}"
             elif country:
                 nickname = f"{nickname} {country}"
-            else:
-                nickname = nickname + " - " + item_a["number"]
+
+        if not nickname: nickname = name
 
         return nickname.strip()
 
@@ -118,7 +117,7 @@ class SyncCustomer(BaseSync):
             "custom_fields": {
                 "config_name": item_a["u_nickname"],
                 "number": item_a["number"],
-                "snow_link": get_link("customer_account", item_a["sys_id"])
+                "customer_snow_link": get_link("customer_account", item_a["sys_id"])
             }
         }
 
@@ -142,7 +141,7 @@ class SyncCustomer(BaseSync):
                 **item_b["custom_fields"],
                 "config_name": nicknames,
                 "number": item_a["number"],
-                "snow_link": get_link("customer_account", item_a["sys_id"])
+                "customer_snow_link": get_link("customer_account", item_a["sys_id"])
             }
         }
 
@@ -189,6 +188,8 @@ class SyncCustomer(BaseSync):
     def sync_new(self, baseUrl:str, data:List, headers):
         data = data["data_b"]
 
+        
+
         return {
             "result_a": [],
             "result_b": [create_tenants(baseUrl, x, headers) for x in data] 
@@ -197,19 +198,16 @@ class SyncCustomer(BaseSync):
     def sync_update(self, baseUrl:str, data:List, headers):
         # final fixes to make the http request work are done here
         # this is important because the data in the extract_data should only update the values so that it is possible to identify if there were any real changes made
-        n_data = []
         props_to_avoid = ["_depth", "display", "url"]
-        for item_b in data["data_b"]:
-            group = item_b.get("group") or {}
-            group = {k: v for k, v in group.items() if k not in props_to_avoid}
-            n_data.append({
+        for i, item_b in enumerate(data["data_b"]):
+            data["data_b"][i] = {
                 **item_b,
-                "group": group or None,
-            })
+                "group": clear_props(item_b["group"], props_to_avoid),
+            }
 
         return {
             "result_a": [],
-            "result_b": [update_tenants(baseUrl, x, headers) for x in n_data] 
+            "result_b": [update_tenants(baseUrl, x, headers) for x in data["data_b"]] 
         }
 
     def sync_delete(self, baseUrl:str, data:List, headers):
