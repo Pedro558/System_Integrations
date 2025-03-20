@@ -31,8 +31,8 @@ class BaseSync():
     def _extract_data_a(): raise NotImplementedError()
     def _extract_data_b(): raise NotImplementedError()
 
-    def _map_new_a(self, item): return item # used in bidirectional compare
-    def _map_new_b(self, item): return item # used in bidirectional compare
+    def _map_new_a(self, item, data_a): return item # used in bidirectional compare, receives data_a in case it needs to assure some kinda of uniques in the list
+    def _map_new_b(self, item, data_b): return item # used in bidirectional compare, receives data_b in case it needs to assure some kinda of uniques in the list
     def _map_update_b(self, baseItem, newItem): return {**newItem, "id":baseItem["id"]} # used in bidirectional compare
     def _map_update_b(self, baseItem, newItem): return {**newItem, "id":baseItem["id"]} # used in bidirectional compare
 
@@ -66,6 +66,16 @@ class BaseSync():
         update = {"data_a": [], "data_b": []}
         delete = {"data_a": [], "data_b": []}
 
+        # To improve performance in this comparison, we can use a set with tuples containing the extracted attributes.
+        # This allows for O(1) lookups instead of an O(n * m) nested loop.
+        # Example: 
+        # Creating a set of unique identifiers for fast lookup
+        # existing_racks = {("Rack1", "DH01", "SiteA"), ("Rack2", "DH02", "SiteB")}
+        # Checking if a given rack exists in the set
+        # rack_to_check = ("Rack1", "DH01", "SiteA")
+        # corr_rack = [x for x in existing_racks if x == rack_to_check] # O(1)
+        # ** To make this work, the tuples need to have the properties in the same order, review the Sync Classes and make sure the extract info methods are returning the same order of properties
+
         extracted_a = self._extract_data_a(data_a)
         extracted_b = self._extract_data_b(data_b)
 
@@ -73,9 +83,11 @@ class BaseSync():
             matches = list(filter(lambda x: x["extracted_info"] == newItem["extracted_info"], extracted_b))
             if len(matches) == 0:
                 mappedItem = self._map_new_b(newItem["item"], data_b)
+                if not mappedItem: continue
                 new["data_b"] += [mappedItem]
             else: 
                 mappedItem = self._map_update_b(newItem["item"], matches[0]["item"], data_b)
+                if not mappedItem: continue
                 has_updates = mappedItem != matches[0]["item"]
                 if has_updates:
                     update["data_b"] += [mappedItem] # the scenario where more than one match is found is not treated
