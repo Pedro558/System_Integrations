@@ -1,6 +1,7 @@
 import os
 
 
+from System_Integrations.auth.api_secrets import get_api_token
 from System_Integrations.classes.strategies.SyncSnowNetbox.SyncDataHall import SyncDataHall
 from System_Integrations.classes.strategies.SyncSnowNetbox.SyncContext import SyncContext
 from System_Integrations.classes.strategies.SyncSnowNetbox.SyncCustomer import SyncCustomer
@@ -24,12 +25,17 @@ def get_netbox_tenants(netbox_url, headers):
 
 def execute():
     url_snow = "https://eleadev.service-now.com/" # DEV
-    servicenow_client_id = os.getenv("RD_OPTION_SNOW_CLIENT_ID_TEST") #get_api_token('servicenow-prd-client-id-oauth')
-    servicenow_client_secret = os.getenv("RD_OPTION_SNOW_CLIENT_SECRET_TEST") #get_api_token('servicenow-prd-client-secret-oauth')
-    service_now_refresh_token = os.getenv("RD_OPTION_SNOW_CLIENT_REFRESH_TOKEN_TEST") #get_api_token('servicenow-prd-refresh-token-oauth')
+    # servicenow_client_id = os.getenv("RD_OPTION_SNOW_CLIENT_ID_TEST") #get_api_token('servicenow-prd-client-id-oauth')
+    # servicenow_client_secret = os.getenv("RD_OPTION_SNOW_CLIENT_SECRET_TEST") #get_api_token('servicenow-prd-client-secret-oauth')
+    # service_now_refresh_token = os.getenv("RD_OPTION_SNOW_CLIENT_REFRESH_TOKEN_TEST") #get_api_token('servicenow-prd-refresh-token-oauth')
+    env = os.getenv("ENVIRONMENT")
+    servicenow_client_id = get_api_token('servicenow-prd-client-id-oauth' if env == "prd" else 'servicenow-dev-client-id-oauth')
+    servicenow_client_secret = get_api_token('servicenow-prd-client-secret-oauth' if env == "prd" else 'servicenow-dev-client-secret-oauth')
+    service_now_refresh_token = get_api_token('servicenow-prd-refresh-token-oauth' if env == "prd" else 'servicenow-dev-refresh-token-oauth')
 
     netbox_url = "https://10.62.70.93/api" # homolog
-    netbox_token = os.getenv("netbox_test_api_key")
+    # netbox_token = os.getenv("netbox_test_api_key")
+    netbox_token = get_api_token("netbox-homolog-api")
     netbox_headers = {
         "Content-Type": "application/json",
         "authorization": f"Token {netbox_token}"
@@ -43,7 +49,7 @@ def execute():
     snow_customer = [x for x in snow_customer if x.get("number") and x.get("name")]
     netbox_tenants = get_netbox_tenants(netbox_url, netbox_headers)
 
-    if False:
+    if True:
         print("--- Customer ---")
         sync = SyncContext(SyncCustomer(), snow_customer, netbox_tenants) 
         sync.compare()
@@ -54,7 +60,7 @@ def execute():
     # region and site
     location_fields = ["sys_id, name, street, zip, city, state, latitude, longitude"]
     snow_location = get_servicenow_table_data(url_snow, "cmn_location", {"sysparm_display_value": True, "sysparm_fields":", ".join(location_fields)}, token)
-    if False:
+    if True:
         print("--- Region ---")
         snow_region = [{
                 **x,
@@ -71,7 +77,7 @@ def execute():
         sync.sync_all(baseUrl=netbox_url, headers=netbox_headers)
         sync.display_results()
 
-    if False:
+    if True:
         # Sites
         print("--- Sites ---")
         netbox_site = get_sites(netbox_url, netbox_headers)
@@ -87,7 +93,8 @@ def execute():
 
 
     # data halls
-    if False:
+    if True:
+        print("--- Data Halls ---")
         dh_fields = ["sys_id, name, u_site"]
         snow_dh = get_servicenow_table_data(url_snow, "u_cmdb_ci_data_hall", {"sysparm_display_value": True, "sysparm_fields":", ".join(dh_fields)}, token)
         netbox_dh = get_data_halls(netbox_url, netbox_headers)
@@ -95,10 +102,7 @@ def execute():
         sync = SyncContext(SyncDataHall(), snow_dh, netbox_dh) 
         sync.compare()
         sync.sync_all(baseUrl=netbox_url, headers=netbox_headers)
-        print("--- Data Halls ---")
         sync.display_results()
-
-        breakpoint()
 
 
     # racks
@@ -135,12 +139,8 @@ def execute():
 
     sync = SyncContext(SyncRack(), snow_rack, netbox_rack) 
     sync.compare()
-    breakpoint()
     sync.sync_all(baseUrl=netbox_url, headers=netbox_headers)
     sync.display_results()
-
-    breakpoint()
-
 
 
 if __name__ == "__main__":
