@@ -109,10 +109,11 @@ class SyncSite(BaseSync):
     def sync_update(self, baseUrl:str, data:List, headers):
         props_to_avoid = ["_depth", "display", "url"]
         for i, item_b in enumerate(data["data_b"]):
+
             data["data_b"][i] = {
                 **item_b,
                 "group": clear_props(item_b["group"], props_to_avoid),
-                "site": clear_props(item_b["site"], props_to_avoid),
+                "region": clear_props(item_b["region"], props_to_avoid),
                 "status": get_value(item_b, lambda x: x["status"]["value"], None),
             }
 
