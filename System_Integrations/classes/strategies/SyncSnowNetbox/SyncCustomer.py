@@ -52,7 +52,6 @@ class SyncCustomer(BaseSync):
     def _build_name(self, item_a, item_b=None):
         # check if in item_a theres the field city and state
         # Use in this order o priority to add it to the end of the name
-        breakpoint()
         city = item_a.get("city", "")
         state = item_a.get("state", "")
 
