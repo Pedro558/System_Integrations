@@ -6,4 +6,4 @@ $activateScript = Join-Path -Path $scriptPath -ChildPath "venv\Scripts\Activate.
 # Run your Python script
 $scriptModule = "System_Integrations.ServiceNow.Netbox.SyncData.SyncData"
 Set-Location -Path $scriptPath
-python -m $scriptModule
+python -u -m $scriptModule
