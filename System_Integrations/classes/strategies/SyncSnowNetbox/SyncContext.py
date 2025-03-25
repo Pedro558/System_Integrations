@@ -210,9 +210,11 @@ class SyncContext():
                         response = result.text
                     
                     print(tab(), tab(), "Response")
-                    print(tab(), tab(), "   ╰──> ", response)
+                    print(tab(), tab(), "    --> ", response)
+                    # print(tab(), tab(), "   ╰──> ", response)
                     print(tab(), tab(), "Data sent")
-                    print(tab(), tab(), "   ╰──> ", result.request.body)
+                    print(tab(), tab(), "    --> ", result.request.body)
+                    # print(tab(), tab(), "   ╰──> ", result.request.body)
                 
                 print()
 
