@@ -130,7 +130,7 @@ def execute():
     len_filtered_snow_rack = len(snow_rack) 
     len_cleared = len_all_snow_rack - len_filtered_snow_rack
     if len_cleared > 0:
-        print(f"\t-> Skipping racks without site or data hall ({len_cleared} records)")
+        print(f"-> Skipping racks without site or data hall ({len_cleared} records)")
 
     # take small subset for testing
     # snow_rack = [x for x in snow_rack if "AQ28" in x["name"]]

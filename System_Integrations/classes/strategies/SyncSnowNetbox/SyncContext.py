@@ -203,8 +203,14 @@ class SyncContext():
                     print(tab(), f"({result.status_code} {result.reason}) - REQUEST {i + 1}")
                 
                 if not result.ok:
+                    response = ""
+                    try:
+                        response = result.json()
+                    except:
+                        response = result.text
+                    
                     print(tab(), tab(), "Response")
-                    print(tab(), tab(), "   ╰──> ", result.json())
+                    print(tab(), tab(), "   ╰──> ", response)
                     print(tab(), tab(), "Data sent")
                     print(tab(), tab(), "   ╰──> ", result.request.body)
                 
