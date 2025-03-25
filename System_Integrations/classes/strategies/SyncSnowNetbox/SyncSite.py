@@ -52,14 +52,15 @@ class SyncSite(BaseSync):
         if street: physical_address += f"{street}"
         if city: physical_address += f", {city} {f'- {state}' if state else ''}"  
         if zip: physical_address += f", {zip}"  
+        physical_address = physical_address.strip()
 
         return {
             "name": name,
             "slug": re.sub(r'[^a-z0-9]+', '-', remove_acento(name.lower())),  
             "region": { "name": name[0:3] },
             "physical_address": physical_address,
-            "latitude": latitude,
-            "longitude": longitude,
+            "latitude": latitude if latitude else None,
+            "longitude": longitude if longitude else None,
             "custom_fields": {
                 "location_snow_sys_id": get_value(item, lambda x: x["sys_id"], None),
                 "location_snow_link": get_link("cmn_location", item["sys_id"])
@@ -85,13 +86,14 @@ class SyncSite(BaseSync):
         if street: physical_address += f"{street}"
         if city: physical_address += f", {city} {f'- {state}' if state else ''}"  
         if zip: physical_address += f", {zip}"  
+        physical_address = physical_address.strip()
 
         return {
             **item_b,
             "name": get_value(item_a, lambda x: x["name"], None),
             "physical_address": physical_address,
-            "latitude": latitude,
-            "longitude": longitude,
+            "latitude": latitude if latitude else None,
+            "longitude": longitude if longitude else None,
             "custom_fields": {
                 **item_b["custom_fields"],
                 "location_snow_sys_id": get_value(item_a, lambda x: x["sys_id"], None),
