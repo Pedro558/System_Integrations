@@ -48,8 +48,8 @@ class SyncDataHall(BaseSync):
             "site": {"name": site},
             "status": "active",
             "custom_fields": {
-                "location_snow_sys_id": get_value(item, lambda x: x["sys_id"], None),
-                "location_snow_link": get_link("u_cmdb_ci_data_hall", item["sys_id"])
+                "dh_snow_sys_id": get_value(item, lambda x: x["sys_id"], None),
+                "dh_snow_link": get_link("u_cmdb_ci_data_hall", item["sys_id"], self.base_url_a)
             }
         }
     
@@ -69,7 +69,7 @@ class SyncDataHall(BaseSync):
             "custom_fields": {
                 **item_b["custom_fields"],
                 "dh_snow_sys_id": get_value(item_a, lambda x: x["sys_id"], None),
-                "dh_snow_link": get_link("u_cmdb_ci_data_hall", item_a["sys_id"])
+                "dh_snow_link": get_link("u_cmdb_ci_data_hall", item_a["sys_id"], self.base_url_a)
             }
         }
 

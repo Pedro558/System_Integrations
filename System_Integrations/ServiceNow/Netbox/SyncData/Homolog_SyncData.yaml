@@ -7,6 +7,9 @@
   nodeFilterEditable: false
   options: 
   - hidden: true 
+    name: env 
+    value: "dev"
+  - hidden: true 
     name: appid 
     secure: true 
     storagePath: keys/project/System_Integrations/azure_app_id

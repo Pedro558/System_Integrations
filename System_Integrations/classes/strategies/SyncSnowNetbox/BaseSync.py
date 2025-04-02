@@ -16,8 +16,10 @@ class BaseSync():
     system_a = "ServiceNow"
     system_b = "Netbox"
     
-    def __init__(self, syncType=SyncType.target):
+    def __init__(self, syncType=SyncType.target, base_url_a=None, base_url_b=None):
         self.syncType = syncType
+        self.base_url_a = base_url_a
+        self.base_url_b = base_url_b
 
     def check_if_it_has(self, arr):
         if self.syncType == SyncType.target: return len(arr["data_b"]) > 0 

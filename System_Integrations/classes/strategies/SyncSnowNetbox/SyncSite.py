@@ -63,7 +63,7 @@ class SyncSite(BaseSync):
             "longitude": longitude if longitude else None,
             "custom_fields": {
                 "location_snow_sys_id": get_value(item, lambda x: x["sys_id"], None),
-                "location_snow_link": get_link("cmn_location", item["sys_id"])
+                "location_snow_link": get_link("cmn_location", item["sys_id"], self.base_url_a)
             }
         }
     
@@ -97,7 +97,7 @@ class SyncSite(BaseSync):
             "custom_fields": {
                 **item_b["custom_fields"],
                 "location_snow_sys_id": get_value(item_a, lambda x: x["sys_id"], None),
-                "location_snow_link": get_link("cmn_location", item_a["sys_id"])
+                "location_snow_link": get_link("cmn_location", item_a["sys_id"], self.base_url_a)
             }
         }
 

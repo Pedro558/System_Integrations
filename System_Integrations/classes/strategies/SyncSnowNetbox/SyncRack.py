@@ -70,12 +70,16 @@ class SyncRack(BaseSync):
             "u_height": u_height,
             "custom_fields": {
                 "rack_snow_sys_id": get_value(item, lambda x: x["sys_id"], None),
-                "rack_snow_link": get_link("cmdb_ci_rack", item["sys_id"])
+                "rack_snow_link": get_link("cmdb_ci_rack", item["sys_id"], self.base_url_a)
             },
         }
     
     def _map_update_b(self, item_a, item_b, data_b):
-        if item_a.get("sys_id", 1) != item_b.get("custom_fields").get("rack_snow_sys_id", 2):
+        if (
+            item_b.get("custom_fields").get("rack_snow_sys_id") # if it was already mapped in a past sync
+            and
+            item_a.get("sys_id", 1) != item_b.get("custom_fields").get("rack_snow_sys_id", 2) # check if it is being mapped to the same item in servicenow
+            ):
             return
 
         site = get_value(item_a, lambda x: x["u_data_hall.u_site"]["display_value"], None)
@@ -122,13 +126,31 @@ class SyncRack(BaseSync):
             "u_height": u_height,
             "custom_fields": {
                 "rack_snow_sys_id": get_value(item_a, lambda x: x["sys_id"], None),
-                "rack_snow_link": get_link("cmdb_ci_rack", item_a["sys_id"])
+                "rack_snow_link": get_link("cmdb_ci_rack", item_a["sys_id"], self.base_url_a)
             },
         }
 
     def sync_new(self, baseUrl:str, data:List, headers):
-        data = data["data_b"]
+        props_to_avoid = ["_depth", "display", "url"]
+        for i, item_b in enumerate(data["data_b"]):
+            obj = {
+                **item_b,
+                "width": get_value(item_b, lambda x: x["width"]["value"], None),
+                "location": clear_props(item_b["location"], props_to_avoid),
+                "tenant": clear_props(item_b["tenant"], props_to_avoid),
+                "site": clear_props(item_b["site"], props_to_avoid),
+                "status": get_value(item_b, lambda x: x["status"]["value"], None),
+            }
 
+            if obj.get("type", None) == None: 
+                del obj["type"]
+
+            if obj.get("weight_unit", None) == None: 
+                del obj["weight_unit"]
+
+            data["data_b"][i] = obj
+
+        data = data["data_b"]
         processor = lambda chunk: [create_racks(baseUrl, x, headers) for x in chunk]
         results = process_chunks(data, processor, chunk_size=20, delay=0.5, should_print=False)
         
@@ -144,9 +166,13 @@ class SyncRack(BaseSync):
                 **item_b,
                 "width": get_value(item_b, lambda x: x["width"]["value"], None),
                 "location": clear_props(item_b["location"], props_to_avoid),
-                "tenant": clear_props(item_b["tenant"], props_to_avoid),
+                "tenant": {"id": item_b["tenant"]["id"]} if item_b['tenant'] else None,
                 "site": clear_props(item_b["site"], props_to_avoid),
                 "status": get_value(item_b, lambda x: x["status"]["value"], None),
+                "role": get_value(item_b, lambda x: x["role"]["value"], None),
+                "type": get_value(item_b, lambda x: x["type"]["value"], None),
+                "weight_unit": get_value(item_b, lambda x: x["weight_unit"]["value"], None),
+                "outer_unit": get_value(item_b, lambda x: x["outer_unit"]["value"], None),
             }
 
             if obj.get("type", None) == None: 

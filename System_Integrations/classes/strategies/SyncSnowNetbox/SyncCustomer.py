@@ -114,9 +114,9 @@ class SyncCustomer(BaseSync):
             "name": name,
             "slug": slug,
             "custom_fields": {
-                "config_name": item_a["u_nickname"],
+                "config_name": item_a.get("u_nickname", None),
                 "number": item_a["number"],
-                "customer_snow_link": get_link("customer_account", item_a["sys_id"])
+                "customer_snow_link": get_link("customer_account", item_a["sys_id"], self.base_url_a)
             }
         }
 
@@ -140,7 +140,7 @@ class SyncCustomer(BaseSync):
                 **item_b["custom_fields"],
                 "config_name": nicknames,
                 "number": item_a["number"],
-                "customer_snow_link": get_link("customer_account", item_a["sys_id"])
+                "customer_snow_link": get_link("customer_account", item_a["sys_id"], self.base_url_a)
             }
         }
 
