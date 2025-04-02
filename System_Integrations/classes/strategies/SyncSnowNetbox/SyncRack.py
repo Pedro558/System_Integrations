@@ -142,10 +142,10 @@ class SyncRack(BaseSync):
                 "status": get_value(item_b, lambda x: x["status"]["value"], None),
             }
 
-            if obj.get("type", None) == None: 
+            if obj.get("type", None) == None and "type" in obj: 
                 del obj["type"]
 
-            if obj.get("weight_unit", None) == None: 
+            if obj.get("weight_unit", None) == None and "weight_unit" in obj: 
                 del obj["weight_unit"]
 
             data["data_b"][i] = obj
