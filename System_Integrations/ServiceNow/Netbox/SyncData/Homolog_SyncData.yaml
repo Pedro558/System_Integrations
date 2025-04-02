@@ -1,0 +1,36 @@
+- id: id
+  name: ServiceNow - Netbox - Sync Data
+  group: ServiceNow - Netbox
+  description: Customers, Site, Data Hall, Racks
+  executionEnabled: true
+  loglevel: INFO
+  nodeFilterEditable: false
+  options: 
+  - hidden: true 
+    name: env 
+    value: "dev"
+  - hidden: true 
+    name: appid 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_id
+    valueExposed: true 
+  - hidden: true 
+    name: appsecret 
+    secure: true 
+    storagePath: keys/project/System_Integrations/azure_app_secret
+    valueExposed: true 
+  scheduleEnabled: true 
+  retry:
+    delay: '10'
+    retry: '3'
+  schedule:
+    crontab: '0 0 */1 ? * * *'
+  plugins:
+    ExecutionLifecycle: null
+  sequence:
+    commands:
+    - scriptfile: C:\rundeck\projects\System_Integrations\ScmImport\System_Integrations\ServiceNow\Netbox\SyncData\SyncData.ps1
+      keepgoing: false
+      strategy: node-first
+      fileExtension: ps1
+      scriptInterpreter: powershell.exe -File
