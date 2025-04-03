@@ -14,7 +14,7 @@ variables:
       value: System_Integrations
 
     - name: pathToFiles
-      value: ${{variables.Project}}\ScmImport\System_Integration
+      value: ${{variables.Project}}\ScmImport\System_Integrations
 
     - name: env
       value: Prod # Dev, Homolog, Prod...
