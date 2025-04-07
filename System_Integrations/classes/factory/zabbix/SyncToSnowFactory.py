@@ -16,18 +16,18 @@ load_dotenv(override=True)
 class SyncToSnowFactory:
 
     zbxDbs = [
-        NewZbxDB(
-            ipaddress="10.41.70.90", database="zabbix2",
-            user="zabbix",
-            secretName="ZBX-DB-CTA1-1",
-            # secretName="zabbix_db_pwd" # FOR TESTS
-        ),
-        # NewZbxDB(
-        #     ipaddress="10.127.70.92", database="zabbix_new",
+        # NewZbxDB( # Unstable, not using for now
+        #     ipaddress="10.41.70.90", database="zabbix2",
         #     user="zabbix",
-        #     # secretName="ZBX-DB-SPO1-2",
-        #     secretName="RD_OPTION_NZBX_SPO1_2_TEST" # FOR TESTS
+        #     secretName="ZBX-DB-CTA1-1",
+        #     # secretName="zabbix_db_pwd" # FOR TESTS
         # ),
+        NewZbxDB(
+            ipaddress="10.127.70.92", database="zabbix_new",
+            user="zabbix",
+            secretName="ZBX-DB-SPO1-2",
+            # secretName="RD_OPTION_NZBX_SPO1_2_TEST" # FOR TESTS
+        ),
         # TODO Put in information for the other SPO1 DB
         # NewZbxDB(
         #     ipaddress="10.11.70.92", database="zabbix",
