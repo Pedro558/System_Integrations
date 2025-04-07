@@ -14,6 +14,7 @@ from System_Integrations.utils.parser import get_value
 from System_Integrations.utils.servicenow_api import client_monitoring_multi_post, get_servicenow_auth_token, get_servicenow_table_data, patch_servicenow_record, post_to_servicenow_table
 from dotenv import load_dotenv
 from System_Integrations.utils.parser import group_by
+from commons.network.link.customer import get_info_from_desc
 
 load_dotenv(override=True)
 
@@ -149,14 +150,23 @@ class ISnowProductLinks(ABC):
             cid = ""
             config_cid = "" 
             cloud = None
+            
+            # TODO if device name pattern changes, this need to be refactored
             origin = item[5].split("-")[2] if item[5] else None 
             dest = None 
 
-
             if "ACCT" in item[1]:
-                cid = get_value(item, lambda x: x[1].split(" - ")[0].split("(")[-1], "")
-                acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
+                # get the content inside the parenthesis
+                match = re.search(r'\((.*?)\)', item[1])
+                desc = match.group(1) if match else ""
+                # get info from the description
+                info, _ = get_info_from_desc(desc)
+                cid = info.get("cid")
+                acct = info.get("acct")
                 config_name_found = next((x[1][0] for x in acct_config_name if acct == x[0]), None)
+
+                # cid = get_value(item, lambda x: x[1].split(" - ")[0].split("(")[-1], "")
+                # acct = get_value(item, lambda x: x[1].split(" - ")[1], None)
             else:
                 config_name_found = get_value(item, lambda x: x[1].split(" - ")[1], None)
                 if config_name_found:
