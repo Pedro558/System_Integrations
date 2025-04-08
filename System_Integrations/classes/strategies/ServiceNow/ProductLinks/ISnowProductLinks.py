@@ -243,6 +243,7 @@ class ISnowProductLinks(ABC):
                 elif "OR" in cid: linkType = "Elea On Ramp"
 
             need_cid = False
+
             # TEMP: generates a temp cid, while definitive solution is still on the works
             if not cid:
                 need_cid = True
@@ -250,7 +251,11 @@ class ISnowProductLinks(ABC):
                 # this is for link that do not have a cid in the new pattern, to avoid bits sent and bits received of the same link to have a different identifier
                 corr_item = None
                 if interface:
-                    corr_item = next((x for x in aItems if x.host.name == item[5] and x.interfaceName == interface), None)
+                    corr_item = next((x for x in aItems if
+                                      x.host.name == item[5] and
+                                      x.interfaceName == interface and
+                                      (x.vlan == vlan if vlan else True)
+                                    ), None)
 
                 if corr_item:
                     cid = corr_item.snowLink.cid
@@ -265,7 +270,7 @@ class ISnowProductLinks(ABC):
 
             snowLink = None
             corrLink = next((x for x in snow_links if x["u_link_name"] == cid), None)
-            # if item[5] == "PSP-ELEAD-RJO1-QFX-01" and interface == "ge-0/0/15": breakpoint()
+            # if item[5] == "PRP-ELEAD-SP04-ACX-02" and interface == "et-0/0/2": breakpoint()
             # if item[5] == "PSP-ELEAD-RJO1-QFX-01": breakpoint()
             if not corrLink and interface:
                 corrLink = next((x for x in snow_links if 
@@ -273,6 +278,7 @@ class ISnowProductLinks(ABC):
                                 x["u_device"] == item[5] and
                                 x["u_interface"] == interfaceComplete
                             ), None)
+
 
             if corrLink:
                 snowLink = SnowLink(
