@@ -60,7 +60,7 @@ class BlobStorage(IFileStorage):
                 account_key=self.token,
                 permission=BlobSasPermissions(read=True),  # Grant read permissions
                 start=datetime.now() - timedelta(minutes=5),
-                expiry=datetime.now() + timedelta(days=3),  # Token valid for 1 week
+                expiry=datetime.now() + timedelta(days=10000),
             )
 
             file.url = f"{self.accountUrl}{self.containerName}/{file.name}?{sas_token}"

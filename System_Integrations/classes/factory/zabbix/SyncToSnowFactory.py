@@ -16,19 +16,18 @@ load_dotenv(override=True)
 class SyncToSnowFactory:
 
     zbxDbs = [
+        # NewZbxDB( # Unstable, not using for now
+        #     ipaddress="10.41.70.90", database="zabbix2",
+        #     user="zabbix",
+        #     secretName="ZBX-DB-CTA1-1",
+        #     # secretName="zabbix_db_pwd" # FOR TESTS
+        # ),
         NewZbxDB(
             ipaddress="10.127.70.92", database="zabbix_new",
             user="zabbix",
             secretName="ZBX-DB-SPO1-2",
             # secretName="RD_OPTION_NZBX_SPO1_2_TEST" # FOR TESTS
         ),
-        # Temporarily disabled while conversys is fixing the db
-        #  NewZbxDB(
-        #     ipaddress="10.11.70.92", database="zabbix",
-        #     user="zabbix", 
-        #     secretName="ZBX-DB-SPO1-2",
-        #     # secretName="RD_OPTION_NZBX_SPO1_2_TEST" # FOR TESTS
-        # ),
         # TODO Put in information for the other SPO1 DB
         # NewZbxDB(
         #     ipaddress="10.11.70.92", database="zabbix",
@@ -78,7 +77,6 @@ class SyncToSnowFactory:
             targetSystem = SnowProductLinksImg(
                 env=env,
                 # For local testing
-                # FOR TESTS
                 # clientId = os.getenv("RD_OPTION_SNOW_CLIENT_ID_TEST"),
                 # clientSecret = os.getenv("RD_OPTION_SNOW_CLIENT_SECRET_TEST"),
                 # refreshToken = os.getenv("RD_OPTION_SNOW_CLIENT_REFRESH_TOKEN_TEST"),
